@@ -27,6 +27,9 @@ const readPlayers = async (game) =>
 export const subscribePlayers = (game, cb, onErr) =>
   onSnapshot(collection(db, GAMES[game].players), (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() }))), onErr);
 
+export const subscribePlayer = (game, userId, cb, onErr) =>
+  onSnapshot(doc(db, GAMES[game].players, userId), (s) => cb(s.exists() ? { id: s.id, ...s.data() } : null), onErr);
+
 export const subscribeExcluded = (game, cb, onErr) =>
   onSnapshot(collection(db, 'gameConfig'), (s) => {
     const d = s.docs.find((x) => x.id === game);
@@ -202,9 +205,11 @@ export async function killPlayer(victimId, killerId, nameOf, story = null) {   /
       if (k.targetId !== victimId) throw fail('target', 'This is no longer your victim.');
     }
     const next = v.targetId || null;
+    const storyText = story ? String(story.text || '').trim().slice(0, KILL_STORY_MAX) : '';
+    const storyDiff = story?.difficulty || '';
     const dead = { dead: true, killedBy: killerId || null, killedAt: serverTimestamp(), targetId: v.targetId || null, killUndo: null,
-      killStory: story && story.text ? { text: String(story.text).trim().slice(0, KILL_STORY_MAX), difficulty: story.difficulty || '' } : null,
-      killSecret: !!killerId && !(story && story.text) };
+      killStory: storyText || storyDiff ? { text: storyText, difficulty: storyDiff } : null,
+      killSecret: false };
     tx.delete(doc(db, cfg.claims, victimId));                              // nobody hunts the dead player any more
     if (kSnap) {
       const k = kSnap.data();

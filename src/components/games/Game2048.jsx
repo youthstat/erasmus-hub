@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SPRITES } from '../mascot/sprites.js';
 
 const SIZE = 4;
-const MUTE_KEY = 'rattie2048_muted';
 
 const TILE_STYLE = {
   2: 'bg-[#FFF3B0] text-ink',
@@ -20,90 +19,6 @@ const TILE_STYLE = {
 
 const tileCls = (v) => TILE_STYLE[v] || 'bg-[#FF0055] text-[#FFE600] ring-4 ring-white';
 const tileFont = (v) => (v >= 1024 ? 'text-xl sm:text-2xl' : v >= 128 ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl');
-
-function createAudioEngine() {
-  let ctx = null;
-  let unlocked = false;
-
-  const ensureCtx = () => {
-    if (typeof window === 'undefined') return null;
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return null;
-    if (!ctx) ctx = new AudioCtx();
-    return ctx;
-  };
-
-  const unlock = () => {
-    const c = ensureCtx();
-    if (!c) return null;
-    if (c.state === 'suspended') {
-      c.resume().catch(() => {});
-    }
-    if (!unlocked) {
-      try {
-        // Play a 1-sample silent buffer inside user gesture so iOS/Safari & Chrome unlock WebAudio
-        const buf = c.createBuffer(1, 1, 22050);
-        const src = c.createBufferSource();
-        src.buffer = buf;
-        src.connect(c.destination);
-        src.start(0);
-        unlocked = true;
-      } catch { /* ignore */ }
-    }
-    return c;
-  };
-
-  const scheduleTone = (c, freq, endFreq, duration, type, gainVal, delay) => {
-    try {
-      const t0 = c.currentTime + delay;
-      const osc = c.createOscillator();
-      const gain = c.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, t0);
-      if (endFreq !== freq) {
-        osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t0 + duration);
-      }
-      gain.gain.setValueAtTime(0.0001, t0);
-      gain.gain.linearRampToValueAtTime(gainVal, t0 + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-      osc.connect(gain);
-      gain.connect(c.destination);
-      osc.start(t0);
-      osc.stop(t0 + duration + 0.02);
-    } catch { /* ignore */ }
-  };
-
-  const playTone = (freq, endFreq, duration, type = 'triangle', gainVal = 0.2, delay = 0) => {
-    const c = unlock();
-    if (!c) return;
-    if (c.state === 'suspended') {
-      c.resume()
-        .then(() => scheduleTone(c, freq, endFreq, duration, type, gainVal, delay))
-        .catch(() => {});
-    } else {
-      scheduleTone(c, freq, endFreq, duration, type, gainVal, delay);
-    }
-  };
-
-  return {
-    unlock,
-    slide: () => playTone(240, 175, 0.08, 'triangle', 0.16),
-    merge: (maxVal) => {
-      const step = Math.min(10, Math.max(1, Math.log2(maxVal || 4)));
-      const base = 320 + step * 52;
-      playTone(base, base * 1.32, 0.12, 'triangle', 0.22);
-      playTone(base * 1.5, base * 1.7, 0.11, 'sine', 0.15, 0.035);
-    },
-    win: () => {
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, f, 0.2, 'triangle', 0.22, i * 0.08));
-    },
-    over: () => {
-      playTone(320, 220, 0.16, 'sawtooth', 0.16, 0);
-      playTone(220, 130, 0.28, 'sawtooth', 0.18, 0.15);
-    },
-    chime: () => playTone(587.33, 880, 0.1, 'triangle', 0.18, 0),
-  };
-}
 
 function makeGridFromTiles(tiles) {
   const g = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -214,25 +129,12 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
   const [over, setOver] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const [saving, setSaving] = useState(false);
-  const [muted, setMuted] = useState(() => {
-    try { return localStorage.getItem(MUTE_KEY) === '1'; } catch { return false; }
-  });
 
   const touchStart = useRef(null);
   const pointerStart = useRef(null);
   const boardRef = useRef(null);
   const lastSavedRef = useRef(0);
-  const audioRef = useRef(null);
   const cleanupTimerRef = useRef(null);
-  const mutedRef = useRef(muted);
-  const wonSoundPlayedRef = useRef(false);
-
-  if (!audioRef.current) audioRef.current = createAudioEngine();
-
-  useEffect(() => {
-    mutedRef.current = muted;
-    try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch { /* ignore */ }
-  }, [muted]);
 
   useEffect(() => () => {
     if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
@@ -271,31 +173,15 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
 
   const step = useCallback((dir) => {
     if (over) return;
-    audioRef.current.unlock();
 
-    const { nextTiles, moved, gained, maxMerged } = moveTiles(tilesRef.current, dir, nextIdRef);
+    const { nextTiles, moved, gained } = moveTiles(tilesRef.current, dir, nextIdRef);
     if (!moved) return;
 
     const withSpawn = spawnTile(nextTiles, nextIdRef);
     const isNowOver = !canMoveTiles(withSpawn);
-    const reached2048 = !wonSoundPlayedRef.current && has2048Tile(withSpawn);
 
     tilesRef.current = withSpawn;
     setTiles(withSpawn);
-
-    if (!mutedRef.current) {
-      if (reached2048) {
-        wonSoundPlayedRef.current = true;
-        audioRef.current.win();
-      } else if (maxMerged > 0) {
-        audioRef.current.merge(maxMerged);
-      } else {
-        audioRef.current.slide();
-      }
-      if (isNowOver) {
-        setTimeout(() => !mutedRef.current && audioRef.current.over(), 120);
-      }
-    }
 
     if (gained > 0) {
       setScore((s) => {
@@ -313,9 +199,7 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
   }, [over]);
 
   const restart = () => {
-    audioRef.current.unlock();
     if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
-    wonSoundPlayedRef.current = false;
     const fresh = createInitialTiles(nextIdRef);
     tilesRef.current = fresh;
     setTiles(fresh);
@@ -323,15 +207,6 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
     setOver(false);
     setWonAck(false);
     setSavedMsg('');
-  };
-
-  const toggleMute = () => {
-    const next = !muted;
-    setMuted(next);
-    if (!next) {
-      audioRef.current.unlock();
-      audioRef.current.chime();
-    }
   };
 
   // Keyboard controls
@@ -365,7 +240,6 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
 
     const onTouchStart = (e) => {
       if (e.touches.length !== 1) return;
-      audioRef.current.unlock();
       const t = e.touches[0];
       touchStart.current = { x: t.clientX, y: t.clientY, handled: false };
     };
@@ -415,7 +289,6 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
   // Mouse / stylus drag fallback
   const onPointerDown = (e) => {
     if (e.pointerType === 'touch') return;
-    audioRef.current.unlock();
     pointerStart.current = { x: e.clientX, y: e.clientY };
   };
   const onPointerUp = (e) => {
@@ -462,15 +335,6 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
           {!signedIn && (
             <button type="button" onClick={onSignIn} className="tag bg-neon text-ink">Sign in</button>
           )}
-          <button
-            type="button"
-            onClick={toggleMute}
-            aria-label={muted ? 'Unmute sound' : 'Mute sound'}
-            title={muted ? 'Sound off — click to unmute' : 'Sound on — click to mute'}
-            className={`btn text-xs !px-2.5 !py-1.5 ${muted ? 'bg-paper text-mute' : 'bg-sun text-ink'}`}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
           <button type="button" onClick={restart} className="btn bg-white text-xs !px-3 !py-1.5">↻ New game</button>
         </div>
       </div>

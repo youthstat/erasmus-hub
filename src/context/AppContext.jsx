@@ -3,6 +3,7 @@ import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { auth, firebaseConfigured } from '../firebase/config.js';
 import * as api from '../firebase/services.js';
 import * as games from '../firebase/games.js';
+import * as chat from '../firebase/chat.js';
 import * as rattie from '../firebase/rattie.js';
 import { SEED_MISSIONS } from '../data/missions.js';
 import { ADMIN_PASSWORD } from '../config/settings.js';
@@ -28,6 +29,9 @@ export function AppProvider({ children }) {
   const [heistTasks, setHeistTasks] = useState([]);
   const [stealRequests, setStealRequests] = useState([]);
   const [myNotices, setMyNotices] = useState([]);
+  const [mySfPlayer, setMySfPlayer] = useState(null);
+  const [sfReceived, setSfReceived] = useState([]);
+  const [sfWardMsgs, setSfWardMsgs] = useState([]);
   const [homeHidden, setHomeHiddenState] = useState({});   // sections the admin switched off for participants
   const [homeReady, setHomeReady] = useState(false);
   const [error, setError] = useState('');
@@ -60,11 +64,28 @@ export function AppProvider({ children }) {
     } else {
       setSubmissions([]);
     }
-    if (accountId) offs.push(rattie.subscribeMyNotices(accountId, setMyNotices, onErr));
-    else setMyNotices([]);
+    if (accountId) {
+      offs.push(rattie.subscribeMyNotices(accountId, setMyNotices, onErr));
+      offs.push(games.subscribePlayer('sf', accountId, setMySfPlayer, onErr));
+      offs.push(chat.subscribeReceived(accountId, setSfReceived, onErr));
+    } else {
+      setMyNotices([]);
+      setMySfPlayer(null);
+      setSfReceived([]);
+    }
     if (!isAdmin) { setGossips([]); setStealRequests([]); }
     return () => offs.forEach((o) => o());
   }, [uid, isAdmin, accountId]);
+
+  // Listen for messages sent by our Secret Friend ward (if we have drawn a target)
+  const sfTargetId = mySfPlayer?.targetId || null;
+  useEffect(() => {
+    if (!uid || !accountId || !sfTargetId) {
+      setSfWardMsgs([]);
+      return undefined;
+    }
+    return chat.subscribeWardMessages(sfTargetId, setSfWardMsgs, (e) => setError(e.message));
+  }, [uid, accountId, sfTargetId]);
 
   const profile = useMemo(() => users.find((u) => u.id === accountId) || null, [users, accountId]);
   const rank = profile ? users.findIndex((u) => u.id === profile.id) + 1 : 0;
@@ -79,6 +100,32 @@ export function AppProvider({ children }) {
     return map;
   }, [pointsLog]);
   const myHistory = useMemo(() => pointsLog.filter((l) => l.userId === accountId).slice(0, 15), [pointsLog, accountId]);
+
+  const unreadSfMessages = useMemo(() => {
+    if (!accountId) return [];
+    const targetName = sfTargetId ? (users.find((u) => u.id === sfTargetId)?.name || 'Your friend') : '';
+    const fromFriend = sfReceived
+      .filter((q) => !q.answer)
+      .map((q) => ({
+        id: `f-${q.id}`,
+        from: 'Your Secret Friend',
+        icon: '🕵️',
+        text: q.text,
+        to: '/secret-friend/my-profile',
+        ts: q.createdAt?.seconds || 0,
+      }));
+    const fromWard = sfWardMsgs
+      .filter((m) => !m.answer)
+      .map((m) => ({
+        id: `w-${m.id}`,
+        from: targetName,
+        icon: '🎁',
+        text: m.text,
+        to: '/secret-friend/buddy',
+        ts: m.createdAt?.seconds || 0,
+      }));
+    return [...fromFriend, ...fromWard].sort((a, b) => b.ts - a.ts);
+  }, [accountId, sfTargetId, users, sfReceived, sfWardMsgs]);
 
   const submissionIdFor = (m) => `${accountId}_${m.id}_${m.recurrence === 'DAILY' ? today() : 'once'}`;
   const statusFor = (m) => submissions.find((s) => s.id === submissionIdFor(m))?.status || null;
@@ -150,6 +197,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       uid, accountId, gossips, isAdmin, homeHidden, homeReady, modal, users, profile, rank, lastChange, myHistory, submissions, pendingCount,
+      mySfPlayer, unreadSfMessages,
       missions: visibleMissions, allMissions: missions,
       heistTasks: activeHeistTasks, allHeistTasks: heistTasks, stealRequests, myNotices,
       error, setError, firebaseConfigured, statusFor, openAuth, openMission, openThanks, openAccount, openEditor, openUserEditor,

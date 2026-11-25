@@ -44,15 +44,15 @@ export default function MissionModal({ mission }) {
           {mission.recurrence}{deadlineText(mission) && ` // ${expired ? 'CLOSED' : 'UNTIL'} ${deadlineText(mission)}`}
         </span>
       </div>
-      <h2 className="text-xl md:text-2xl font-bold uppercase leading-tight">{mission.title}</h2>
-      <div className="p-5 bg-[#f6f3f2] border-[3px] border-ink rounded-xl shadow-b4">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold uppercase leading-tight">{mission.title}</h2>
+      <div className="p-4 sm:p-5 bg-[#f6f3f2] border-[3px] border-ink rounded-xl shadow-b4">
         <div className="font-mono text-xs font-bold uppercase mb-2">What to do</div>
-        <p className="leading-relaxed whitespace-pre-line">{mission.details}</p>
+        <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">{mission.details}</p>
       </div>
-      <div className="p-4 bg-sun border-[3px] border-ink rounded-xl shadow-b4">
+      <div className="p-3.5 sm:p-4 bg-sun border-[3px] border-ink rounded-xl shadow-b4">
         <div className="font-mono text-xs font-extrabold uppercase">Required proof: {PROOF_TYPES[type].short}</div>
-        {hint && <p className="text-sm font-medium mt-1">{hint}</p>}
-        <p className="font-mono text-xs font-bold text-[#4b4731] mt-1">Moderators check it, then points are credited.</p>
+        {hint && <p className="text-xs sm:text-sm font-medium mt-1">{hint}</p>}
+        <p className="font-mono text-[11px] sm:text-xs font-bold text-[#4b4731] mt-1">Moderators check it, then points are credited.</p>
       </div>
 
       {!isAdmin && !blocked && (

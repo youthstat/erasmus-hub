@@ -9,14 +9,14 @@ import { PUNISHMENT_COST, PUNISHMENT_REWARD, PUNISHMENT_MAX_LENGTH, PUNISHMENT_M
 
 // The unfolded paper with the punishment (like the last frame of the storyboard)
 function Note({ text }) {
-  const size = text.length > 120 ? 'text-lg' : text.length > 60 ? 'text-xl' : 'text-2xl sm:text-3xl';
+  const size = text.length > 120 ? 'text-sm sm:text-lg' : text.length > 60 ? 'text-base sm:text-xl' : 'text-lg sm:text-3xl';
   return (
     <div className="note-unfold relative w-full max-w-lg mx-auto bg-[#fbf8f1] border-[3px] border-ink rounded-md shadow-b6">
       <div className="absolute inset-2 border-2 border-ink/40 rounded-sm pointer-events-none" />
       <div className="absolute inset-y-2 left-1/2 border-l-2 border-ink/15 pointer-events-none" />
       <div className="absolute inset-x-2 top-1/2 border-t-2 border-ink/10 pointer-events-none" />
-      <div className="relative px-8 py-10 min-h-[11rem] flex items-center justify-center text-center">
-        <p className={`${size} font-extrabold uppercase leading-snug break-words -rotate-1`}>{text}</p>
+      <div className="relative px-5 py-7 sm:px-8 sm:py-10 min-h-[10rem] sm:min-h-[11rem] flex items-center justify-center text-center">
+        <p className={`${size} font-extrabold uppercase leading-snug -rotate-1 max-w-full`}>{text}</p>
       </div>
     </div>
   );
@@ -107,10 +107,10 @@ export default function PunishmentPage() {
           Write a punishment on a paper and throw it into the box. Dare to press the box — and you will pull out a paper written by somebody else.
         </Banner>
 
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-neon p-4"><div className="font-mono text-xs font-bold uppercase">Write one</div><div className="text-3xl font-extrabold">+{PUNISHMENT_REWARD} PT</div><div className="font-mono text-xs">for every punishment you throw in · max {PUNISHMENT_DAILY_LIMIT} a day</div></div>
-          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-hot text-white p-4"><div className="font-mono text-xs font-bold uppercase">Draw one</div><div className="text-3xl font-extrabold">−{PUNISHMENT_COST} PTS</div><div className="font-mono text-xs">for every paper you take out</div></div>
-          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-white p-4"><div className="font-mono text-xs font-bold uppercase">Anonymous</div><div className="text-3xl font-extrabold">Nobody knows</div><div className="font-mono text-xs">who wrote which paper</div></div>
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-neon p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Write one</div><div className="text-2xl sm:text-3xl font-extrabold">+{PUNISHMENT_REWARD} PT</div><div className="font-mono text-[11px] sm:text-xs">for every punishment you throw in · max {PUNISHMENT_DAILY_LIMIT} a day</div></div>
+          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-hot text-white p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Draw one</div><div className="text-2xl sm:text-3xl font-extrabold">−{PUNISHMENT_COST} PTS</div><div className="font-mono text-[11px] sm:text-xs">for every paper you take out</div></div>
+          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-white p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Anonymous</div><div className="text-2xl sm:text-3xl font-extrabold">Nobody knows</div><div className="font-mono text-[11px] sm:text-xs">who wrote which paper</div></div>
         </section>
 
         {!profile && (
@@ -123,10 +123,10 @@ export default function PunishmentPage() {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* write */}
           <form onSubmit={write} className="flex flex-col gap-3">
-            <h2 className="text-2xl font-extrabold uppercase">1 · Write a punishment</h2>
+            <h2 className="text-xl sm:text-2xl font-extrabold uppercase">1 · Write a punishment</h2>
             <div className={`relative bg-[#fbf8f1] border-[3px] border-ink rounded-md shadow-b6 p-4 -rotate-1 origin-center ${fold ? 'note-fold' : ''}`}>
               <div className="absolute inset-2 border-2 border-ink/30 rounded-sm pointer-events-none" />
-              <textarea className="relative w-full bg-transparent font-extrabold uppercase text-lg leading-snug resize-none focus:outline-none placeholder:text-ink/30 p-3"
+              <textarea className="relative w-full bg-transparent font-extrabold uppercase text-sm sm:text-lg leading-snug resize-none focus:outline-none placeholder:text-ink/30 p-2 sm:p-3"
                 rows={5} maxLength={PUNISHMENT_MAX_LENGTH} disabled={busy || !profile} value={text}
                 placeholder="e.g. Sing the chorus of any song in the middle of the room"
                 onChange={(e) => { setText(e.target.value); setMsg(''); setOkMsg(''); }} />
@@ -141,7 +141,7 @@ export default function PunishmentPage() {
 
           {/* box */}
           <div className="flex flex-col gap-3 items-stretch">
-            <h2 className="text-2xl font-extrabold uppercase">2 · Draw a punishment</h2>
+            <h2 className="text-xl sm:text-2xl font-extrabold uppercase">2 · Draw a punishment</h2>
             <div key={thud} className={thud ? 'pb-thud' : ''}>
               <PunishmentBoxArt lid={lid} flight={flight} flightKey={flightKey} pulse={pulse} onClick={askDraw} disabled={busy} />
             </div>
@@ -169,7 +169,7 @@ export default function PunishmentPage() {
           <section className="box overflow-hidden">
             <div className="bg-paper border-b-[3px] border-ink px-4 py-3 font-mono font-bold uppercase">Punishments you have drawn · {taken.length}</div>
             <ul className="divide-y-2 divide-ink/15">
-              {taken.map((p) => <li key={p.id} className="px-4 py-3 font-bold uppercase text-sm break-words">{p.text}</li>)}
+              {taken.map((p) => <li key={p.id} className="px-4 py-3 font-bold uppercase text-xs sm:text-sm leading-snug">{p.text}</li>)}
             </ul>
           </section>
         )}
@@ -181,9 +181,9 @@ export default function PunishmentPage() {
         <div role="alertdialog" aria-modal="true" className="fixed inset-0 z-50 bg-ink/80 flex items-center justify-center p-4" onClick={() => setWarn(false)}>
           <div className="max-w-lg w-full border-4 border-ink rounded-2xl bg-hot text-white shadow-b8 p-6 sm:p-8 text-center" onClick={(e) => e.stopPropagation()}>
             <div className="text-6xl" aria-hidden="true">⚠️</div>
-            <h2 className="text-4xl sm:text-5xl font-extrabold uppercase leading-none mt-2">Warning!</h2>
-            <p className="text-3xl sm:text-4xl font-extrabold uppercase mt-3">−{PUNISHMENT_COST} points</p>
-            <p className="mt-3 text-lg font-bold">Taking a punishment takes {PUNISHMENT_COST} points from your rating. You pay even if you do not like the paper. This cannot be undone.</p>
+            <h2 className="text-3xl sm:text-5xl font-extrabold uppercase leading-none mt-2">Warning!</h2>
+            <p className="text-2xl sm:text-4xl font-extrabold uppercase mt-3">−{PUNISHMENT_COST} points</p>
+            <p className="mt-3 text-sm sm:text-lg font-bold">Taking a punishment takes {PUNISHMENT_COST} points from your rating. You pay even if you do not like the paper. This cannot be undone.</p>
             <p className="mt-2 font-mono text-sm font-bold">Your rating: {score} → {score - PUNISHMENT_COST} PTS</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button className="btn bg-white text-ink" onClick={() => setWarn(false)}>Cancel</button>

@@ -5,6 +5,7 @@ import NamePicker from '../ui/NamePicker.jsx';
 import PointsDelta from '../ui/PointsDelta.jsx';
 import RattieBadge from '../ui/RattieBadge.jsx';
 import { useOscar } from '../../hooks/useOscar.js';
+import { Avatar } from '../games/SfParts.jsx';
 import ModalShell from './ModalShell.jsx';
 
 const L = ({ t, children }) => <label className="flex flex-col gap-1 font-mono text-xs font-bold uppercase">{t}{children}</label>;
@@ -64,17 +65,21 @@ function AuthForm({ next }) {
 }
 
 function Account() {
-  const { profile, rank, users, myHistory, logoutAccount, closeModal } = useApp();
+  const { profile, rank, users, myHistory, mySfPlayer, logoutAccount, closeModal } = useApp();
   const { myTeam, nameOf } = useOscar();
+  const sfPhoto = mySfPlayer?.profile?.photo || '';
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-2xl md:text-3xl font-extrabold uppercase break-words">{profile.name}<RattieBadge event={profile.lastRattieEvent} /></div>
-          <div className="font-mono text-sm text-mute">{countryOf(profile) || '—'}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3.5 min-w-0">
+          {sfPhoto && <Avatar photo={sfPhoto} name={profile.name} size="w-16 h-16 sm:w-20 sm:h-20" />}
+          <div className="min-w-0">
+            <div className="text-xl sm:text-2xl md:text-3xl font-extrabold uppercase break-words">{profile.name}<RattieBadge event={profile.lastRattieEvent} /></div>
+            <div className="font-mono text-sm text-mute">{countryOf(profile) || '—'}</div>
+          </div>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-extrabold">{(profile.score ?? 0).toLocaleString('en-US')} <span className="text-base">PTS</span></div>
+          <div className="text-2xl sm:text-3xl font-extrabold">{(profile.score ?? 0).toLocaleString('en-US')} <span className="text-base">PTS</span></div>
           <div className="font-mono text-xs font-bold text-mute">Rank #{rank} of {users.length}</div>
         </div>
       </div>

@@ -40,7 +40,7 @@ export default function App() {
         <div className="max-w-md w-full p-6 box shadow-b8 text-center flex flex-col items-center gap-3">
           <img src={SPRITES.watch1.src} alt="" draggable={false} className="w-20 h-20 object-contain mascot-breathe" />
           <h1 className="text-2xl font-extrabold uppercase">{error ? 'Cannot connect to database' : 'Connecting…'}</h1>
-          {!error && <p className="font-mono text-xs text-mute">Waking up Rattie Patty &amp; loading Erasmus+ Hub…</p>}
+          {!error && <p className="font-mono text-xs text-mute">Waking up Rattie Patty &amp; loading Hub for Youth…</p>}
           {error && (
             <>
               <p className="mt-1 font-mono text-sm text-hot break-words">{error}</p>

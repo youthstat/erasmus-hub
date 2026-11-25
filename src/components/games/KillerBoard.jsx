@@ -5,7 +5,7 @@ import { KILL_MOODS } from '../../config/settings.js';
 export default function KillerBoard() {
   const { playing, dead, players, nameOf } = useGame('kg');
   // stories told by the hunters (no names of the hunters — only who was eliminated and how it went)
-  const stories = players.filter((p) => p.dead && p.killStory?.text).sort((a, b) => (b.killedAt?.seconds || 0) - (a.killedAt?.seconds || 0));
+  const stories = players.filter((p) => p.dead && (p.killStory?.text || p.killStory?.difficulty)).sort((a, b) => (b.killedAt?.seconds || 0) - (a.killedAt?.seconds || 0));
   const sorted = [...playing].sort((a, b) => Number(dead.has(a.id)) - Number(dead.has(b.id)) || a.name.localeCompare(b.name));
   const aliveCount = playing.filter((u) => !dead.has(u.id)).length;
   const deadCount = playing.length - aliveCount;
@@ -41,7 +41,7 @@ export default function KillerBoard() {
           {stories.map((p) => (
             <div key={p.id} className="border-[3px] border-ink rounded-xl p-3 bg-paper shadow-b2">
               <div className="flex flex-wrap items-center gap-2"><b className="uppercase">💀 {nameOf(p.id)}</b>{p.killStory.difficulty && <span className="tag bg-sun">{KILL_MOODS.find((m) => m.id === p.killStory.difficulty)?.label}</span>}</div>
-              <p className="mt-1 text-sm font-medium break-words">“{p.killStory.text}”</p>
+              {p.killStory.text && <p className="mt-1 text-sm font-medium break-words">“{p.killStory.text}”</p>}
             </div>
           ))}
         </div>

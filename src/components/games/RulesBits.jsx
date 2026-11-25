@@ -50,11 +50,20 @@ export const List = ({ items, mark = '•' }) => (
 );
 
 export const Banner = ({ title, children, cls = 'bg-sun', frames }) => (
-  <div className={`box shadow-b8 p-6 md:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${cls}`}>
-    <div className="min-w-0 flex-1">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold uppercase leading-tight tracking-tight">{title}</h1>
-      <p className="text-base sm:text-lg mt-3 font-bold max-w-3xl">{children}</p>
+  <div className={`box shadow-b8 p-5 sm:p-6 md:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${cls}`}>
+    <div className="min-w-0 flex-1 w-full">
+      <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold uppercase leading-tight tracking-tight">{title}</h1>
+      {frames && frames.length > 0 && (
+        <div className="sm:hidden flex justify-center w-full my-3">
+          <AnimatedMouse frames={frames} className="w-24 h-24" />
+        </div>
+      )}
+      <p className="text-sm sm:text-lg mt-2 sm:mt-3 font-bold max-w-3xl">{children}</p>
     </div>
-    {frames && frames.length > 0 && <AnimatedMouse frames={frames} />}
+    {frames && frames.length > 0 && (
+      <div className="hidden sm:block shrink-0">
+        <AnimatedMouse frames={frames} />
+      </div>
+    )}
   </div>
 );

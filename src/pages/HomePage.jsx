@@ -98,7 +98,7 @@ export default function HomePage() {
             <div className="bg-[#FFE200] border-b-[3px] border-ink px-4 sm:px-6 py-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="inline-block w-2.5 h-2.5 bg-ink shrink-0" />
-                <span className="font-mono font-extrabold text-xs tracking-wider uppercase text-ink">HOME // ERASMUS+ HUB</span>
+                <span className="font-mono font-extrabold text-xs tracking-wider uppercase text-ink">ERASMUS+</span>
                 {isAdmin && <span className="tag bg-white text-ink text-[10px]">ADMIN MODE</span>}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -133,7 +133,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-white flex flex-wrap items-center justify-between gap-3">
-              <h1 className="text-2xl sm:text-4xl font-extrabold uppercase leading-none tracking-tight">ERASMUS+</h1>
+              <h1 className="text-2xl sm:text-4xl font-extrabold uppercase leading-none tracking-tight">HUB FOR YOUTH</h1>
               <span className="font-mono text-[11px] sm:text-xs font-bold uppercase text-mute">Daily missions · games · leaderboard</span>
             </div>
           </div>
