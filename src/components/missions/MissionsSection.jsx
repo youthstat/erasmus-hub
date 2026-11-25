@@ -5,9 +5,9 @@ export default function MissionsSection() {
   const { missions, isAdmin, openEditor } = useApp();
   return (
     <section className="box shadow-b8 overflow-hidden">
-      <div className="bg-sun border-b-[3px] border-ink px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[#FFE200] border-b-[3px] border-ink px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-xl font-extrabold uppercase">⚡ Active missions // earn extra points</h2>
+          <h2 className="text-xl font-extrabold uppercase flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 bg-ink shrink-0" />Active missions // earn extra points</h2>
           <span className="tag bg-hot text-white shadow-b2">{missions.length} AVAILABLE</span>
         </div>
         {isAdmin && <button className="btn bg-ink text-sun text-xs" onClick={() => openEditor(null)}>+ New mission</button>}

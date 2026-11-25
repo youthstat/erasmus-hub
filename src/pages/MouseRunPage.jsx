@@ -77,7 +77,7 @@ export default function MouseRunPage() {
           onSaveScore={(score) => save2048Score(profile, score, countryOf(profile))}
         />
 
-        <Banner title="Rattie 2048" cls="bg-sun max-w-md w-full mx-auto">
+        <Banner title="Rattie 2048" cls="bg-[#B89CFF] text-ink max-w-md w-full mx-auto" frames={['play2048_1', 'play2048_2', 'play2048_3', 'play2048_4']}>
           Swipe to merge matching tiles! Top 3 win +{PRIZES_2048.join(' / +')} PTS.
         </Banner>
       </div>

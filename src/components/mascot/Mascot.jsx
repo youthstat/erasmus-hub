@@ -27,7 +27,6 @@ const WARNING = "Don't click me! 🙈";
 
 const JOKES_GENERAL = [
   'Why did the mouse bring a ladder to the snack table? Because the cheese was on a higher tier! 🧀',
-  'I never snitch… unless someone pays me in cheddar. Just kidding, I work for gossip and drama! 🐭',
   'Careful — I have tiny paws, big ears, and zero impulse control. 👂✨',
 ];
 
@@ -495,96 +494,174 @@ export default function Mascot() {
 
     return (
       <div
-        className="fixed inset-0 z-[60] bg-ink/60 backdrop-blur-[2px] flex items-end justify-end p-2 sm:p-6"
+        className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-[3px] flex items-center justify-center p-4"
         onClick={close}
       >
         <div
-          className="flex items-end gap-1.5 sm:gap-2.5 max-w-full"
+          aria-labelledby="rattie-modal-title"
+          aria-modal="true"
+          role="dialog"
+          className={`mascot-pop relative w-full ${wide ? 'max-w-[400px]' : 'max-w-[348px]'} bg-white border-4 border-ink rounded-[20px] shadow-[8px_8px_0_#111] flex flex-col overflow-visible`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={`mascot-pop relative min-w-0 mb-4 sm:mb-6 ${wide ? 'w-[285px] sm:w-[380px]' : 'w-[245px] sm:w-[305px]'}`}>
-            <div className="border-4 border-ink rounded-2xl shadow-b8 bg-paper overflow-hidden flex flex-col max-h-[82vh]">
-              <div className="bg-sun px-3 sm:px-4 py-2.5 border-b-[3px] border-ink flex items-center justify-between gap-2 shrink-0">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-mono text-xs font-bold uppercase truncate">■ Rattie Patty</span>
-                  {panelBadge && (
-                    <span className="tag bg-white text-ink text-[10px] truncate max-w-[140px]">{panelBadge}</span>
-                  )}
+          {/* Neo-Brutalist Top Window Frame */}
+          <header className="bg-[#FFE200] border-b-[3px] border-ink px-4 py-2.5 rounded-t-[16px] flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="inline-block w-3 h-3 bg-ink shrink-0" />
+              <span id="rattie-modal-title" className="font-mono font-black text-sm tracking-wider text-ink uppercase truncate">
+                RATTIE PATTY
+              </span>
+              {panelBadge && (
+                <span className="tag bg-white text-ink text-[10px] truncate max-w-[130px]">{panelBadge}</span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close"
+              className="w-7 h-7 shrink-0 bg-[#FF4766] border-2 border-ink rounded-md flex items-center justify-center text-white font-black text-sm shadow-b2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+            >
+              ✕
+            </button>
+          </header>
+
+          {/* Modal Body */}
+          <div className="p-4 sm:p-5 pb-7 flex flex-col gap-3.5 text-sm font-bold overflow-y-auto max-h-[76vh]">
+            {phase === 'login' && (<>
+              <div className="border-2 border-ink rounded-xl p-3.5 bg-white space-y-2">
+                <h2 className="text-[19px] leading-tight font-extrabold text-ink flex items-center gap-1.5">
+                  Hi, I’m Rattie Patty! <span className="text-hot">❤</span>
+                </h2>
+                {joke && (
+                  <div className="bg-[#ECEBE4] border-2 border-ink rounded-xl p-3 shadow-inner">
+                    <p className="font-sans font-bold italic text-[13px] leading-snug text-ink">“{joke}”</p>
+                  </div>
+                )}
+                <p className="font-medium text-xs leading-snug">
+                  Sign in or register — then we can gossip, gift points, or pull off a cheeky heist!
+                </p>
+              </div>
+              <button className="btn bg-neon text-ink text-xs w-full" onClick={() => { close(); openAccount(null); }}>
+                Register / Sign in
+              </button>
+            </>)}
+
+            {phase === 'hello' && (<>
+              <div className="border-2 border-ink rounded-xl p-3 bg-white space-y-1.5">
+                <h2 className="text-lg leading-tight font-extrabold text-ink tracking-tight flex items-center gap-1.5">
+                  Hi, I’m Rattie Patty! <span className="text-hot">❤</span>
+                </h2>
+                <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm font-bold text-ink">
+                  <span>Nice to see you, <b className="break-words">{profile?.name}</b>! You have</span>
+                  <span className="inline-block bg-[#FFE200] border-2 border-ink font-mono font-black text-xs px-2 py-0.5 rounded shadow-[1.5px_1.5px_0_#111]">
+                    {myScore} PTS
+                  </span>
                 </div>
-                <button
-                  onClick={close}
-                  aria-label="Close"
-                  className="w-6 h-6 shrink-0 border-2 border-ink bg-hot text-white font-bold flex items-center justify-center leading-none"
-                >
-                  ✕
-                </button>
               </div>
 
-              <div className="relative z-10 bg-paper p-3.5 sm:p-4 flex flex-col gap-2.5 text-sm font-bold overflow-y-auto">
-                {phase === 'login' && (<>
-                  <div className="bg-white border-2 border-ink rounded-xl px-3 py-2 shadow-b2 flex flex-col gap-1.5">
-                    <p>Hi, I’m Rattie Patty! <span className="text-hot">❤</span></p>
-                    {joke && <p className="font-medium text-xs text-mute italic">{joke}</p>}
-                    <p className="font-medium text-xs">Sign in or register — then we can gossip, gift points, or pull off a cheeky heist!</p>
-                  </div>
-                  <button className="btn bg-neon text-xs" onClick={() => { close(); openAccount(null); }}>Register / Sign in</button>
-                </>)}
+              <div className="pt-0.5">
+                <h3 className="font-mono font-black text-[11px] tracking-widest text-[#4B4B4B] uppercase">
+                  PICK YOUR DEAL:
+                </h3>
+              </div>
 
-                {phase === 'hello' && (<>
-                  <div className="bg-white border-2 border-ink rounded-xl px-3 py-2.5 shadow-b2 flex flex-col gap-1.5">
-                    <p>Hi, I’m Rattie Patty! <span className="text-hot">❤</span></p>
-                    <p className="font-medium text-xs sm:text-sm">Nice to see you, <b className="break-words">{profile?.name}</b>! You have <span className="tag bg-sun">{myScore} PTS</span></p>
-                    {joke && <p className="font-medium text-xs bg-paper border-2 border-ink/20 rounded-lg px-2.5 py-1.5 italic">“{joke}”</p>}
-                  </div>
-                  <p className="font-mono text-[11px] uppercase text-mute px-0.5">Pick your deal:</p>
-                  <div className="flex flex-col gap-2">
-                    <button className="btn bg-neon text-xs justify-between" onClick={() => { setNote(null); setPhase('write'); }}>
-                      <span>🤫 Tell a gossip</span><span className="tag bg-white">+{GOSSIP_POINTS} PT</span>
-                    </button>
-                    <button className="btn bg-sun text-xs justify-between" onClick={() => { setNote(null); setTargetFilter(''); setPhase('gift'); }}>
-                      <span>🎁 Gift points</span><span className="tag bg-white">SECRET</span>
-                    </button>
-                    <button className="btn bg-hot text-white text-xs justify-between" onClick={() => { setNote(null); setSelectedTaskId(heistTasks[0]?.id || ''); setPhase('steal-task'); }}>
-                      <span>🕵️ Steal points</span><span className="tag bg-ink text-white">HEIST</span>
-                    </button>
-                  </div>
-                </>)}
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="btn w-full bg-neon text-ink !px-3 !py-2 justify-between rounded-xl whitespace-nowrap"
+                  onClick={() => { setNote(null); setPhase('write'); }}
+                >
+                  <span className="font-mono font-black text-xs tracking-wide uppercase">Tell a gossip</span>
+                  <span className="bg-white border-2 border-ink rounded-md px-2 py-0.5 font-mono font-black text-[11px] text-ink shadow-[1px_1px_0_#111] shrink-0">
+                    +{GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'PT' : 'PTS'}
+                  </span>
+                </button>
 
-                {phase === 'write' && (<>
-                  <div className="flex items-center justify-between gap-2">
-                    <button type="button" onClick={() => { setNote(null); setPhase('hello'); }} className="font-mono text-xs underline text-mute">← Back to deals</button>
-                  </div>
-                  <div className="bg-white border-2 border-ink rounded-xl px-3 py-2 shadow-b2">
-                    <p className="font-medium text-xs sm:text-sm">{note ? <span className={note.kind === 'ok' ? 'text-[#007a33] font-bold' : note.kind === 'err' ? 'text-hot font-mono text-xs' : 'text-[#c4263f] font-bold'}>{note.text}</span>
-                      : <>I’m all ears… tell me a juicy gossip for <span className="text-[#c4263f]">{pts(GOSSIP_POINTS)}</span>! 👂</>}</p>
-                  </div>
-                  <textarea autoFocus rows={4} maxLength={MAX_GOSSIP_LENGTH} value={text} disabled={busy}
-                    onChange={(e) => { setText(e.target.value); if (note?.kind !== 'ok') setNote(null); }}
-                    onKeyDown={(e) => (e.metaKey || e.ctrlKey) && e.key === 'Enter' && submitGossip()}
-                    placeholder="Write your gossip here…"
-                    className="w-full resize-none border-[3px] border-ink rounded-xl px-3 py-2 font-sans text-sm font-medium bg-white shadow-b2 focus:outline-none focus:bg-sun/20" />
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`font-mono text-[11px] font-normal ${words >= GOSSIP_MIN_WORDS ? 'text-[#007a33]' : 'text-mute'}`}>{words} {words === 1 ? 'word' : 'words'} · {GOSSIP_MIN_WORDS}+ = {GOSSIP_POINTS} pt</span>
-                    <button className="btn bg-neon text-xs py-1.5" disabled={busy} onClick={submitGossip}>{busy ? '…' : 'Send anonymously'}</button>
-                  </div>
-                  <p className="font-mono text-[11px] font-normal text-mute leading-snug">
-                    🤫 <b className="font-bold text-ink">100% anonymous!</b> Your name is never stored — nobody will ever know who sent it.
-                  </p>
-                </>)}
+                <button
+                  type="button"
+                  className="btn w-full bg-[#FFE600] text-ink !px-3 !py-2 justify-between rounded-xl whitespace-nowrap"
+                  onClick={() => { setNote(null); setTargetFilter(''); setPhase('gift'); }}
+                >
+                  <span className="font-mono font-black text-xs tracking-wide uppercase">Gift points</span>
+                  <span className="bg-white border-2 border-ink rounded-md px-2 py-0.5 font-mono font-black text-[11px] text-ink shadow-[1px_1px_0_#111] shrink-0">
+                    SECRET
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn w-full bg-[#FF4B72] text-white !px-3 !py-2 justify-between rounded-xl whitespace-nowrap"
+                  onClick={() => { setNote(null); setSelectedTaskId(heistTasks[0]?.id || ''); setPhase('steal-task'); }}
+                >
+                  <span className="font-mono font-black text-xs tracking-wide uppercase">Steal points</span>
+                  <span className="bg-ink border-2 border-ink rounded-md px-2 py-0.5 font-mono font-black text-[11px] text-white shadow-[1px_1px_0_#111] shrink-0">
+                    HEIST
+                  </span>
+                </button>
+              </div>
+            </>)}
+
+            {phase === 'write' && (<>
+              <button type="button" onClick={() => { setNote(null); setPhase('hello'); }} className="self-start font-mono text-xs underline text-mute">
+                ← Back to deals
+              </button>
+              <div className="bg-[#ECEBE4] border-2 border-ink rounded-xl px-3 py-2.5 shadow-inner">
+                <p className="font-bold text-xs sm:text-sm">
+                  {note ? (
+                    <span className={note.kind === 'ok' ? 'text-[#15803D]' : note.kind === 'err' ? 'text-hot font-mono text-xs' : 'text-[#c4263f]'}>
+                      {note.text}
+                    </span>
+                  ) : (
+                    <>I’m all ears… tell me a juicy gossip for <span className="text-[#c4263f]">{pts(GOSSIP_POINTS)}</span>! 👂</>
+                  )}
+                </p>
+              </div>
+              <textarea
+                autoFocus
+                rows={4}
+                maxLength={MAX_GOSSIP_LENGTH}
+                value={text}
+                disabled={busy}
+                onChange={(e) => { setText(e.target.value); if (note?.kind !== 'ok') setNote(null); }}
+                onKeyDown={(e) => (e.metaKey || e.ctrlKey) && e.key === 'Enter' && submitGossip()}
+                placeholder="Write your gossip here…"
+                className="w-full resize-none border-[3px] border-ink rounded-xl px-3 py-2 font-sans text-sm font-medium bg-white shadow-b2 focus:outline-none focus:bg-sun/20"
+              />
+              <div className="flex items-center justify-between gap-2">
+                <span className={`font-mono text-[11px] font-bold ${words >= GOSSIP_MIN_WORDS ? 'text-[#15803D]' : 'text-mute'}`}>
+                  {words} {words === 1 ? 'word' : 'words'} · {GOSSIP_MIN_WORDS}+ = {GOSSIP_POINTS} pt
+                </span>
+                <button className="btn bg-neon text-ink text-xs py-1.5" disabled={busy} onClick={submitGossip}>
+                  {busy ? '…' : 'Send anonymously'}
+                </button>
+              </div>
+              <p className="font-mono text-[11px] font-normal text-mute leading-snug">
+                🤫 <b className="font-bold text-ink">100% anonymous!</b> Your name is never stored — nobody will ever know who sent it.
+              </p>
+            </>)}
 
             {phase === 'gift' && (
               <form onSubmit={submitGift} className="flex flex-col gap-2.5">
-                <button type="button" onClick={() => { setNote(null); setPhase('hello'); }} className="self-start font-mono text-xs underline text-mute">← Back to deals</button>
-                <div className="bg-white border-2 border-ink rounded-xl p-2.5 text-xs font-medium leading-snug shadow-b2">
+                <button type="button" onClick={() => { setNote(null); setPhase('hello'); }} className="self-start font-mono text-xs underline text-mute">
+                  ← Back to deals
+                </button>
+                <div className="bg-[#ECEBE4] border-2 border-ink rounded-xl p-2.5 text-xs font-medium leading-snug shadow-inner">
                   🎁 <b>How gifting works:</b> Pick a participant you want to reward. The points are taken directly from <b>your own account</b> ({myScore} PTS) and given to them — no task needed, and they will never know it was from you!
                 </div>
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>1 · Choose recipient</span>
-                  <input type="text" value={targetFilter} onChange={(e) => setTargetFilter(e.target.value)}
+                  <input
+                    type="text"
+                    value={targetFilter}
+                    onChange={(e) => setTargetFilter(e.target.value)}
                     placeholder="Filter by name…"
-                    className="border-2 border-ink rounded-lg px-2.5 py-1.5 font-sans text-xs font-medium bg-white" />
-                  <select className="border-[3px] border-ink rounded-xl px-2.5 py-2 font-mono text-xs bg-white"
-                    value={giftTargetId} onChange={(e) => { setGiftTargetId(e.target.value); setNote(null); }}>
+                    className="border-2 border-ink rounded-lg px-2.5 py-1.5 font-sans text-xs font-medium bg-white"
+                  />
+                  <select
+                    className="border-[3px] border-ink rounded-xl px-2.5 py-2 font-mono text-xs bg-white"
+                    value={giftTargetId}
+                    onChange={(e) => { setGiftTargetId(e.target.value); setNote(null); }}
+                  >
                     <option value="">Select a participant…</option>
                     {others.map((u) => (
                       <option key={u.id} value={u.id}>{u.name}{countryOf(u) ? ` (${countryOf(u)})` : ''}</option>
@@ -593,9 +670,14 @@ export default function Mascot() {
                 </label>
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>2 · Points to gift (you have {myScore} PTS)</span>
-                  <input type="number" min="1" max={Math.max(1, myScore)} value={giftAmount}
+                  <input
+                    type="number"
+                    min="1"
+                    max={Math.max(1, myScore)}
+                    value={giftAmount}
                     onChange={(e) => { setGiftAmount(e.target.value); setNote(null); }}
-                    className="border-[3px] border-ink rounded-xl px-3 py-1.5 font-mono text-sm bg-white" />
+                    className="border-[3px] border-ink rounded-xl px-3 py-1.5 font-mono text-sm bg-white"
+                  />
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {[5, 10, 25, 50].filter((n) => n <= myScore).map((n) => (
@@ -603,20 +685,22 @@ export default function Mascot() {
                   ))}
                 </div>
                 {giftTarget && Number(giftAmount) > 0 && Number(giftAmount) <= myScore && (
-                  <div className="font-mono text-[11px] text-[#007a33]">
+                  <div className="font-mono text-[11px] text-[#15803D]">
                     Your balance: {myScore} → {myScore - Math.floor(Number(giftAmount))} PTS · {giftTarget.name} gets +{Math.floor(Number(giftAmount))} PTS
                   </div>
                 )}
                 {note && <p className="font-mono text-xs text-hot">{note.text}</p>}
-                <button type="submit" disabled={busy || myScore <= 0} className="btn bg-neon text-xs disabled:opacity-50">
+                <button type="submit" disabled={busy || myScore <= 0} className="btn bg-neon text-ink text-xs disabled:opacity-50">
                   {busy ? 'Sending…' : myScore <= 0 ? 'You have 0 PTS' : '🎁 Gift points now'}
                 </button>
               </form>
             )}
 
             {phase === 'steal-task' && (<>
-              <button type="button" onClick={() => { setNote(null); setPhase('hello'); }} className="self-start font-mono text-xs underline text-mute">← Back to deals</button>
-              <p className="font-medium text-xs bg-white border-2 border-ink rounded-xl px-3 py-2 italic shadow-b2">
+              <button type="button" onClick={() => { setNote(null); setPhase('hello'); }} className="self-start font-mono text-xs underline text-mute">
+                ← Back to deals
+              </button>
+              <p className="font-medium text-xs bg-[#ECEBE4] border-2 border-ink rounded-xl px-3 py-2 italic shadow-inner">
                 “Psst… want to pull off a heist? First, prove you’ve got what it takes by finishing one of the organizers’ secret tasks!”
               </p>
               {heistTasks.length === 0 ? (
@@ -630,15 +714,19 @@ export default function Mascot() {
                     {heistTasks.map((t) => {
                       const active = (selectedTask?.id === t.id);
                       return (
-                        <button type="button" key={t.id} onClick={() => setSelectedTaskId(t.id)}
-                          className={`text-left border-[3px] border-ink rounded-xl p-2.5 transition ${active ? 'bg-sun shadow-b2' : 'bg-white'}`}>
+                        <button
+                          type="button"
+                          key={t.id}
+                          onClick={() => setSelectedTaskId(t.id)}
+                          className={`text-left border-[3px] border-ink rounded-xl p-2.5 transition ${active ? 'bg-sun shadow-b2' : 'bg-white'}`}
+                        >
                           <div className="font-extrabold uppercase text-xs">{active ? '✓ ' : ''}{t.title}</div>
                           {t.details && <div className="text-xs font-medium mt-0.5 text-[#3b3728]">{t.details}</div>}
                         </button>
                       );
                     })}
                   </div>
-                  <button type="button" className="btn bg-hot text-white text-xs mt-1" onClick={() => { setNote(null); setPhase('steal-form'); }}>
+                  <button type="button" className="btn bg-[#FF4B72] text-white text-xs mt-1" onClick={() => { setNote(null); setPhase('steal-form'); }}>
                     I’ve done this — attach proof →
                   </button>
                 </>
@@ -647,32 +735,49 @@ export default function Mascot() {
 
             {phase === 'steal-form' && (
               <form onSubmit={submitSteal} className="flex flex-col gap-2.5">
-                <button type="button" onClick={() => { setNote(null); setPhase('steal-task'); }} className="self-start font-mono text-xs underline text-mute">← Change task</button>
+                <button type="button" onClick={() => { setNote(null); setPhase('steal-task'); }} className="self-start font-mono text-xs underline text-mute">
+                  ← Change task
+                </button>
                 <div className="border-2 border-ink rounded-xl bg-sun px-2.5 py-1.5 text-xs shadow-b2">
                   <b>Task:</b> {selectedTask?.title}
                 </div>
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>1 · Photo proof *</span>
-                  <input type="file" accept="image/*" onChange={handlePhoto}
-                    className="text-xs font-sans file:mr-2 file:border-2 file:border-ink file:rounded-lg file:bg-sun file:px-2 file:py-1 file:font-mono file:text-[11px] file:font-bold" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhoto}
+                    className="text-xs font-sans file:mr-2 file:border-2 file:border-ink file:rounded-lg file:bg-sun file:px-2 file:py-1 file:font-mono file:text-[11px] file:font-bold"
+                  />
                 </label>
                 {stealPhoto && (
                   <img src={stealPhoto} alt="Task proof preview" className="w-full h-28 object-cover border-[3px] border-ink rounded-xl" />
                 )}
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>2 · What did you do? *</span>
-                  <textarea rows={2} maxLength={500} value={stealDesc}
+                  <textarea
+                    rows={2}
+                    maxLength={500}
+                    value={stealDesc}
                     onChange={(e) => { setStealDesc(e.target.value); setNote(null); }}
                     placeholder="Describe how you completed the task…"
-                    className="w-full resize-none border-[3px] border-ink rounded-xl px-2.5 py-1.5 font-sans text-xs font-medium bg-white" />
+                    className="w-full resize-none border-[3px] border-ink rounded-xl px-2.5 py-1.5 font-sans text-xs font-medium bg-white"
+                  />
                 </label>
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>3 · Who do you want to rob? *</span>
-                  <input type="text" value={targetFilter} onChange={(e) => setTargetFilter(e.target.value)}
+                  <input
+                    type="text"
+                    value={targetFilter}
+                    onChange={(e) => setTargetFilter(e.target.value)}
                     placeholder="Filter by name…"
-                    className="border-2 border-ink rounded-lg px-2.5 py-1 font-sans text-xs font-medium bg-white" />
-                  <select className="border-[3px] border-ink rounded-xl px-2.5 py-1.5 font-mono text-xs bg-white"
-                    value={stealVictimId} onChange={(e) => { setStealVictimId(e.target.value); setNote(null); }}>
+                    className="border-2 border-ink rounded-lg px-2.5 py-1 font-sans text-xs font-medium bg-white"
+                  />
+                  <select
+                    className="border-[3px] border-ink rounded-xl px-2.5 py-1.5 font-mono text-xs bg-white"
+                    value={stealVictimId}
+                    onChange={(e) => { setStealVictimId(e.target.value); setNote(null); }}
+                  >
                     <option value="">Choose target…</option>
                     {others.map((u) => (
                       <option key={u.id} value={u.id}>{u.name} — {u.score ?? 0} PTS</option>
@@ -687,12 +792,17 @@ export default function Mascot() {
                 )}
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>4 · Points to steal *</span>
-                  <input type="number" min="1" max={Math.max(1, stealVictimScore)} value={stealAmount}
+                  <input
+                    type="number"
+                    min="1"
+                    max={Math.max(1, stealVictimScore)}
+                    value={stealAmount}
                     onChange={(e) => { setStealAmount(e.target.value); setNote(null); }}
-                    className="border-[3px] border-ink rounded-xl px-3 py-1.5 font-mono text-sm bg-white" />
+                    className="border-[3px] border-ink rounded-xl px-3 py-1.5 font-mono text-sm bg-white"
+                  />
                 </label>
                 {note && <p className="font-mono text-xs text-hot">{note.text}</p>}
-                <button type="submit" disabled={busy || (!!stealVictim && stealVictimScore <= 0)} className="btn bg-hot text-white text-xs disabled:opacity-50">
+                <button type="submit" disabled={busy || (!!stealVictim && stealVictimScore <= 0)} className="btn bg-[#FF4B72] text-white text-xs disabled:opacity-50">
                   {busy ? 'Sending…' : '🕵️ Submit for approval'}
                 </button>
               </form>
@@ -700,40 +810,44 @@ export default function Mascot() {
 
             {phase === 'deal-done' && (<>
               <div className="tag bg-neon self-start">Deal sealed</div>
-              <div className="bg-white border-2 border-ink rounded-xl px-3 py-2.5 shadow-b2 flex flex-col gap-1.5">
+              <div className="border-2 border-ink rounded-xl px-3 py-2.5 bg-white space-y-2">
                 <p className="text-base font-extrabold uppercase">Thank you for the deal, my friend! — Rattie Patty 🐭🤝</p>
                 <p className="font-medium text-xs">
                   {dealDoneInfo?.kind === 'gift'
                     ? `You gifted ${dealDoneInfo.amount} PTS anonymously. Nobody will ever know it was you!`
                     : `Your heist request for ${dealDoneInfo?.amount} PTS has been sent to the organizers for approval. Once approved, they’ll never know who robbed them!`}
                 </p>
-                <p className="font-medium text-xs bg-paper border-2 border-ink/20 rounded-lg px-2.5 py-1.5 italic">“{dealDoneInfo?.joke}”</p>
+                <div className="bg-[#ECEBE4] border-2 border-ink rounded-xl p-2.5 shadow-inner">
+                  <p className="font-sans font-bold italic text-xs text-ink">“{dealDoneInfo?.joke}”</p>
+                </div>
               </div>
               <div className="flex gap-2 pt-1">
-                <button className="btn bg-sun text-xs flex-1" onClick={() => { resetForms(); setPhase('hello'); }}>Another deal</button>
-                <button className="btn bg-white text-xs flex-1" onClick={close}>Bye, Rattie!</button>
+                <button className="btn bg-sun text-ink text-xs flex-1" onClick={() => { resetForms(); setPhase('hello'); }}>Another deal</button>
+                <button className="btn bg-white text-ink text-xs flex-1" onClick={close}>Bye, Rattie!</button>
               </div>
             </>)}
-              </div>
-            </div>
-            <span className="absolute -right-2 bottom-7 w-4 h-4 rotate-45 bg-paper border-r-[4px] border-t-[4px] border-ink pointer-events-none" />
           </div>
-          <div className="relative shrink-0">
-            {happy && <span key={sent} className="mascot-float absolute left-1/2 -top-2 -translate-x-1/2 border-2 border-ink bg-neon rounded px-2 py-0.5 font-mono font-bold text-sm shadow-b2">+{GOSSIP_POINTS}</span>}
+
+          {/* User's own Rattie Patty sprite peeking on the corner */}
+          <div aria-hidden="true" className="absolute -right-4 -bottom-9 sm:-right-6 sm:-bottom-9 w-24 h-24 sm:w-28 sm:h-28 pointer-events-none z-30">
+            {happy && (
+              <span key={sent} className="mascot-float absolute left-1/2 -top-3 -translate-x-1/2 border-2 border-ink bg-neon rounded px-2 py-0.5 font-mono font-bold text-sm shadow-b2">
+                +{GOSSIP_POINTS}
+              </span>
+            )}
             {phase === 'deal-done' && dealDoneInfo?.kind === 'gift' && (
-              <span className="mascot-float absolute left-1/2 -top-2 -translate-x-1/2 border-2 border-ink bg-sun rounded px-2 py-0.5 font-mono font-bold text-sm shadow-b2">🎁 −{dealDoneInfo.amount}</span>
+              <span className="mascot-float absolute left-1/2 -top-3 -translate-x-1/2 border-2 border-ink bg-sun rounded px-2 py-0.5 font-mono font-bold text-sm shadow-b2">
+                🎁 −{dealDoneInfo.amount}
+              </span>
             )}
             <img
               src={s.src}
               alt=""
               draggable={false}
               decoding="async"
+              className="w-full h-full object-contain mascot-breathe"
               style={{
-                width: s.w * k,
-                height: s.h * k,
-                maxWidth: '30vw',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 3px 0 rgba(17,17,17,0.16))',
+                filter: 'drop-shadow(2px 3px 0 rgba(17,17,17,0.85))',
               }}
             />
           </div>

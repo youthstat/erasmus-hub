@@ -4,15 +4,15 @@
 
 @layer base {
   html { scroll-behavior: smooth; overflow-x: clip; }
-  body { @apply bg-[#fcf9f8] text-ink font-sans m-0 antialiased selection:bg-sun selection:text-ink overflow-x-clip; }
+  body { @apply bg-[#F4F3EE] text-ink font-sans m-0 antialiased selection:bg-sun selection:text-ink overflow-x-clip; }
   :focus-visible { outline: 3px solid #2E5BFF; outline-offset: 2px; }
 }
 @layer components {
-  .box { @apply border-[3px] border-ink bg-white rounded-xl shadow-b6; }
-  .btn { @apply border-[3px] border-ink rounded-xl font-mono font-bold uppercase px-4 py-2 shadow-b4 transition-all cursor-pointer touch-manipulation select-none
-    active:translate-x-0.5 active:translate-y-0.5 active:shadow-b2 hover:shadow-b6 inline-flex items-center justify-center gap-2; }
-  .tag { @apply border-2 border-ink rounded font-mono font-bold uppercase text-[11px] px-2 py-0.5 inline-block; }
-  .input { @apply w-full border-[3px] border-ink rounded-xl px-4 py-3 font-mono shadow-b4 focus:outline-none focus:bg-sun/20; }
+  .box { @apply border-[3px] border-ink bg-white rounded-2xl shadow-b6; }
+  .btn { @apply border-[3px] border-ink rounded-xl font-mono font-extrabold uppercase px-4 py-2 shadow-b4 transition-all duration-75 cursor-pointer touch-manipulation select-none
+    active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_#111] hover:brightness-105 hover:shadow-b6 inline-flex items-center justify-center gap-2; }
+  .tag { @apply border-2 border-ink rounded-md font-mono font-extrabold uppercase text-[11px] px-2 py-0.5 shadow-[1.5px_1.5px_0_#111] inline-block; }
+  .input { @apply w-full border-[3px] border-ink rounded-xl px-4 py-3 font-mono bg-white shadow-b4 focus:outline-none focus:bg-sun/20; }
 }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }

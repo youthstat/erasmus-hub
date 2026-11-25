@@ -30,7 +30,7 @@ export default function OscarPage() {
       <Marquee className="bg-ink text-white" items={['OSCAR NIGHT', 'CREATE YOUR CREW · SHOOT · PREMIERE', 'ONE VOTE PER PARTICIPANT']} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
         <Header back />
-        <Banner title="Oscar Night: short film battle" cls="bg-sun">
+        <Banner title="Oscar Night: short film battle" cls="bg-sun" frames={['oscar1', 'oscar2', 'oscar3', 'oscar4']}>
           Form your production crew, shoot and edit your film, screen it at the red carpet gala — then everybody votes for the winners.
         </Banner>
 

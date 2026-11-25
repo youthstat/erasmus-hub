@@ -24,18 +24,18 @@ function WhisperForm() {
     setBusy(false);
   };
   if (done) return (
-    <div className="box shadow-b8 p-6 bg-neon flex flex-col gap-3 items-start">
+    <div className="box shadow-b8 p-6 bg-[#FF6E2D] text-ink flex flex-col gap-3 items-start">
       <div className="text-4xl">🐭</div>
       <h2 className="text-2xl font-extrabold uppercase">Thank you for the gossip!</h2>
       <p className="font-medium">+{GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'point' : 'points'} added to your rating. Rattie Patty keeps it safe — nobody will know it was you.</p>
-      <button className="btn bg-white" onClick={() => setDone(false)}>Write another</button>
+      <button className="btn bg-white text-ink" onClick={() => setDone(false)}>Write another</button>
     </div>
   );
   return (
     <form onSubmit={submit} className="box shadow-b8 overflow-hidden">
-      <div className="bg-ink text-white px-4 py-3 font-mono font-bold uppercase flex flex-wrap items-center justify-between gap-2">
+      <div className="bg-[#FF6E2D] text-ink border-b-[3px] border-ink px-4 py-3 font-mono font-extrabold uppercase flex flex-wrap items-center justify-between gap-2">
         <span>Write a gossip · anonymous</span>
-        <span className="tag bg-neon text-ink">+{GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'PT' : 'PTS'} for every gossip</span>
+        <span className="tag bg-white text-ink">+{GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'PT' : 'PTS'} for every gossip</span>
       </div>
       <div className="p-4 sm:p-6 bg-paper flex flex-col gap-3">
         <p className="text-sm font-medium">Every gossip of {GOSSIP_MIN_WORDS}+ words pays {GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'point' : 'points'} — here or when you whisper to Rattie Patty, no difference. Nobody sees who wrote it.</p>
@@ -43,10 +43,10 @@ function WhisperForm() {
           <>
             <textarea className="input" rows={4} maxLength={MAX_GOSSIP_LENGTH} placeholder="What have you heard?" value={text} onChange={(e) => { setText(e.target.value); setMsg(''); }} />
             {msg && <p className="font-mono text-sm font-bold text-hot">{msg}</p>}
-            <button className="btn bg-sun self-start disabled:opacity-50" disabled={busy || !text.trim()}>Send anonymously</button>
+            <button className="btn bg-sun text-ink self-start disabled:opacity-50" disabled={busy || !text.trim()}>Send anonymously</button>
           </>
         ) : (
-          <button type="button" className="btn bg-neon self-start" onClick={() => openAccount(null)}>Sign in to write a gossip</button>
+          <button type="button" className="btn bg-[#FF6E2D] text-ink self-start" onClick={() => openAccount(null)}>Sign in to write a gossip</button>
         )}
       </div>
     </form>
@@ -78,10 +78,12 @@ export default function GossipBoardPage() {
 
   return (
     <>
-      <Marquee className="bg-ink text-white" items={['RATTIE PATTY WHISPERS', 'READ-ONLY GOSSIP BOARD', 'AUTHORS STAY SECRET']} />
+      <Marquee className="bg-[#FF6E2D] text-ink" items={['RATTIE PATTY WHISPERS', 'READ-ONLY GOSSIP BOARD', 'AUTHORS STAY SECRET']} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
         <Header back />
-        <Banner title="Gossip board" cls="bg-neon">What Rattie Patty has heard. Read-only — the authors are never shown.</Banner>
+        <Banner title="Gossip board" cls="bg-[#FF6E2D] text-ink" frames={['gossip1', 'gossip2', 'gossip3', 'gossip4']}>
+          What Rattie Patty has heard. Read-only — the authors are never shown.
+        </Banner>
 
         {!canRead && <WhisperForm />}      {/* while reading, the write form is hidden */}
 
@@ -96,7 +98,7 @@ export default function GossipBoardPage() {
             <p className="font-bold">The board is open for those who have the password from the organizers.</p>
             <input className="input text-center" type="password" autoFocus placeholder="Password" value={pw} onChange={(e) => { setPw(e.target.value); setMsg(''); }} />
             {msg && <p className="font-mono text-sm font-bold text-hot">{msg}</p>}
-            <button className="btn bg-neon self-center" disabled={!pw}>Open the board</button>
+            <button className="btn bg-[#FF6E2D] text-ink self-center" disabled={!pw}>Open the board</button>
           </form>
         )}
 

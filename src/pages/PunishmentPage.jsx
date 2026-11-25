@@ -103,7 +103,7 @@ export default function PunishmentPage() {
       <Marquee className="bg-hot text-white" items={['PUNISHMENT BOX', 'WRITE · THROW · DRAW', `EVERY DRAW COSTS ${PUNISHMENT_COST} POINTS`]} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
         <Header back />
-        <Banner title="Punishment box" cls="bg-ink text-white">
+        <Banner title="Punishment box" cls="bg-[#FF94B8] text-ink" frames={['guilty1', 'guilty2', 'guilty3', 'guilty4']}>
           Write a punishment on a paper and throw it into the box. Dare to press the box — and you will pull out a paper written by somebody else.
         </Banner>
 

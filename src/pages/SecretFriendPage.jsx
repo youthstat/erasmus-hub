@@ -18,7 +18,7 @@ export default function SecretFriendPage() {
       <Marquee items={['SECRET FRIEND PROTOCOL', '100% STEALTH', '0–2 € MAXIMUM BUDGET']} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
         <Header back />
-        <Banner title="Secret friend" cls="bg-neon">
+        <Banner title="Secret friend" cls="bg-neon" frames={['gift1', 'gift3', 'gift2', 'gift4']}>
           The warmest Erasmus+ tradition. Sign in to your account and press one button to see whose secret friend you are. Secretly make that person’s days better — until the reveal at the final gala.
         </Banner>
 

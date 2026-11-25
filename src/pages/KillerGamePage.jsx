@@ -10,7 +10,7 @@ export default function KillerGamePage() {
       <Marquee className="bg-hot text-white" items={['KILLER GAME PROTOCOL', 'TRACK · STAY COVERT · PASS CONTRACT', 'LAST SURVIVOR WINS THE CUP']} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
         <Header back />
-        <Banner title="Killer game" cls="bg-hot text-white">
+        <Banner title="Killer game" cls="bg-hot text-white" frames={['mafia1', 'mafia2', 'mafia3', 'mafia4']}>
           A social stealth game that runs through the whole project. Everyone has one victim and one object. Make your victim willingly touch the object — zero violence, pure charisma.
         </Banner>
 

@@ -10,12 +10,12 @@ const TILE_STYLE = {
   8: 'bg-[#FF9F1C] text-ink',
   16: 'bg-[#FF4365] text-white',
   32: 'bg-[#FF007F] text-white',
-  64: 'bg-[#00FF66] text-ink',
+  64: 'bg-[#00E676] text-ink',
   128: 'bg-[#00E5FF] text-ink',
   256: 'bg-[#2E5BFF] text-white',
   512: 'bg-[#9D4EDD] text-white',
   1024: 'bg-[#FF5400] text-white ring-2 ring-sun',
-  2048: 'bg-ink text-[#00FF66] ring-4 ring-[#FFE600]',
+  2048: 'bg-ink text-[#00E676] ring-4 ring-[#FFE600]',
 };
 
 const tileCls = (v) => TILE_STYLE[v] || 'bg-[#FF0055] text-[#FFE600] ring-4 ring-white';
@@ -23,48 +23,85 @@ const tileFont = (v) => (v >= 1024 ? 'text-xl sm:text-2xl' : v >= 128 ? 'text-2x
 
 function createAudioEngine() {
   let ctx = null;
-  const getCtx = () => {
+  let unlocked = false;
+
+  const ensureCtx = () => {
     if (typeof window === 'undefined') return null;
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     if (!ctx) ctx = new AudioCtx();
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     return ctx;
   };
 
-  const playTone = (freq, endFreq, duration, type = 'sine', gainVal = 0.08, delay = 0) => {
-    const c = getCtx();
+  const unlock = () => {
+    const c = ensureCtx();
+    if (!c) return null;
+    if (c.state === 'suspended') {
+      c.resume().catch(() => {});
+    }
+    if (!unlocked) {
+      try {
+        // Play a 1-sample silent buffer inside user gesture so iOS/Safari & Chrome unlock WebAudio
+        const buf = c.createBuffer(1, 1, 22050);
+        const src = c.createBufferSource();
+        src.buffer = buf;
+        src.connect(c.destination);
+        src.start(0);
+        unlocked = true;
+      } catch { /* ignore */ }
+    }
+    return c;
+  };
+
+  const scheduleTone = (c, freq, endFreq, duration, type, gainVal, delay) => {
+    try {
+      const t0 = c.currentTime + delay;
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      if (endFreq !== freq) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t0 + duration);
+      }
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(gainVal, t0 + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    } catch { /* ignore */ }
+  };
+
+  const playTone = (freq, endFreq, duration, type = 'triangle', gainVal = 0.2, delay = 0) => {
+    const c = unlock();
     if (!c) return;
-    const t0 = c.currentTime + delay;
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, t0);
-    if (endFreq !== freq) osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t0 + duration);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(gainVal, t0 + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    osc.connect(gain);
-    gain.connect(c.destination);
-    osc.start(t0);
-    osc.stop(t0 + duration + 0.015);
+    if (c.state === 'suspended') {
+      c.resume()
+        .then(() => scheduleTone(c, freq, endFreq, duration, type, gainVal, delay))
+        .catch(() => {});
+    } else {
+      scheduleTone(c, freq, endFreq, duration, type, gainVal, delay);
+    }
   };
 
   return {
-    unlock: () => { getCtx(); },
-    slide: () => playTone(210, 145, 0.07, 'triangle', 0.065),
+    unlock,
+    slide: () => playTone(240, 175, 0.08, 'triangle', 0.16),
     merge: (maxVal) => {
       const step = Math.min(10, Math.max(1, Math.log2(maxVal || 4)));
-      const base = 290 + step * 48;
-      playTone(base, base * 1.28, 0.11, 'sine', 0.09);
-      playTone(base * 1.5, base * 1.65, 0.09, 'triangle', 0.05, 0.03);
+      const base = 320 + step * 52;
+      playTone(base, base * 1.32, 0.12, 'triangle', 0.22);
+      playTone(base * 1.5, base * 1.7, 0.11, 'sine', 0.15, 0.035);
     },
     win: () => {
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, f, 0.18, 'triangle', 0.08, i * 0.07));
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, f, 0.2, 'triangle', 0.22, i * 0.08));
     },
     over: () => {
-      playTone(260, 130, 0.25, 'sawtooth', 0.05);
+      playTone(320, 220, 0.16, 'sawtooth', 0.16, 0);
+      playTone(220, 130, 0.28, 'sawtooth', 0.18, 0.15);
     },
+    chime: () => playTone(587.33, 880, 0.1, 'triangle', 0.18, 0),
   };
 }
 
@@ -125,8 +162,7 @@ function moveTiles(currentTiles, dir, nextIdRef) {
       const [row, col] = coordFor(i, targetPos);
 
       if (b && a.value === b.value) {
-        if (a.row !== row || a.col !== col || b.row !== row || b.col !== col) moved = true;
-        else moved = true;
+        moved = true;
         const val = a.value * 2;
         gained += val;
         if (val > maxMerged) maxMerged = val;
@@ -169,6 +205,9 @@ function has2048Tile(tiles) {
 export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }) {
   const nextIdRef = useRef(1);
   const [tiles, setTiles] = useState(() => createInitialTiles(nextIdRef));
+  const tilesRef = useRef(tiles);
+  tilesRef.current = tiles;
+
   const [score, setScore] = useState(0);
   const [localBest, setLocalBest] = useState(0);
   const [wonAck, setWonAck] = useState(false);
@@ -206,7 +245,7 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
     if (serverBest > lastSavedRef.current) lastSavedRef.current = serverBest;
   }, [serverBest, localBest]);
 
-  const persistScore = useCallback(async (val, forceMsg = false) => {
+  const persistScore = useCallback(async (val) => {
     if (!signedIn || val <= 0 || val <= lastSavedRef.current) return;
     setSaving(true);
     try {
@@ -214,8 +253,8 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
       if (res?.saved) {
         lastSavedRef.current = res.bestScore;
         setSavedMsg(`Saved record: ${res.bestScore.toLocaleString('en-US')}`);
-      } else if (forceMsg) {
-        setSavedMsg('Score synced!');
+      } else {
+        setSavedMsg('Game over — record kept!');
       }
     } catch {
       /* ignore silent sync errors */
@@ -224,63 +263,75 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
     }
   }, [signedIn, onSaveScore]);
 
+  // Save score to Firestore ONLY when the player loses (game over)
   useEffect(() => {
-    if (!signedIn || score <= lastSavedRef.current) return;
-    const t = setTimeout(() => persistScore(score), over ? 100 : 1800);
-    return () => clearTimeout(t);
-  }, [score, over, signedIn, persistScore]);
+    if (!over || !signedIn || score <= lastSavedRef.current) return;
+    persistScore(score);
+  }, [over, score, signedIn, persistScore]);
 
   const step = useCallback((dir) => {
     if (over) return;
     audioRef.current.unlock();
 
-    setTiles((prev) => {
-      const { nextTiles, moved, gained, maxMerged } = moveTiles(prev, dir, nextIdRef);
-      if (!moved) return prev;
+    const { nextTiles, moved, gained, maxMerged } = moveTiles(tilesRef.current, dir, nextIdRef);
+    if (!moved) return;
 
-      const withSpawn = spawnTile(nextTiles, nextIdRef);
-      const isNowOver = !canMoveTiles(withSpawn);
-      const reached2048 = !wonSoundPlayedRef.current && has2048Tile(withSpawn);
+    const withSpawn = spawnTile(nextTiles, nextIdRef);
+    const isNowOver = !canMoveTiles(withSpawn);
+    const reached2048 = !wonSoundPlayedRef.current && has2048Tile(withSpawn);
 
-      if (!mutedRef.current) {
-        if (reached2048) {
-          wonSoundPlayedRef.current = true;
-          audioRef.current.win();
-        } else if (maxMerged > 0) {
-          audioRef.current.merge(maxMerged);
-        } else {
-          audioRef.current.slide();
-        }
-        if (isNowOver) setTimeout(() => !mutedRef.current && audioRef.current.over(), 120);
+    tilesRef.current = withSpawn;
+    setTiles(withSpawn);
+
+    if (!mutedRef.current) {
+      if (reached2048) {
+        wonSoundPlayedRef.current = true;
+        audioRef.current.win();
+      } else if (maxMerged > 0) {
+        audioRef.current.merge(maxMerged);
+      } else {
+        audioRef.current.slide();
       }
-
-      if (gained > 0) {
-        setScore((s) => {
-          const ns = s + gained;
-          setLocalBest((b) => Math.max(b, ns));
-          return ns;
-        });
+      if (isNowOver) {
+        setTimeout(() => !mutedRef.current && audioRef.current.over(), 120);
       }
-      if (isNowOver) setOver(true);
+    }
 
-      if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
-      cleanupTimerRef.current = setTimeout(() => {
-        setTiles((cur) => cur.filter((t) => !t.dying));
-      }, 145);
+    if (gained > 0) {
+      setScore((s) => {
+        const ns = s + gained;
+        setLocalBest((b) => Math.max(b, ns));
+        return ns;
+      });
+    }
+    if (isNowOver) setOver(true);
 
-      return withSpawn;
-    });
+    if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
+    cleanupTimerRef.current = setTimeout(() => {
+      setTiles((cur) => cur.filter((t) => !t.dying));
+    }, 145);
   }, [over]);
 
   const restart = () => {
+    audioRef.current.unlock();
     if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
-    if (signedIn && score > lastSavedRef.current) persistScore(score);
     wonSoundPlayedRef.current = false;
-    setTiles(createInitialTiles(nextIdRef));
+    const fresh = createInitialTiles(nextIdRef);
+    tilesRef.current = fresh;
+    setTiles(fresh);
     setScore(0);
     setOver(false);
     setWonAck(false);
     setSavedMsg('');
+  };
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    if (!next) {
+      audioRef.current.unlock();
+      audioRef.current.chime();
+    }
   };
 
   // Keyboard controls
@@ -385,18 +436,18 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
       {/* Score & controls */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <img src={mascot.src} alt="" draggable={false} className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0" />
+          <img src={mascot.src} alt="" draggable={false} className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0 mascot-breathe" />
           <div>
             <div className="text-2xl font-extrabold uppercase leading-none">2048</div>
             <div className="font-mono text-[11px] text-mute">Rattie Edition</div>
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
-          <div className="border-[3px] border-ink rounded-xl bg-sun px-3 py-1.5 text-center min-w-[70px]">
+          <div className="border-[3px] border-ink rounded-xl bg-sun px-3 py-1.5 text-center min-w-[70px] shadow-b2">
             <div className="font-mono text-[10px] font-bold uppercase">Score</div>
             <div className="font-mono text-base font-extrabold leading-tight">{score}</div>
           </div>
-          <div className="border-[3px] border-ink rounded-xl bg-neon px-3 py-1.5 text-center min-w-[70px]">
+          <div className="border-[3px] border-ink rounded-xl bg-neon px-3 py-1.5 text-center min-w-[70px] shadow-b2">
             <div className="font-mono text-[10px] font-bold uppercase">Best</div>
             <div className="font-mono text-base font-extrabold leading-tight">{best}</div>
           </div>
@@ -405,7 +456,7 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-mono text-xs text-mute">
-          {signedIn ? (saving ? 'Saving…' : savedMsg || 'Best score saves automatically') : 'Sign in to save your score'}
+          {signedIn ? (saving ? 'Saving…' : savedMsg || 'Score saves on game over') : 'Sign in to save your score'}
         </span>
         <div className="flex items-center gap-2">
           {!signedIn && (
@@ -413,14 +464,14 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
           )}
           <button
             type="button"
-            onClick={() => setMuted((m) => !m)}
+            onClick={toggleMute}
             aria-label={muted ? 'Unmute sound' : 'Mute sound'}
             title={muted ? 'Sound off — click to unmute' : 'Sound on — click to mute'}
-            className={`btn text-xs px-2.5 py-1.5 ${muted ? 'bg-paper text-mute' : 'bg-sun text-ink'}`}
+            className={`btn text-xs !px-2.5 !py-1.5 ${muted ? 'bg-paper text-mute' : 'bg-sun text-ink'}`}
           >
             {muted ? '🔇' : '🔊'}
           </button>
-          <button type="button" onClick={restart} className="btn bg-white text-xs px-3 py-1.5">↻ New game</button>
+          <button type="button" onClick={restart} className="btn bg-white text-xs !px-3 !py-1.5">↻ New game</button>
         </div>
       </div>
 
@@ -468,6 +519,11 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
               <div className="text-3xl">{won ? '🏆' : '🐭'}</div>
               <h3 className="text-2xl font-extrabold uppercase">{won ? 'You reached 2048!' : 'Game over!'}</h3>
               <p className="font-mono text-sm font-bold">Final score: {score}</p>
+              {over && signedIn && (
+                <p className="font-mono text-xs text-mute">
+                  {saving ? 'Saving to leaderboard…' : savedMsg || 'Score checked!'}
+                </p>
+              )}
               <div className="flex flex-wrap justify-center gap-2">
                 {won && (
                   <button type="button" onClick={() => setWonAck(true)} className="btn bg-neon text-xs">
