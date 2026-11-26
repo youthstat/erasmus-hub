@@ -1,4 +1,4 @@
-import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH, ADMIN_PASSWORD } from '../config/settings.js';
+import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH, ADMIN_PASSWORD, CONTACTS, MEDIA_UPLOAD_URL } from '../config/settings.js';
 import {
   collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy,
   serverTimestamp, increment, writeBatch, limit, getDoc, getDocs, runTransaction, arrayUnion,
@@ -327,3 +327,36 @@ export const subscribeHomeConfig = (cb, onErr = noop) =>
   onSnapshot(doc(db, 'settings', 'home'), (s) => cb((s.exists() && s.data().hidden) || {}), onErr);
 export const setHomeHidden = (id, hidden) => setDoc(doc(db, 'settings', 'home'), { hidden: { [id]: !!hidden } }, { merge: true });
 export const setAllHomeHidden = (ids, hidden) => setDoc(doc(db, 'settings', 'home'), { hidden: Object.fromEntries(ids.map((id) => [id, !!hidden])) }, { merge: true });
+
+/* ---------- Hub public settings: Photo & Video link + Help contacts ----------
+   settings/hub  { mediaUploadUrl, contacts: { dutyName, dutyPhone, telegram, medicalRoom, infoDesk, emergencyNumber } } */
+export const DEFAULT_HUB_SETTINGS = {
+  mediaUploadUrl: MEDIA_UPLOAD_URL,
+  contacts: {
+    dutyName: CONTACTS.dutyName || 'Duty coordinator (24/7)',
+    dutyPhone: CONTACTS.dutyPhone || '',
+    telegram: CONTACTS.telegram || '',
+    medicalRoom: CONTACTS.medicalRoom || '',
+    infoDesk: CONTACTS.infoDesk || '',
+    emergencyNumber: CONTACTS.emergencyNumber || '112',
+  },
+};
+
+export const subscribeHubSettings = (cb, onErr = noop) =>
+  onSnapshot(
+    doc(db, 'settings', 'hub'),
+    (s) => {
+      const d = s.exists() ? s.data() : {};
+      cb({
+        mediaUploadUrl: typeof d.mediaUploadUrl === 'string' ? d.mediaUploadUrl : MEDIA_UPLOAD_URL,
+        contacts: {
+          ...DEFAULT_HUB_SETTINGS.contacts,
+          ...(d.contacts && typeof d.contacts === 'object' ? d.contacts : {}),
+        },
+      });
+    },
+    onErr,
+  );
+
+export const saveHubSettings = (patch) =>
+  setDoc(doc(db, 'settings', 'hub'), { ...patch, updatedAt: serverTimestamp() }, { merge: true });

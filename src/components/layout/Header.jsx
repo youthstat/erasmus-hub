@@ -3,8 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import ModalShell from '../modals/ModalShell.jsx';
 import MouseAvatar from '../ui/MouseAvatar.jsx';
 import { useApp } from '../../context/AppContext.jsx';
-import { MEDIA_UPLOAD_URL } from '../../config/settings.js';
 import { formatScore } from '../../utils/format.js';
+
+function normalizeExternalUrl(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+}
 
 const UploadArrow = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -21,13 +26,14 @@ const MsgIcon = () => (
 );
 
 export default function Header({ back }) {
-  const { isAdmin, profile, openAccount, homeHidden, unreadSfMessages } = useApp();
+  const { isAdmin, profile, openAccount, homeHidden, hubSettings, unreadSfMessages } = useApp();
   const [mediaNotice, setMediaNotice] = useState(false);
   const [msgOpen, setMsgOpen] = useState(false);
   const msgWrapRef = useRef(null);
   const navigate = useNavigate();
 
   const showAsk = isAdmin || !homeHidden?.ask;
+  const mediaUrl = normalizeExternalUrl(hubSettings?.mediaUploadUrl);
   const unread = unreadSfMessages || [];
 
   useEffect(() => {
@@ -52,9 +58,9 @@ export default function Header({ back }) {
 
   const chipCls = 'btn !px-2.5 sm:!px-3 !py-1.5 text-[11px] sm:text-xs shrink-0 whitespace-nowrap';
 
-  const mediaButton = MEDIA_UPLOAD_URL ? (
+  const mediaButton = mediaUrl ? (
     <a
-      href={MEDIA_UPLOAD_URL}
+      href={mediaUrl}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Photo & Video"

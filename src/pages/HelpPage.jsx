@@ -10,7 +10,8 @@ const L = ({ t, children }) => <label className="flex flex-col gap-1 font-mono t
 const EMPTY = () => ({ reason: '', comment: '', priority: 'normal', location: '', text: '', contact: '' });
 
 export default function HelpPage() {
-  const { profile, openAccount } = useApp();
+  const { profile, openAccount, hubSettings } = useApp();
+  const contacts = hubSettings?.contacts || CONTACTS;
   const [catId, setCatId] = useState(HELP_CATEGORIES[0].id);
   const [anon, setAnon] = useState(false);
   const [guestName, setGuestName] = useState('');
@@ -43,11 +44,11 @@ export default function HelpPage() {
 
   return (
     <>
-      <Marquee className="bg-hot text-white" items={['ASK THE TEAM', 'ORGANIZERS & FACILITATORS ARE ON CALL', `EMERGENCY: ${CONTACTS.emergencyNumber}`]} />
+      <Marquee className="bg-hot text-white" items={['ASK THE TEAM', 'ORGANIZERS & FACILITATORS ARE ON CALL', `EMERGENCY: ${contacts.emergencyNumber || '112'}`]} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
         <Header back />
         <Banner title="Ask the Team" cls="bg-cobalt text-white">
-          A question, a problem or a notice for the organizers and facilitators — send it anonymously or with your name. If someone is in danger, call {CONTACTS.emergencyNumber} first.
+          A question, a problem or a notice for the organizers and facilitators — send it anonymously or with your name. If someone is in danger, call {contacts.emergencyNumber || '112'} first.
         </Banner>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -111,11 +112,37 @@ export default function HelpPage() {
           </div>
 
           <aside className="flex flex-col gap-4">
-            <Card title="Emergency contacts" cls="bg-white">
-              <div><b>Duty coordinator (24/7)</b><br />{CONTACTS.dutyPhone}<br />Telegram: {CONTACTS.telegram}</div>
-              <div><b>Medical room / first aid</b><br />{CONTACTS.medicalRoom}</div>
-              <div><b>Info desk</b><br />{CONTACTS.infoDesk}</div>
-              <div className="text-3xl font-extrabold text-hot">{CONTACTS.emergencyNumber}</div>
+            <Card title="Emergency & on-duty contacts" cls="bg-white">
+              <div>
+                <b>{contacts.dutyName || 'Duty coordinator (24/7)'}</b>
+                {contacts.dutyPhone && (
+                  <>
+                    <br />
+                    {/[0-9]/.test(contacts.dutyPhone) && !contacts.dutyPhone.includes('XX') ? (
+                      <a href={`tel:${contacts.dutyPhone.replace(/\s+/g, '')}`} className="underline font-bold text-ink">
+                        {contacts.dutyPhone}
+                      </a>
+                    ) : (
+                      <span>{contacts.dutyPhone}</span>
+                    )}
+                  </>
+                )}
+                {contacts.telegram && (
+                  <>
+                    <br />
+                    Telegram: {contacts.telegram}
+                  </>
+                )}
+              </div>
+              {contacts.medicalRoom && (
+                <div><b>Medical room / first aid</b><br />{contacts.medicalRoom}</div>
+              )}
+              {contacts.infoDesk && (
+                <div><b>Info desk</b><br />{contacts.infoDesk}</div>
+              )}
+              {contacts.emergencyNumber && (
+                <div className="text-3xl font-extrabold text-hot">{contacts.emergencyNumber}</div>
+              )}
             </Card>
             <Card title="Common requests" cls="bg-sun"><List mark="✓" items={COMMON_RESOLUTIONS} /></Card>
           </aside>

@@ -19,7 +19,8 @@ export const REFLECTION_PROMPTS = [
 
 /* ---------- Контакти організаторів (сторінка "Ask the Team") ---------- */
 export const CONTACTS = {
-  dutyPhone: '+380 XX XXX XX XX',        // черговий координатор, 24/7
+  dutyName: 'Duty coordinator (24/7)',   // хто відповідає / черговий координатор
+  dutyPhone: '+380 XX XXX XX XX',        // номер телефону чергового
   telegram: '@erasmus_duty',             // Telegram чергового
   medicalRoom: 'Room 101 (1st floor)',   // медпункт / аптечка
   emergencyNumber: '112',                // єдиний номер екстрених служб

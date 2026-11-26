@@ -13,6 +13,7 @@ import HeistAdminPanel from '../components/admin/HeistAdminPanel.jsx';
 import Game2048AdminPanel from '../components/admin/Game2048AdminPanel.jsx';
 import ReflectionAdminPanel from '../components/admin/ReflectionAdminPanel.jsx';
 import ActivityCenterPanel from '../components/admin/ActivityCenterPanel.jsx';
+import MediaLinkAdminPanel from '../components/admin/MediaLinkAdminPanel.jsx';
 import LeaderboardTable from '../components/leaderboard/LeaderboardTable.jsx';
 import { useApp } from '../context/AppContext.jsx';
 
@@ -76,7 +77,8 @@ export default function AdminPage() {
           ),
         },
         { id: 'leaderboard', label: 'Participants & Leaderboard', badge: users.length, cls: 'bg-white text-ink', node: <LeaderboardTable /> },
-        { id: 'help', label: 'Ask the Team', cls: 'bg-hot text-white', node: <HelpAdminPanel /> },
+        { id: 'media', label: 'Photo & Video Link', cls: 'bg-[#00E676] text-ink', node: <MediaLinkAdminPanel /> },
+        { id: 'help', label: 'Ask the Team & Contacts', cls: 'bg-hot text-white', node: <HelpAdminPanel /> },
         { id: 'home', label: 'Home Screen', cls: 'bg-[#B89CFF] text-ink', node: <HomeControlPanel /> },
       ],
     },

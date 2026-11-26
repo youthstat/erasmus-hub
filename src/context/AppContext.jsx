@@ -42,6 +42,7 @@ export function AppProvider({ children }) {
   const [my2048Best, setMy2048Best] = useState(0);
   const [homeHidden, setHomeHiddenState] = useState({});   // sections the admin switched off for participants
   const [homeReady, setHomeReady] = useState(false);
+  const [hubSettings, setHubSettings] = useState(api.DEFAULT_HUB_SETTINGS);
   const [error, setError] = useState('');
 
   // 1. анонімний вхід — лише технічний доступ до бази
@@ -62,6 +63,7 @@ export function AppProvider({ children }) {
       api.subscribeUsers(setUsers, onErr),
       api.subscribePointsLog(setPointsLog, onErr),
       api.subscribeHomeConfig((h) => { setHomeHiddenState(h); setHomeReady(true); }, onErr),
+      api.subscribeHubSettings(setHubSettings, onErr),
       rattie.subscribeHeistTasks(setHeistTasks, onErr),
       reflection.subscribeReflectionConfig(setReflectionConfig, onErr),
       reflection.subscribeReflectionLogs(setReflectionLogs, onErr),
@@ -221,11 +223,12 @@ export function AppProvider({ children }) {
     seedMissions: () => run(() => Promise.all(SEED_MISSIONS.map((m) => api.saveMission(m)))),
     saveMouseLook: (look) => mouseAvatar.saveMouseLook(accountId, look),
     buyMouseCostume: (opts) => mouseAvatar.buyMouseCostume({ userId: accountId, ...opts }),
+    saveHubSettings: (patch) => api.saveHubSettings(patch),
   };
 
   return (
     <AppContext.Provider value={{
-      uid, accountId, gossips, isAdmin, homeHidden, homeReady, modal, users, profile, rank, wallet2048, lastChange, myHistory, pointsLog, submissions, pendingCount,
+      uid, accountId, gossips, isAdmin, homeHidden, homeReady, hubSettings, modal, users, profile, rank, wallet2048, lastChange, myHistory, pointsLog, submissions, pendingCount,
       mySfPlayer, unreadSfMessages, punishments,
       reflectionConfig, reflectionLogs,
       missions: visibleMissions, allMissions: missions,
