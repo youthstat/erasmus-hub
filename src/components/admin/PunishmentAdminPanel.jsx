@@ -18,7 +18,7 @@ export default function PunishmentAdminPanel() {
         <button className="tag bg-white text-ink disabled:opacity-40" disabled={!papers.length}
           onClick={() => confirm(`Delete all ${papers.length} punishments? This cannot be undone. Points already paid or taken stay.`) && run(clearPunishments)}>🗑 Clear all</button>
       </div>
-      <div className="divide-y-2 divide-ink max-h-[28rem] overflow-y-auto">
+      <div className="divide-y-2 divide-ink">
         {sorted.map((p) => (
           <div key={p.id} className="p-4 flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

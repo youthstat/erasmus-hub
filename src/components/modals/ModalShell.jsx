@@ -1,11 +1,11 @@
 export default function ModalShell({ title, onClose, children, maxW = 'max-w-2xl', zClass = 'z-50' }) {
   return (
     <div
-      className={`fixed inset-0 ${zClass} flex items-center justify-center p-4 bg-black/60 backdrop-blur-[3px] overflow-y-auto`}
+      className={`fixed inset-0 ${zClass} flex items-start sm:items-center justify-center p-4 bg-black/60 backdrop-blur-[3px] overflow-y-auto`}
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxW} bg-white border-4 border-ink rounded-[20px] shadow-[8px_8px_0_#111] overflow-hidden`}
+        className={`my-auto w-full ${maxW} bg-white border-4 border-ink rounded-[20px] shadow-[8px_8px_0_#111] overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-[#FFE200] px-4 py-2.5 border-b-[3px] border-ink flex items-center justify-between gap-2">

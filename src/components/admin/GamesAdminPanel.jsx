@@ -63,7 +63,7 @@ function WhoPlays({ mode = 'all' }) {
           )}
         </div>
       </div>
-      <div className="overflow-x-auto max-h-[26rem] overflow-y-auto">
+      <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="bg-[#ebe7e7] border-b-[3px] border-ink font-mono text-xs uppercase">
@@ -149,7 +149,7 @@ function SecretFriendLinks() {
             <button type="button" className="tag bg-white text-ink" onClick={reset}>RESET GAME</button>
           </div>
         </div>
-        <div className="overflow-x-auto max-h-[30rem] overflow-y-auto">
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="bg-[#ebe7e7] border-b-[3px] border-ink font-mono text-xs uppercase">
@@ -251,7 +251,7 @@ function KillerLinks() {
         <span>Killer game contracts · {rows.filter(isJoined).length} joined · {rows.filter((p) => p.targetId).length} received a name · {playing.filter((u) => !u.isDemo && !dead.has(u.id)).length} alive</span>
         <button className="tag bg-white text-ink" onClick={reset}>RESET GAME</button>
       </div>
-      <div className="overflow-x-auto max-h-[28rem] overflow-y-auto">
+      <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="bg-[#ebe7e7] border-b-[3px] border-ink font-mono text-xs uppercase">

@@ -22,7 +22,7 @@ export default function HelpAdminPanel() {
         <span>🆘 Ask the Team · {fresh} new · {tickets.length} total</span>
         <button className="tag bg-white text-ink" onClick={() => setOnlyNew(!onlyNew)}>{onlyNew ? 'SHOW ALL' : 'SHOW NEW ONLY'}</button>
       </div>
-      <div className="divide-y-2 divide-ink max-h-[32rem] overflow-y-auto">
+      <div className="divide-y-2 divide-ink">
         {rows.map((t) => (
           <div key={t.id} className={`p-4 flex flex-col gap-2 ${t.status === 'done' ? 'opacity-60' : ''} ${t.priority === 'emergency' && t.status !== 'done' ? 'bg-hot/15' : ''}`}>
             <div className="flex flex-wrap items-center gap-2">

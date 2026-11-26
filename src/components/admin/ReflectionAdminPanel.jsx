@@ -298,7 +298,7 @@ export default function ReflectionAdminPanel() {
         <div className="bg-ink text-white border-b-[3px] border-ink px-4 py-3 font-mono font-bold uppercase">
           ✓ Daily reflection completion log ({reflectionLogs.length})
         </div>
-        <div className="divide-y-2 divide-ink max-h-72 overflow-y-auto bg-white">
+        <div className="divide-y-2 divide-ink bg-white">
           {reflectionLogs.map((l) => (
             <div key={l.id} className="p-3 flex flex-wrap items-center justify-between gap-2 text-sm">
               <div>

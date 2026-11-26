@@ -46,7 +46,7 @@ export default function GossipsPanel() {
         <p className="font-mono text-[11px] text-mute">Set the password first, then give it to the people you trust. Readers see only the texts and dates — never the authors. The password is not shown again, set a new one any time.</p>
       </div>
 
-      <div className="divide-y-2 divide-ink max-h-[28rem] overflow-y-auto">
+      <div className="divide-y-2 divide-ink">
         {gossips.map((g) => (
           <div key={g.id} className="p-4 flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

@@ -125,7 +125,7 @@ export default function ActivityCenterPanel() {
             <div className="bg-cobalt text-white border-b-[3px] border-ink px-4 py-2.5 font-mono font-bold uppercase">
               🪞 Recent daily reflections ({reflectionLogs.length})
             </div>
-            <div className="divide-y-2 divide-ink bg-white max-h-60 overflow-y-auto">
+            <div className="divide-y-2 divide-ink bg-white">
               {reflectionLogs.slice(0, 15).map((l) => (
                 <div key={l.id} className="p-3 text-sm flex flex-wrap justify-between gap-2">
                   <span>
@@ -149,7 +149,7 @@ export default function ActivityCenterPanel() {
           <div className="bg-cobalt text-white border-b-[3px] border-ink px-4 py-3 font-mono font-bold uppercase">
             🪞 Daily reflection completions ({reflectionLogs.length})
           </div>
-          <div className="divide-y-2 divide-ink bg-white max-h-[32rem] overflow-y-auto">
+          <div className="divide-y-2 divide-ink bg-white">
             {reflectionLogs.map((l) => (
               <div key={l.id} className="p-4 flex flex-wrap justify-between gap-2">
                 <div>
@@ -176,7 +176,7 @@ export default function ActivityCenterPanel() {
           <div className="bg-[#FF94B8] border-b-[3px] border-ink px-4 py-3 font-mono font-bold uppercase">
             📦 Punishment box activity ({punishments.length})
           </div>
-          <div className="divide-y-2 divide-ink bg-white max-h-[32rem] overflow-y-auto">
+          <div className="divide-y-2 divide-ink bg-white">
             {[...punishments]
               .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
               .map((p) => (
@@ -210,7 +210,7 @@ export default function ActivityCenterPanel() {
               className="border-2 border-white rounded-lg px-2.5 py-1 text-xs font-mono text-ink bg-white"
             />
           </div>
-          <div className="divide-y-2 divide-ink bg-white max-h-[32rem] overflow-y-auto">
+          <div className="divide-y-2 divide-ink bg-white">
             {filteredPoints.map((l) => (
               <div key={l.id} className="p-3 flex flex-wrap items-center justify-between gap-2 text-sm">
                 <div className="min-w-0">
