@@ -7,8 +7,10 @@ import { useApp } from '../context/AppContext.jsx';
 import { countryOf } from '../hooks/useGame.js';
 import PointsDelta from '../components/ui/PointsDelta.jsx';
 import RattieBadge from '../components/ui/RattieBadge.jsx';
+import MouseAvatar from '../components/ui/MouseAvatar.jsx';
 import { SPRITES } from '../components/mascot/sprites.js';
-import { PADLET_URL, HOME_MARQUEE_TOP, HOME_MARQUEE_BOTTOM } from '../config/settings.js';
+import { HOME_MARQUEE_TOP, HOME_MARQUEE_BOTTOM } from '../config/settings.js';
+import { formatScore } from '../utils/format.js';
 
 const NAV = [
   { id: 'schedule', frames: ['watch1', 'watch2', 'watch3', 'watch4'], anim: 'mascot-breathe', speed: 700, to: '/schedule', title: 'Schedule & timeline', text: 'Daily mission timeline, pop-up session alerts, and assigned checkpoints.', cta: 'View schedule', ctaDesktop: 'View full schedule', cls: 'bg-sun', btn: 'bg-ink text-sun' },
@@ -18,7 +20,7 @@ const NAV = [
   { id: 'punishment', frames: ['guilty1', 'guilty2', 'guilty3'], anim: 'mascot-breathe', speed: 750, to: '/punishment', title: 'Punishment box', text: 'Write a punishment (+1 point) or dare to pull one out of the box (−3 points).', cta: 'Open box', ctaDesktop: 'Open the box', cls: 'bg-[#FF94B8]', btn: 'bg-ink text-white' },
   { id: 'mouse-run', frames: ['play2048_1', 'play2048_2', 'play2048_3', 'play2048_4'], anim: 'mascot-breathe', speed: 700, to: '/mouse-run', title: 'Rattie 2048', text: 'Slide & merge tiles to reach 2048! Your best score is saved — Top 3 win +500, +200 & +100 PTS.', cta: 'Play 2048', ctaDesktop: 'Play 2048', cls: 'bg-[#B89CFF]', btn: 'bg-ink text-white' },
   { id: 'gossips', frames: ['gossip1', 'gossip2', 'gossip3', 'gossip4'], anim: 'mascot-breathe', speed: 700, to: '/gossips', title: 'Gossip board', text: 'Write a gossip anonymously (+1 point each). Reading the board opens only with the password from the organizers.', cta: 'Open board', ctaDesktop: 'Open gossip board', cls: 'bg-[#FF6E2D] text-ink', btn: 'bg-ink text-[#FF6E2D]' },
-  { id: 'reflection', frames: ['reflect1', 'reflect2', 'reflect3', 'reflect4'], anim: 'mascot-breathe', speed: 800, to: '/reflection', href: PADLET_URL, title: 'Daily reflection', text: "Record daily impressions and shape the festival's emotional pulse.", cta: 'Open Padlet', ctaDesktop: 'Go to reflection', cls: 'bg-cobalt text-white', btn: 'bg-white text-cobalt' },
+  { id: 'reflection', frames: ['reflect1', 'reflect2', 'reflect3', 'reflect4'], anim: 'mascot-breathe', speed: 800, to: '/reflection', title: 'Daily reflection', text: "Gather with your evening team, answer today's questions & earn +50 PTS together.", cta: 'Open reflection', ctaDesktop: 'Go to reflection', cls: 'bg-cobalt text-white', btn: 'bg-white text-cobalt' },
 ];
 
 // Static image by default; animates only when hovered
@@ -155,15 +157,28 @@ export default function HomePage() {
                       key={p.id}
                       className={`p-3 items-center justify-between gap-2 ${i >= 5 ? 'hidden lg:flex' : 'flex'} ${p.id === accountId ? 'bg-sun/35' : 'hover:bg-paper/60 transition-colors'}`}
                     >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <b className="truncate">#{String(i + 1).padStart(2, '0')} {p.name}</b>
-                          {p.id === accountId && <span className="font-mono text-[10px] font-bold uppercase text-cobalt shrink-0">· You</span>}
-                          <RattieBadge event={p.lastRattieEvent} />
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {p.id === accountId ? (
+                          <Link
+                            to="/mouse-avatar"
+                            title="Customize my mouse"
+                            className="shrink-0 rounded-lg hover:scale-105 hover:ring-2 hover:ring-ink transition-transform"
+                          >
+                            <MouseAvatar user={p} size="w-8 h-8" rounded="rounded-lg" border="border-2 border-ink" />
+                          </Link>
+                        ) : (
+                          <MouseAvatar user={p} size="w-8 h-8" rounded="rounded-lg" border="border-2 border-ink" />
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <b className="truncate">#{String(i + 1).padStart(2, '0')} {p.name}</b>
+                            {p.id === accountId && <span className="font-mono text-[10px] font-bold uppercase text-cobalt shrink-0">· You</span>}
+                            <RattieBadge event={p.lastRattieEvent} />
+                          </div>
+                          <div className="font-mono text-[11px] text-mute">{countryOf(p)}</div>
                         </div>
-                        <div className="font-mono text-[11px] text-mute">{countryOf(p)}</div>
                       </div>
-                      <b className="font-mono tabular-nums whitespace-nowrap shrink-0">{(p.score ?? 0).toLocaleString('en-US')} PTS<PointsDelta change={lastChange[p.id]} /></b>
+                      <b className="font-mono tabular-nums whitespace-nowrap shrink-0">{formatScore(p.score)} PTS<PointsDelta change={lastChange[p.id]} /></b>
                     </div>
                   ))}
                   {users.length === 0 && <p className="p-3 font-mono text-sm">No participants yet.</p>}
@@ -177,7 +192,12 @@ export default function HomePage() {
 
           <div className={`${vis('ranking') ? 'lg:col-span-7' : 'lg:col-span-12 lg:grid-cols-3'} grid grid-cols-2 gap-3 sm:gap-4`}>
             {cards.map((n) => (
-              <NavCard key={n.to} n={n} hiddenTag={hiddenTag} dim={dim} />
+              <NavCard
+                key={n.to}
+                n={n}
+                hiddenTag={hiddenTag}
+                dim={dim}
+              />
             ))}
           </div>
         </section>

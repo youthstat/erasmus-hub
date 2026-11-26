@@ -145,11 +145,16 @@ export async function claimResult(game, userId, userIds, nameOf) {
     const me = players.find((p) => p.id === userId);
     if (!isJoined(me)) throw fail('missing', 'Join the game first.');
     if (me.dead) throw fail('dead', 'You have been eliminated.');
-    if (me.targetId) return me;
+    if (me.targetId) {
+      if (me.revealed === false) {
+        await updateDoc(doc(db, cfg.players, userId), { revealed: true });
+      }
+      return { ...me, revealed: true };
+    }
 
     const deadIds = new Set(players.filter((p) => p.dead).map((p) => p.id));
     const pool = userIds.filter((id) => !deadIds.has(id));
-    const edges = players.filter((p) => p.targetId && !p.dead).map((p) => [p.id, p.targetId]);
+    const edges = players.filter((p) => p.targetId && !p.dead && pool.includes(p.id) && pool.includes(p.targetId)).map((p) => [p.id, p.targetId]);
     const targetId = pickTarget(pool, edges, userId);
     if (!targetId) throw fail('none', 'No free name is available yet. Ask the organizers to enable more players.');
 
@@ -169,7 +174,7 @@ export async function claimResult(game, userId, userIds, nameOf) {
         const [meSnap, claimSnap, itemSnap] = await Promise.all([tx.get(meRef), tx.get(claimRef), itemRef ? tx.get(itemRef) : null]);
         if (meSnap.data().targetId) return { id: userId, ...meSnap.data() };
         if (claimSnap.exists() || (itemSnap && itemSnap.exists())) throw fail('retry', 'retry');
-        const patch = { targetId, targetName: nameOf(targetId) };
+        const patch = { targetId, targetName: nameOf(targetId), revealed: true };
         tx.set(claimRef, { byUserId: userId });
         if (itemOwner) {
           Object.assign(patch, { itemOwnerId: itemOwner.id, itemText: itemOwner.item });
@@ -293,6 +298,109 @@ export async function setPlays(game, userId, plays, nameOf) {
   const excluded = plays ? cur.filter((id) => id !== userId) : [...new Set([...cur, userId])];
   await setDoc(ref, { excluded });
   if (!plays) await detachUser(game, userId, nameOf);
+}
+
+export async function setAllPlays(game, userIds, plays, keepExcludedIds = []) {
+  const ref = doc(db, 'gameConfig', game);
+  const excluded = plays
+    ? [...new Set(keepExcludedIds)]
+    : [...new Set([...userIds, ...keepExcludedIds])];
+  await setDoc(ref, { excluded });
+  if (!plays) {
+    // Detach non-demo active players cleanly when excluding everyone
+    const players = await readPlayers(game);
+    const idSet = new Set(userIds);
+    const batch = writeBatch(db);
+    if (game === 'sf') {
+      players.filter((p) => idSet.has(p.id) && !p.isDemo).forEach((p) => {
+        batch.delete(doc(db, GAMES.sf.players, p.id));
+        batch.delete(doc(db, GAMES.sf.claims, p.id));
+        if (p.targetId) batch.delete(doc(db, GAMES.sf.claims, p.targetId));
+      });
+    } else if (game === 'kg') {
+      players.filter((p) => idSet.has(p.id) && !p.isDemo && !p.dead).forEach((p) => {
+        batch.update(doc(db, GAMES.kg.players, p.id), { dead: true, targetId: null, targetName: null });
+        batch.delete(doc(db, GAMES.kg.claims, p.id));
+      });
+    }
+    await batch.commit();
+  }
+}
+
+/* Admin: randomly assign / re-shuffle all active Secret Friend participants into a closed circle */
+export async function assignAllSecretFriends(userIds, nameOf) {
+  const pool = [...new Set((userIds || []).filter(Boolean))];
+  if (pool.length < 2) throw fail('few', 'At least 2 enabled participants are needed to assign Secret Friends.');
+
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const existing = await readPlayers('sf');
+  const existingMap = new Map(existing.map((p) => [p.id, p]));
+  const oldClaimsSnap = await getDocs(collection(db, GAMES.sf.claims));
+
+  const batch = writeBatch(db);
+  oldClaimsSnap.docs.forEach((d) => {
+    if (!existingMap.get(d.id)?.isDemo) batch.delete(d.ref);
+  });
+
+  shuffled.forEach((giverId, idx) => {
+    const targetId = shuffled[(idx + 1) % shuffled.length];
+    const prev = existingMap.get(giverId);
+    const ref = doc(db, GAMES.sf.players, giverId);
+    batch.set(ref, {
+      userId: giverId,
+      joined: true,
+      targetId,
+      targetName: nameOf(targetId),
+      revealed: prev?.targetId ? (prev.revealed !== false) : false,
+      joinedAt: prev?.joinedAt || serverTimestamp(),
+    }, { merge: true });
+    batch.set(doc(db, GAMES.sf.claims, targetId), { byUserId: giverId });
+  });
+
+  await batch.commit();
+  return shuffled.length;
+}
+
+/* Admin: manually reassign who `giverId` gives a gift to in Secret Friend */
+export async function setSecretFriendTarget(giverId, newTargetId, nameOf) {
+  if (!giverId) return;
+  if (newTargetId && newTargetId === giverId) throw fail('self', 'A participant cannot be their own secret friend.');
+  const ref = doc(db, GAMES.sf.players, giverId);
+  const snap = await getDoc(ref);
+  const prev = snap.exists() ? snap.data() : null;
+  const batch = writeBatch(db);
+
+  if (prev?.targetId && prev.targetId !== newTargetId) {
+    batch.delete(doc(db, GAMES.sf.claims, prev.targetId));
+  }
+
+  if (newTargetId) {
+    batch.set(ref, {
+      userId: giverId,
+      joined: true,
+      targetId: newTargetId,
+      targetName: nameOf(newTargetId),
+      revealed: prev?.targetId ? (prev.revealed !== false) : false,
+      joinedAt: prev?.joinedAt || serverTimestamp(),
+    }, { merge: true });
+    batch.set(doc(db, GAMES.sf.claims, newTargetId), { byUserId: giverId });
+  } else {
+    batch.set(ref, {
+      userId: giverId,
+      joined: true,
+      targetId: null,
+      targetName: null,
+      revealed: false,
+      joinedAt: prev?.joinedAt || serverTimestamp(),
+    }, { merge: true });
+  }
+
+  await batch.commit();
 }
 
 /* A person leaves a game (switched off by the admin or removed from the leaderboard):

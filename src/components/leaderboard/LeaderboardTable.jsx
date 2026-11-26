@@ -1,7 +1,10 @@
+import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext.jsx';
 import { countryOf } from '../../hooks/useGame.js';
+import { formatScore } from '../../utils/format.js';
 import PointsDelta from '../ui/PointsDelta.jsx';
 import RattieBadge from '../ui/RattieBadge.jsx';
+import MouseAvatar from '../ui/MouseAvatar.jsx';
 
 export default function LeaderboardTable() {
   const { users, accountId, isAdmin, adjustPoints, removeUser, openUserEditor, lastChange, resetAccount } = useApp();
@@ -33,10 +36,30 @@ export default function LeaderboardTable() {
               <tr key={p.id} className={p.id === accountId ? 'bg-sun/25' : 'hover:bg-sun/20'}>
                 <td className="p-3 text-center font-bold">{String(i + 1).padStart(2, '0')}</td>
                 <td className="p-3">
-                  <div className="font-bold uppercase">{p.name} {p.id === accountId && <span className="tag bg-sun">YOU</span>}<RattieBadge event={p.lastRattieEvent} /></div>
-                  <div className="font-mono text-xs text-mute">{countryOf(p)}{isAdmin && <span> · {p.registered ? 'account ✓' : 'no account'}</span>}</div>
+                  <div className="flex items-center gap-2.5">
+                    {p.id === accountId ? (
+                      <Link
+                        to="/mouse-avatar"
+                        title="Customize my mouse"
+                        className="shrink-0 rounded-lg hover:scale-105 hover:ring-2 hover:ring-ink transition-transform"
+                      >
+                        <MouseAvatar user={p} size="w-9 h-9" rounded="rounded-lg" border="border-2 border-ink" />
+                      </Link>
+                    ) : (
+                      <MouseAvatar user={p} size="w-9 h-9" rounded="rounded-lg" border="border-2 border-ink" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-bold uppercase flex flex-wrap items-center gap-1.5">
+                        <span>{p.name}</span>
+                        {p.id === accountId && <span className="tag bg-sun">YOU</span>}
+                        {p.isDemo && <span className="tag bg-[#B89CFF] text-ink">DEMO</span>}
+                        <RattieBadge event={p.lastRattieEvent} />
+                      </div>
+                      <div className="font-mono text-xs text-mute">{countryOf(p)}{isAdmin && <span> · {p.registered ? 'account ✓' : 'no account'}</span>}</div>
+                    </div>
+                  </div>
                 </td>
-                <td className="p-3 text-right text-xl font-bold">{(p.score ?? 0).toLocaleString('en-US')}<PointsDelta change={lastChange[p.id]} /></td>
+                <td className="p-3 text-right text-xl font-bold whitespace-nowrap">{formatScore(p.score)}<PointsDelta change={lastChange[p.id]} /></td>
                 {isAdmin && (
                   <td className="p-3 text-center whitespace-nowrap space-x-1">
                     <button className="tag bg-white" onClick={() => adjustPoints(p.id, -10, 'Manual')}>-10</button>

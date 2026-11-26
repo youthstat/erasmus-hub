@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext.jsx';
+import { formatScore } from '../../utils/format.js';
 
 export default function HeistAdminPanel() {
   const {
@@ -55,12 +56,17 @@ export default function HeistAdminPanel() {
                       <span className="tag bg-hot text-white">{r.amount} PTS</span>
                       <span className="font-mono text-xs text-mute">from</span>
                       <b>{r.victimName}</b>
-                      <span className="font-mono text-xs text-mute">(has {victimScore} PTS)</span>
+                      <span className="font-mono text-xs text-mute">(has {formatScore(victimScore)} PTS)</span>
                     </div>
                     <div className="font-mono text-xs font-bold text-cobalt uppercase">Task: {r.taskTitle}</div>
                     <p className="text-sm bg-paper border-2 border-ink/20 rounded-lg px-3 py-2 whitespace-pre-line break-words">
                       {r.description}
                     </p>
+                    {r.comment && (
+                      <p className="text-xs font-bold bg-sun/35 border-2 border-ink/30 rounded-lg px-3 py-1.5 whitespace-pre-line break-words">
+                        💬 Note to target: “{r.comment}”
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -75,6 +81,7 @@ export default function HeistAdminPanel() {
             <div key={r.id} className="p-3 text-sm flex flex-wrap justify-between gap-3 text-mute">
               <span className="min-w-0">
                 <b>{r.thiefName}</b> {r.status === 'approved' ? 'stole' : 'tried to steal'} <b>{r.grantedAmount ?? r.amount} PTS</b> from <b>{r.victimName}</b> · {r.taskTitle}
+                {r.comment && <span className="ml-2 italic">· “{r.comment}”</span>}
               </span>
               <span className={`font-mono font-bold shrink-0 ${r.status === 'approved' ? 'text-[#007a33]' : 'text-hot'}`}>
                 {r.status === 'approved' ? '✓ APPROVED' : '✕ REJECTED'}

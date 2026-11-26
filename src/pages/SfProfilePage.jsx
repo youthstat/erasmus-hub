@@ -7,7 +7,6 @@ import { ChatFromFriend } from '../components/games/SecretChat.jsx';
 import { useApp } from '../context/AppContext.jsx';
 import { useGame } from '../hooks/useGame.js';
 import { isJoined, saveSfProfile } from '../firebase/games.js';
-import { fileToCover } from '../utils/image.js';
 import { SF_PROFILE_FIELDS, SF_PROFILE_BONUS, SF_PROFILE_MAX } from '../config/settings.js';
 
 // My own page for my secret friend: saving a filled-in profile automatically gives +50 points once.
@@ -15,12 +14,11 @@ export default function SfProfilePage() {
   const { profile, openAccount } = useApp();
   const { byId, countryOfId } = useGame('sf');
   const me = profile ? byId.get(profile.id) : null;
-  const [form, setForm] = useState({ drinks: '', hobbies: '', wishlist: '', allergies: '', photo: '' });
+  const [form, setForm] = useState({ drinks: '', hobbies: '', wishlist: '', allergies: '' });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [ok, setOk] = useState('');
   const loaded = useRef(false);
-  const fileRef = useRef(null);
 
   useEffect(() => {                                    // fill the form once with what is already saved
     if (me && !loaded.current) { loaded.current = true; setForm((f) => ({ ...f, ...(me.profile || {}) })); }
@@ -28,11 +26,6 @@ export default function SfProfilePage() {
 
   const got = !!me?.profileBonus;
   const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setOk(''); setMsg(''); };
-  const pickPhoto = async (e) => {
-    const file = e.target.files?.[0]; e.target.value = '';
-    if (!file) return;
-    try { set('photo', await fileToCover(file, 320)); } catch (err) { setMsg(err.message); }
-  };
   const save = async () => {
     setBusy(true); setMsg(''); setOk('');
     try {
@@ -68,14 +61,16 @@ export default function SfProfilePage() {
                 <Win title="DOSSIER-CREATOR // MY-WISHLIST.TXT" right={<span className="tag bg-neon text-ink">VISIBLE ONLY TO YOUR SECRET FRIEND</span>}>
                   <div className="p-4 sm:p-6 bg-paper flex flex-col gap-5">
                     <div className="border-[3px] border-ink rounded-xl shadow-b6 bg-sun p-4 flex flex-wrap items-center gap-5">
-                      <Avatar photo={form.photo} name={profile.name} />
+                      <Link to="/mouse-avatar" title="Customize my mouse" className="shrink-0 block hover:scale-105 transition-transform">
+                        <Avatar user={profile} photoSprite={profile?.photoSprite} name={profile.name} />
+                      </Link>
                       <div className="min-w-0 flex-1">
                         <h2 className="text-2xl sm:text-4xl font-extrabold uppercase leading-none break-words">{profile.name}</h2>
                         {countryOfId(profile.id) && <div className="font-mono text-sm font-bold mt-1">from {countryOfId(profile.id)}</div>}
                         <div className="mt-3 flex flex-wrap gap-2">
-                          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
-                          <button type="button" className="btn bg-white !px-3 !py-1.5 text-xs" onClick={() => fileRef.current?.click()}>{form.photo ? 'Change photo' : '📷 Add a photo (optional)'}</button>
-                          {form.photo && <button type="button" className="btn bg-white !px-3 !py-1.5 text-xs" onClick={() => set('photo', '')}>Remove</button>}
+                          <Link to="/mouse-avatar" className="btn bg-[#FDB5D0] text-ink !px-3 !py-1.5 text-xs">
+                            🐭 Change mouse look →
+                          </Link>
                         </div>
                       </div>
                     </div>

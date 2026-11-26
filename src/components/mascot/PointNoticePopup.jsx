@@ -24,6 +24,12 @@ export default function PointNoticePopup() {
             ? 'Someone secretly sent you points from their own stash via Rattie Patty! Who was it? My lips are sealed like a cheese vault! 🧀'
             : 'Someone hired Rattie Patty to snatch points from your balance! Who did it? Rattie Patty never snitches! 🐭💨'}
         </p>
+        {notice.comment && (
+          <div className="w-full border-[3px] border-ink rounded-xl bg-white text-ink p-3 shadow-b4 text-left">
+            <div className="font-mono text-[10px] font-extrabold uppercase text-mute mb-1">💬 Secret note attached</div>
+            <p className="text-sm font-bold whitespace-pre-line break-words">“{notice.comment}”</p>
+          </div>
+        )}
         <button className="btn bg-white text-ink mt-2" onClick={() => dismissNotice(notice.id)}>
           {gift ? 'Awesome, thanks!' : 'Got it!'} ✕
         </button>

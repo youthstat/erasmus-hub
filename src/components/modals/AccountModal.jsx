@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext.jsx';
 import { countryOf } from '../../hooks/useGame.js';
 import NamePicker from '../ui/NamePicker.jsx';
 import PointsDelta from '../ui/PointsDelta.jsx';
 import RattieBadge from '../ui/RattieBadge.jsx';
 import { useOscar } from '../../hooks/useOscar.js';
-import { Avatar } from '../games/SfParts.jsx';
+import MouseAvatar from '../ui/MouseAvatar.jsx';
+import { formatScore } from '../../utils/format.js';
+import { todayKey } from '../../firebase/punishment.js';
 import ModalShell from './ModalShell.jsx';
 
 const L = ({ t, children }) => <label className="flex flex-col gap-1 font-mono text-xs font-bold uppercase">{t}{children}</label>;
@@ -65,24 +68,61 @@ function AuthForm({ next }) {
 }
 
 function Account() {
-  const { profile, rank, users, myHistory, mySfPlayer, logoutAccount, closeModal } = useApp();
+  const { profile, rank, wallet2048, users, myHistory, reflectionConfig, reflectionLogs, logoutAccount, closeModal } = useApp();
   const { myTeam, nameOf } = useOscar();
-  const sfPhoto = mySfPlayer?.profile?.photo || '';
+  const myReflectionTeam = (reflectionConfig?.teams || []).find((t) => Array.isArray(t.memberIds) && t.memberIds.includes(profile.id));
+  const today = todayKey();
+  const todayReflDone = myReflectionTeam && reflectionLogs.some((l) => l.teamId === myReflectionTeam.id && l.day === today);
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3.5 min-w-0">
-          {sfPhoto && <Avatar photo={sfPhoto} name={profile.name} size="w-16 h-16 sm:w-20 sm:h-20" />}
+          <Link to="/mouse-avatar" onClick={closeModal} title="Customize my mouse" className="shrink-0 hover:scale-105 transition-transform">
+            <MouseAvatar user={profile} size="w-16 h-16 sm:w-20 sm:h-20" />
+          </Link>
           <div className="min-w-0">
             <div className="text-xl sm:text-2xl md:text-3xl font-extrabold uppercase break-words">{profile.name}<RattieBadge event={profile.lastRattieEvent} /></div>
             <div className="font-mono text-sm text-mute">{countryOf(profile) || '—'}</div>
+            <Link
+              to="/mouse-avatar"
+              onClick={closeModal}
+              className="btn bg-[#FDB5D0] text-ink !px-3 !py-1 text-[11px] mt-2 inline-flex"
+            >
+              🐭 Customize mouse →
+            </Link>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl sm:text-3xl font-extrabold">{(profile.score ?? 0).toLocaleString('en-US')} <span className="text-base">PTS</span></div>
+          <div className="text-2xl sm:text-3xl font-extrabold">{formatScore(profile.score)} <span className="text-base">PTS</span></div>
           <div className="font-mono text-xs font-bold text-mute">Rank #{rank} of {users.length}</div>
+          <div className="font-mono text-[11px] font-bold text-mute mt-0.5">{wallet2048.toLocaleString('en-US')} 2048 PTS</div>
         </div>
       </div>
+      {myReflectionTeam && (
+        <div className="border-[3px] border-ink rounded-xl overflow-hidden">
+          <div className="bg-cobalt text-white border-b-[3px] border-ink px-4 py-2 font-mono text-xs font-bold uppercase flex items-center justify-between gap-2">
+            <span>🪞 My reflection team</span>
+            {todayReflDone ? <span className="tag bg-neon text-ink">DONE TODAY ✓</span> : <span className="tag bg-sun text-ink">PENDING TODAY</span>}
+          </div>
+          <div className="p-4 flex flex-col gap-2 bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-lg font-extrabold uppercase break-words">{myReflectionTeam.name}</div>
+              <Link to="/reflection" onClick={closeModal} className="tag bg-sun text-ink">Open reflection →</Link>
+            </div>
+            <div className="font-mono text-xs">
+              <b>Reflection leader:</b> {myReflectionTeam.leaderName ? myReflectionTeam.leaderName : <span className="text-mute">Not chosen yet</span>}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(myReflectionTeam.memberIds || []).map((u) => (
+                <span key={u} className={`tag ${u === profile.id ? 'bg-sun' : 'bg-white'}`}>
+                  {nameOf(u)}{u === profile.id ? ' (you)' : ''}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       {myTeam && (
         <div className="border-[3px] border-ink rounded-xl overflow-hidden">
           <div className="bg-sun border-b-[3px] border-ink px-4 py-2 font-mono text-xs font-bold uppercase">🎬 My film crew</div>

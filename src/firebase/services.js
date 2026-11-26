@@ -1,9 +1,10 @@
-import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH } from '../config/settings.js';
+import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH, ADMIN_PASSWORD } from '../config/settings.js';
 import {
   collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy,
-  serverTimestamp, increment, writeBatch, limit, getDoc, getDocs, runTransaction,
+  serverTimestamp, increment, writeBatch, limit, getDoc, getDocs, runTransaction, arrayUnion,
 } from 'firebase/firestore';
 import { db } from './config.js';
+import { parseScoreValue } from '../utils/format.js';
 
 const list = (s) => s.docs.map((d) => ({ id: d.id, ...d.data() }));
 // onErr — показує помилку бази на екрані замість тихого "нічого не відбувається"
@@ -62,10 +63,12 @@ export async function resetAccount(userId) {
 
 /* ---------- користувачі ---------- */
 // admin: add (no id) or edit (id) a participant
-export const saveUser = ({ name, country, score }, id) =>
-  id
-    ? updateDoc(doc(db, 'users', id), { name, country, score: Number(score) || 0 })
-    : addDoc(collection(db, 'users'), { name, country, score: Number(score) || 0, createdAt: serverTimestamp() });
+export const saveUser = ({ name, country, score }, id) => {
+  const cleanScore = parseScoreValue(score);
+  return id
+    ? updateDoc(doc(db, 'users', id), { name, country, score: cleanScore })
+    : addDoc(collection(db, 'users'), { name, country, score: cleanScore, createdAt: serverTimestamp() });
+};
 
 export async function removeUser(uid) {
   const batch = writeBatch(db);
@@ -79,6 +82,136 @@ export async function adjustPoints(userId, delta, reason = 'Manual') {
   const batch = writeBatch(db);
   batch.update(doc(db, 'users', userId), { score: increment(delta) });
   batch.set(doc(collection(db, 'pointsLog')), { userId, delta, reason, createdAt: serverTimestamp() });
+  await batch.commit();
+}
+
+export async function adjustPointsBatch(userIds, delta, reason = 'Manual') {
+  const clean = [...new Set((userIds || []).filter(Boolean))];
+  const amt = Number(delta);
+  if (!clean.length || !amt) return 0;
+  for (let i = 0; i < clean.length; i += 200) {
+    const batch = writeBatch(db);
+    clean.slice(i, i + 200).forEach((userId) => {
+      batch.update(doc(db, 'users', userId), { score: increment(amt) });
+      batch.set(doc(collection(db, 'pointsLog')), { userId, delta: amt, reason, createdAt: serverTimestamp() });
+    });
+    await batch.commit();
+  }
+  return clean.length;
+}
+
+/* ---------- Demo showcase accounts: Rattie Patty (-1,000,000) & Admin (+1,000, pw: 1234), paired as mutual Secret Friends ---------- */
+export const DEMO_IDS = { rattie: 'demo_rattie', admin: 'demo_admin' };
+
+export async function ensureDemoAccounts(force = false) {
+  const seedRef = doc(db, 'settings', 'demoSeed');
+  if (!force) {
+    const seedSnap = await getDoc(seedRef);
+    if (seedSnap.exists() && seedSnap.data()?.v2) return;
+  }
+
+  const [rattieHash, adminHash] = await Promise.all([
+    hashPassword(DEMO_IDS.rattie, ADMIN_PASSWORD),
+    hashPassword(DEMO_IDS.admin, ADMIN_PASSWORD),
+  ]);
+
+  const batch = writeBatch(db);
+
+  batch.set(doc(db, 'users', DEMO_IDS.rattie), {
+    name: 'Rattie Patty',
+    country: 'Cheese Vault',
+    score: -1000000,
+    registered: true,
+    isDemo: true,
+    photoSprite: 'hello',
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'credentials', DEMO_IDS.rattie), {
+    passHash: rattieHash,
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'users', DEMO_IDS.admin), {
+    name: 'Admin',
+    country: 'Organizer HQ',
+    score: 1000,
+    registered: true,
+    isDemo: true,
+    photoSprite: 'oscar1',
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'credentials', DEMO_IDS.admin), {
+    passHash: adminHash,
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+
+  // Exclude both demo accounts from real participants' Secret Friend & Killer Game pools
+  batch.set(doc(db, 'gameConfig', 'sf'), {
+    excluded: arrayUnion(DEMO_IDS.rattie, DEMO_IDS.admin),
+  }, { merge: true });
+  batch.set(doc(db, 'gameConfig', 'kg'), {
+    excluded: arrayUnion(DEMO_IDS.rattie, DEMO_IDS.admin),
+  }, { merge: true });
+
+  // Mutual Secret Friend pairing between Rattie Patty and Admin for live demonstrations
+  batch.set(doc(db, 'sfPlayers', DEMO_IDS.rattie), {
+    userId: DEMO_IDS.rattie,
+    joined: true,
+    isDemo: true,
+    revealed: true,
+    targetId: DEMO_IDS.admin,
+    targetName: 'Admin',
+    profileBonus: true,
+    profile: {
+      drinks: 'Aged Gouda, Swiss cheese & warm chamomile tea',
+      hobbies: 'Collecting secrets, midnight heists, 2048 high scores',
+      wishlist: 'A tiny golden bell, cozy socks or a handwritten note',
+      allergies: 'Mousetraps & spoiled milk',
+      photoSprite: 'hello',
+    },
+    joinedAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'sfPlayers', DEMO_IDS.admin), {
+    userId: DEMO_IDS.admin,
+    joined: true,
+    isDemo: true,
+    revealed: true,
+    targetId: DEMO_IDS.rattie,
+    targetName: 'Rattie Patty',
+    profileBonus: true,
+    profile: {
+      drinks: 'Double espresso & oat cookies',
+      hobbies: 'Running youth exchanges, cheering everyone on',
+      wishlist: 'On-time reflection circles & big smiles',
+      allergies: 'Late mission proofs',
+      photoSprite: 'oscar1',
+    },
+    joinedAt: serverTimestamp(),
+  }, { merge: true });
+
+  // Sample Secret Friend messages between Rattie Patty & Admin for demo walkthroughs
+  batch.set(doc(db, 'sfQuestions', 'demo_q_rattie_to_admin'), {
+    giverId: DEMO_IDS.rattie,
+    wardId: DEMO_IDS.admin,
+    text: 'Psst! What sweet snack should I sneak onto your desk before the evening session?',
+    answer: null,
+    day: 'demo',
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'sfQuestions', 'demo_q_admin_to_rattie'), {
+    giverId: DEMO_IDS.admin,
+    wardId: DEMO_IDS.rattie,
+    text: 'Do you prefer Gouda or Cheddar for your midnight snack?',
+    answer: 'Gouda forever! 🧀',
+    day: 'demo',
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(seedRef, { v1: true, v2: true, updatedAt: serverTimestamp() }, { merge: true });
   await batch.commit();
 }
 

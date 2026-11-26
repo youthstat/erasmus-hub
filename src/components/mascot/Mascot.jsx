@@ -6,6 +6,7 @@ import { countWords, pts } from '../../firebase/services.js';
 import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH } from '../../config/settings.js';
 import { fileToCover } from '../../utils/image.js';
 import { countryOf } from '../../hooks/useGame.js';
+import { formatScore } from '../../utils/format.js';
 
 /*
   Rattie Patty lives ON the page. She climbs onto the blocks (boxes, cards), sits and sleeps on them,
@@ -251,16 +252,18 @@ export default function Mascot() {
   const [targetFilter, setTargetFilter] = useState('');
   const [giftTargetId, setGiftTargetId] = useState('');
   const [giftAmount, setGiftAmount] = useState('10');
+  const [giftComment, setGiftComment] = useState('');
 
   // Steal state
   const [selectedTaskId, setSelectedTaskId] = useState('');
   const [stealPhoto, setStealPhoto] = useState('');
   const [stealDesc, setStealDesc] = useState('');
+  const [stealComment, setStealComment] = useState('');
   const [stealVictimId, setStealVictimId] = useState('');
   const [stealAmount, setStealAmount] = useState('10');
 
   // Deal completion state
-  const [dealDoneInfo, setDealDoneInfo] = useState(null); // { kind: 'gift' | 'steal', amount, joke }
+  const [dealDoneInfo, setDealDoneInfo] = useState(null); // { kind: 'gift' | 'steal', targetName, joke }
 
   const [, relayout] = useReducer((n) => n + 1, 0);
   const ref = useRef(null);
@@ -348,9 +351,11 @@ export default function Mascot() {
     setTargetFilter('');
     setGiftTargetId('');
     setGiftAmount('10');
+    setGiftComment('');
     setSelectedTaskId(heistTasks[0]?.id || '');
     setStealPhoto('');
     setStealDesc('');
+    setStealComment('');
     setStealVictimId('');
     setStealAmount('10');
     setDealDoneInfo(null);
@@ -371,7 +376,7 @@ export default function Mascot() {
   };
 
   const others = users
-    .filter((u) => u.id !== profile?.id)
+    .filter((u) => u.id !== profile?.id && (!u.isDemo || profile?.isDemo))
     .filter((u) => !targetFilter.trim() || u.name.toLowerCase().includes(targetFilter.trim().toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -398,15 +403,17 @@ export default function Mascot() {
     if (busy) return;
     setNote(null);
     const amt = Math.floor(Number(giftAmount));
-    const myScore = Number(profile?.score) || 0;
+    const rawScore = Number(profile?.score);
+    const myScore = Number.isFinite(rawScore) ? rawScore : 0;
     if (!giftTargetId) return setNote({ kind: 'warn', text: 'Pick someone to gift points to first!' });
     if (!Number.isFinite(amt) || amt <= 0) return setNote({ kind: 'warn', text: 'Enter at least 1 point to gift.' });
-    if (amt > myScore) return setNote({ kind: 'warn', text: `You only have ${myScore} PTS! Can’t gift more than you’ve got.` });
+    if (myScore <= 0 || amt > myScore) return setNote({ kind: 'warn', text: `You only have ${formatScore(profile?.score)} PTS! Can’t gift more than you’ve got.` });
 
+    const recipient = users.find((u) => u.id === giftTargetId);
     setBusy(true);
     try {
-      const sentAmt = await giftPoints(giftTargetId, amt);
-      setDealDoneInfo({ kind: 'gift', amount: sentAmt, joke: pick(JOKES_DEAL_GIFT) });
+      await giftPoints(giftTargetId, amt, giftComment);
+      setDealDoneInfo({ kind: 'gift', targetName: recipient?.name || 'them', joke: pick(JOKES_DEAL_GIFT) });
       setPhase('deal-done');
     } catch (err) {
       setNote({ kind: 'err', text: err.message || 'Could not send gift.' });
@@ -438,8 +445,9 @@ export default function Mascot() {
     if (!stealPhoto) return setNote({ kind: 'warn', text: 'Attach a photo showing you completed the task!' });
     if (stealDesc.trim().length < 5) return setNote({ kind: 'warn', text: 'Write a short description of what you did (at least 5 characters).' });
     if (!victim) return setNote({ kind: 'warn', text: 'Choose who you want to steal points from!' });
-    const victimScore = Number(victim.score) || 0;
-    if (victimScore <= 0) return setNote({ kind: 'warn', text: `${victim.name} has 0 PTS — nothing to steal!` });
+    const rawVictimScore = Number(victim.score);
+    const victimScore = Number.isFinite(rawVictimScore) ? rawVictimScore : 0;
+    if (victimScore <= 0) return setNote({ kind: 'warn', text: `${victim.name} has ${formatScore(victim.score)} PTS — nothing to steal!` });
     if (!Number.isFinite(amt) || amt <= 0 || amt > victimScore) {
       return setNote({ kind: 'warn', text: `Choose between 1 and ${victimScore} PTS.` });
     }
@@ -453,9 +461,10 @@ export default function Mascot() {
         taskId: task.id,
         taskTitle: task.title,
         description: stealDesc,
+        comment: stealComment,
         photo: stealPhoto,
       });
-      setDealDoneInfo({ kind: 'steal', amount: amt, joke: pick(JOKES_DEAL_STEAL) });
+      setDealDoneInfo({ kind: 'steal', targetName: victim.name, joke: pick(JOKES_DEAL_STEAL) });
       setPhase('deal-done');
     } catch (err) {
       setNote({ kind: 'err', text: err.message || 'Could not submit heist.' });
@@ -476,17 +485,19 @@ export default function Mascot() {
     else if (phase === 'deal-done') pose = dealDoneInfo?.kind === 'gift' ? 'gift3' : 'thief2';
 
     const s = SPRITES[pose] || SPRITES.hello;
-    const k = wide ? 0.6 : 0.7;
     const words = countWords(text);
-    const myScore = Number(profile?.score) || 0;
+    const rawMyScore = Number(profile?.score);
+    const myScore = Number.isFinite(rawMyScore) ? rawMyScore : 0;
+    const myScoreText = formatScore(profile?.score);
     const selectedTask = heistTasks.find((t) => t.id === selectedTaskId) || heistTasks[0] || null;
     const stealVictim = users.find((u) => u.id === stealVictimId) || null;
-    const stealVictimScore = Number(stealVictim?.score) || 0;
+    const rawVictimScore = Number(stealVictim?.score);
+    const stealVictimScore = Number.isFinite(rawVictimScore) ? rawVictimScore : 0;
     const giftTarget = users.find((u) => u.id === giftTargetId) || null;
 
     const panelBadge = (() => {
       if (phase === 'write') return '🔒 Anonymous';
-      if (phase === 'gift') return `🎁 Gift · You: ${myScore} PTS`;
+      if (phase === 'gift') return `🎁 Gift · You: ${myScoreText} PTS`;
       if (phase === 'steal-task' || phase === 'steal-form') return '🕵️ Heist';
       if (phase === 'deal-done') return '🤝 Deal Closed';
       return null;
@@ -554,7 +565,7 @@ export default function Mascot() {
                 <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm font-bold text-ink">
                   <span>Nice to see you, <b className="break-words">{profile?.name}</b>! You have</span>
                   <span className="inline-block bg-[#FFE200] border-2 border-ink font-mono font-black text-xs px-2 py-0.5 rounded shadow-[1.5px_1.5px_0_#111]">
-                    {myScore} PTS
+                    {myScoreText} PTS
                   </span>
                 </div>
               </div>
@@ -646,7 +657,7 @@ export default function Mascot() {
                   ← Back to deals
                 </button>
                 <div className="bg-[#ECEBE4] border-2 border-ink rounded-xl p-2.5 text-xs font-medium leading-snug shadow-inner">
-                  🎁 <b>How gifting works:</b> Pick a participant you want to reward. The points are taken directly from <b>your own account</b> ({myScore} PTS) and given to them — no task needed, and they will never know it was from you!
+                  🎁 <b>How gifting works:</b> Pick a participant you want to reward. Your gift arrives anonymously — they will never know it was from you!
                 </div>
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
                   <span>1 · Choose recipient</span>
@@ -669,7 +680,7 @@ export default function Mascot() {
                   </select>
                 </label>
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
-                  <span>2 · Points to gift (you have {myScore} PTS)</span>
+                  <span>2 · Points to gift (you have {myScoreText} PTS)</span>
                   <input
                     type="number"
                     min="1"
@@ -684,14 +695,25 @@ export default function Mascot() {
                     <button type="button" key={n} onClick={() => setGiftAmount(String(n))} className="tag bg-white hover:bg-sun">+{n}</button>
                   ))}
                 </div>
+                <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
+                  <span>3 · Anonymous note (optional)</span>
+                  <textarea
+                    rows={2}
+                    maxLength={200}
+                    value={giftComment}
+                    onChange={(e) => setGiftComment(e.target.value)}
+                    placeholder="Leave a kind message for them (they won’t know it’s you)…"
+                    className="w-full resize-none border-[3px] border-ink rounded-xl px-2.5 py-1.5 font-sans text-xs font-medium bg-white"
+                  />
+                </label>
                 {giftTarget && Number(giftAmount) > 0 && Number(giftAmount) <= myScore && (
                   <div className="font-mono text-[11px] text-[#15803D]">
-                    Your balance: {myScore} → {myScore - Math.floor(Number(giftAmount))} PTS · {giftTarget.name} gets +{Math.floor(Number(giftAmount))} PTS
+                    Ready to deliver secretly to {giftTarget.name}!
                   </div>
                 )}
                 {note && <p className="font-mono text-xs text-hot">{note.text}</p>}
                 <button type="submit" disabled={busy || myScore <= 0} className="btn bg-neon text-ink text-xs disabled:opacity-50">
-                  {busy ? 'Sending…' : myScore <= 0 ? 'You have 0 PTS' : '🎁 Gift points now'}
+                  {busy ? 'Sending…' : myScore <= 0 ? 'Insufficient PTS' : '🎁 Gift points now'}
                 </button>
               </form>
             )}
@@ -780,14 +802,14 @@ export default function Mascot() {
                   >
                     <option value="">Choose target…</option>
                     {others.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name} — {u.score ?? 0} PTS</option>
+                      <option key={u.id} value={u.id}>{u.name} — {formatScore(u.score)} PTS</option>
                     ))}
                   </select>
                 </label>
                 {stealVictim && (
                   <div className="bg-white border-2 border-ink rounded-lg px-2.5 py-1.5 font-mono text-xs flex justify-between shadow-b2">
                     <span>{stealVictim.name} has:</span>
-                    <b>{stealVictimScore} PTS</b>
+                    <b>{formatScore(stealVictim.score)} PTS</b>
                   </div>
                 )}
                 <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
@@ -799,6 +821,17 @@ export default function Mascot() {
                     value={stealAmount}
                     onChange={(e) => { setStealAmount(e.target.value); setNote(null); }}
                     className="border-[3px] border-ink rounded-xl px-3 py-1.5 font-mono text-sm bg-white"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 font-mono text-[11px] uppercase">
+                  <span>5 · Secret note to target (optional)</span>
+                  <input
+                    type="text"
+                    maxLength={200}
+                    value={stealComment}
+                    onChange={(e) => setStealComment(e.target.value)}
+                    placeholder="Optional anonymous message they see when robbed…"
+                    className="border-[3px] border-ink rounded-xl px-2.5 py-1.5 font-sans text-xs font-medium bg-white"
                   />
                 </label>
                 {note && <p className="font-mono text-xs text-hot">{note.text}</p>}
@@ -814,8 +847,8 @@ export default function Mascot() {
                 <p className="text-base font-extrabold uppercase">Thank you for the deal, my friend! — Rattie Patty 🐭🤝</p>
                 <p className="font-medium text-xs">
                   {dealDoneInfo?.kind === 'gift'
-                    ? `You gifted ${dealDoneInfo.amount} PTS anonymously. Nobody will ever know it was you!`
-                    : `Your heist request for ${dealDoneInfo?.amount} PTS has been sent to the organizers for approval. Once approved, they’ll never know who robbed them!`}
+                    ? `Your secret gift has been delivered anonymously to ${dealDoneInfo.targetName}! Nobody will ever know it was you!`
+                    : `Your heist request on ${dealDoneInfo?.targetName || 'them'} has been sent to the organizers for approval. Once approved, they’ll never know who robbed them!`}
                 </p>
                 <div className="bg-[#ECEBE4] border-2 border-ink rounded-xl p-2.5 shadow-inner">
                   <p className="font-sans font-bold italic text-xs text-ink">“{dealDoneInfo?.joke}”</p>
@@ -833,11 +866,6 @@ export default function Mascot() {
             {happy && (
               <span key={sent} className="mascot-float absolute left-1/2 -top-3 -translate-x-1/2 border-2 border-ink bg-neon rounded px-2 py-0.5 font-mono font-bold text-sm shadow-b2">
                 +{GOSSIP_POINTS}
-              </span>
-            )}
-            {phase === 'deal-done' && dealDoneInfo?.kind === 'gift' && (
-              <span className="mascot-float absolute left-1/2 -top-3 -translate-x-1/2 border-2 border-ink bg-sun rounded px-2 py-0.5 font-mono font-bold text-sm shadow-b2">
-                🎁 −{dealDoneInfo.amount}
               </span>
             )}
             <img

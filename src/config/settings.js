@@ -7,6 +7,15 @@
 export const ADMIN_PASSWORD = '1234';                           // пароль адміністратора
 export const PADLET_URL = 'https://padlet.com/auth/login';      // посилання на Padlet (Daily reflection)
 export const MEDIA_UPLOAD_URL = '';                             // посилання на папку для завантаження фото та відео
+export const REFLECTION_POINTS_PER_DAY = 50;                    // скільки балів щодня отримує кожен учасник команди за рефлексію
+export const REFLECTION_PROMPTS = [
+  'Add a picture of your family.',
+  'How do you feel right now?',
+  'What has been the best of the day?',
+  'What did you learn?',
+  'What could make this experience more meaningful?',
+  'Describe the day with emojis',
+];
 
 /* ---------- Контакти організаторів (сторінка "Ask the Team") ---------- */
 export const CONTACTS = {

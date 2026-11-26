@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ModalShell from '../modals/ModalShell.jsx';
+import MouseAvatar from '../ui/MouseAvatar.jsx';
 import { useApp } from '../../context/AppContext.jsx';
 import { MEDIA_UPLOAD_URL } from '../../config/settings.js';
+import { formatScore } from '../../utils/format.js';
 
 const UploadArrow = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -19,14 +21,13 @@ const MsgIcon = () => (
 );
 
 export default function Header({ back }) {
-  const { isAdmin, profile, openAccount, homeHidden, mySfPlayer, unreadSfMessages } = useApp();
+  const { isAdmin, profile, openAccount, homeHidden, unreadSfMessages } = useApp();
   const [mediaNotice, setMediaNotice] = useState(false);
   const [msgOpen, setMsgOpen] = useState(false);
   const msgWrapRef = useRef(null);
   const navigate = useNavigate();
 
   const showAsk = isAdmin || !homeHidden?.ask;
-  const sfPhoto = mySfPlayer?.profile?.photo || '';
   const unread = unreadSfMessages || [];
 
   useEffect(() => {
@@ -127,16 +128,12 @@ export default function Header({ back }) {
   const profileButton = profile ? (
     <button
       onClick={() => openAccount(null)}
-      title={`${profile.name} · ${(profile.score ?? 0).toLocaleString('en-US')} PTS`}
-      className="btn !px-2.5 sm:!px-3.5 !py-1.5 bg-white text-ink font-mono flex items-center gap-1.5 max-w-[135px] sm:max-w-[260px] min-w-0 !normal-case"
+      title={`${profile.name} · ${formatScore(profile.score)} PTS`}
+      className="btn !px-2.5 sm:!px-3.5 !py-1.5 bg-white text-ink font-mono flex items-center gap-1.5 max-w-[145px] sm:max-w-[260px] min-w-0 !normal-case"
     >
-      {sfPhoto ? (
-        <img src={sfPhoto} alt="" className="w-5 h-5 rounded-md border-[1.5px] border-ink object-cover shrink-0" />
-      ) : (
-        <span className="shrink-0 text-sm">👤</span>
-      )}
+      <MouseAvatar user={profile} size="w-5 h-5" rounded="rounded-md" border="border-[1.5px] border-ink" />
       <span className="truncate text-[13px] sm:text-sm font-extrabold tracking-tight">{profile.name}</span>
-      <span className="hidden sm:inline shrink-0 text-xs font-bold text-mute">· {(profile.score ?? 0).toLocaleString('en-US')}</span>
+      <span className="hidden sm:inline shrink-0 text-xs font-bold text-mute">· {formatScore(profile.score)}</span>
     </button>
   ) : (
     <button className={`${chipCls} bg-sun text-ink`} onClick={() => openAccount(null)}>

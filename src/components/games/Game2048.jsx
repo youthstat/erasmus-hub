@@ -140,6 +140,7 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
   const pointerStart = useRef(null);
   const boardRef = useRef(null);
   const lastSavedRef = useRef(0);
+  const creditedRef = useRef(0);
   const cleanupTimerRef = useRef(null);
 
   const best = Math.max(localBest, serverBest || 0);
@@ -151,16 +152,21 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
 
   const persistScore = useCallback(async (val, reason = 'saved') => {
     if (!signedIn || val <= 0) return;
-    if (val <= lastSavedRef.current) {
+    const walletDelta = Math.max(0, val - creditedRef.current);
+    const needsSave = val > lastSavedRef.current || walletDelta > 0;
+    if (!needsSave) {
       setSavedMsg(`Best record kept: ${lastSavedRef.current.toLocaleString('en-US')}`);
       return;
     }
+    creditedRef.current = Math.max(creditedRef.current, val);
     setSaving(true);
     try {
-      const res = await onSaveScore(val);
+      const res = await onSaveScore(val, walletDelta);
       if (res?.saved) {
         lastSavedRef.current = res.bestScore;
-        setSavedMsg(`Saved record: ${res.bestScore.toLocaleString('en-US')}`);
+        setSavedMsg(`Saved record: ${res.bestScore.toLocaleString('en-US')}${walletDelta > 0 ? ` (+${walletDelta.toLocaleString('en-US')} shop pts)` : ''}`);
+      } else if (walletDelta > 0) {
+        setSavedMsg(`+${walletDelta.toLocaleString('en-US')} 2048 shop pts saved!`);
       } else if (reason === 'manual') {
         setSavedMsg(`Score ${val.toLocaleString('en-US')} checked — best is ${lastSavedRef.current.toLocaleString('en-US')}`);
       } else {
@@ -186,9 +192,12 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
   useEffect(() => {
     const flushOnLeave = () => {
       const cur = exitSaveRef.current;
-      if (cur.started && !cur.over && cur.signedIn && cur.score > lastSavedRef.current && cur.onSaveScore) {
-        lastSavedRef.current = cur.score;
-        cur.onSaveScore(cur.score).catch(() => {});
+      if (!cur.started || cur.over || !cur.signedIn || !cur.onSaveScore || cur.score <= 0) return;
+      const walletDelta = Math.max(0, cur.score - creditedRef.current);
+      if (cur.score > lastSavedRef.current || walletDelta > 0) {
+        lastSavedRef.current = Math.max(lastSavedRef.current, cur.score);
+        creditedRef.current = Math.max(creditedRef.current, cur.score);
+        cur.onSaveScore(cur.score, walletDelta).catch(() => {});
       }
     };
     const onVisibility = () => {
@@ -208,6 +217,7 @@ export default function Game2048({ signedIn, serverBest, onSignIn, onSaveScore }
     if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
     const fresh = createInitialTiles(nextIdRef);
     tilesRef.current = fresh;
+    creditedRef.current = 0;
     setTiles(fresh);
     setScore(0);
     setOver(false);

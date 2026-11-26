@@ -1,13 +1,22 @@
 import { SF_PROFILE_FIELDS } from '../../config/settings.js';
+import MouseAvatar from '../ui/MouseAvatar.jsx';
 
-// photo (or the first letter) in a framed square with a piece of tape, like on the dossier
-export function Avatar({ photo, name, size = 'w-24 h-24' }) {
+// customized mouse avatar in a framed square with a piece of tape, like on the dossier
+export function Avatar({ user = null, costumeId = null, bgColor = null, photo, photoSprite, name, size = 'w-24 h-24' }) {
   return (
     <div className="relative shrink-0">
       <div className="absolute -top-2 left-3 w-10 h-3 bg-cobalt/70 -rotate-6 z-10" />
-      <div className={`${size} border-[3px] border-ink bg-white shadow-b4 overflow-hidden flex items-center justify-center text-4xl font-extrabold uppercase`}>
-        {photo ? <img src={photo} alt={name} className="w-full h-full object-cover" /> : (name || '?').trim().charAt(0)}
-      </div>
+      <MouseAvatar
+        user={user}
+        costumeId={costumeId}
+        bgColor={bgColor}
+        photoSprite={photoSprite}
+        photo={photo}
+        name={name}
+        size={size}
+        rounded="rounded-none"
+        className="shadow-b4"
+      />
     </div>
   );
 }

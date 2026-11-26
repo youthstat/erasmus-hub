@@ -1,7 +1,7 @@
-export default function ModalShell({ title, onClose, children, maxW = 'max-w-2xl' }) {
+export default function ModalShell({ title, onClose, children, maxW = 'max-w-2xl', zClass = 'z-50' }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[3px] overflow-y-auto"
+      className={`fixed inset-0 ${zClass} flex items-center justify-center p-4 bg-black/60 backdrop-blur-[3px] overflow-y-auto`}
       onClick={onClose}
     >
       <div

@@ -2,7 +2,7 @@ import { useApp } from '../../context/AppContext.jsx';
 import { categoryColor } from '../../utils/categoryColor.js';
 import { deadlineText, isExpired } from '../../utils/mission.js';
 
-const STATUS = { pending: ['UNDER REVIEW', 'bg-sun'], approved: ['COMPLETED ✓', 'bg-neon'], rejected: ['REJECTED', 'bg-hot text-white'] };
+const STATUS = { pending: ['UNDER REVIEW', 'bg-sun'], approved: ['✓ YOU COMPLETED THIS', 'bg-neon'], rejected: ['REJECTED', 'bg-hot text-white'] };
 
 export default function MissionCard({ mission, className = '' }) {
   const { openMission, isAdmin, openEditor, statusFor, profile, submissions, clearSubmissions } = useApp();
@@ -11,10 +11,12 @@ export default function MissionCard({ mission, className = '' }) {
     e.stopPropagation();
     if (confirm(`Clear everyone who completed “${mission.title}”? ${doneCount} record(s) will be deleted. Points already paid stay, and participants can send this mission again.`)) clearSubmissions(mission.id);
   };
-  const st = !isAdmin && profile ? STATUS[statusFor(mission)] : null;
+  const status = !isAdmin && profile ? statusFor(mission) : null;
+  const st = status ? STATUS[status] : null;
+  const completed = status === 'approved';
   return (
     <div onClick={() => openMission(mission)}
-      className={`border-[3px] border-ink bg-white p-3.5 sm:p-4 rounded-xl shadow-b4 hover:shadow-b6 transition-all flex flex-col justify-between cursor-pointer ${mission.active === false ? 'opacity-60' : ''} ${className}`}>
+      className={`border-[3px] border-ink p-3.5 sm:p-4 rounded-xl shadow-b4 hover:shadow-b6 transition-all flex flex-col justify-between cursor-pointer ${completed ? 'bg-[#ebe7e7] opacity-75' : 'bg-white'} ${mission.active === false ? 'opacity-60' : ''} ${className}`}>
       <div className="space-y-1.5 sm:space-y-2 min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-1">
           <span className={`tag !text-[10px] sm:!text-[11px] ${categoryColor(mission.category)}`}>{mission.category}</span>

@@ -10,7 +10,7 @@ import { countryOf } from '../hooks/useGame.js';
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function MouseRunPage() {
-  const { profile, openAccount, setError } = useApp();
+  const { profile, wallet2048, openAccount, setError } = useApp();
   const [scores, setScores] = useState([]);
   const [config, setConfig] = useState({ awarded: false, winners: [] });
 
@@ -65,12 +65,19 @@ export default function MouseRunPage() {
           </div>
         )}
 
+        {profile && (
+          <div className="box px-4 py-2 max-w-md w-full mx-auto flex items-center justify-between gap-2 bg-white">
+            <span className="font-mono text-xs text-mute uppercase font-bold">Spendable 2048 balance</span>
+            <b className="font-mono text-sm font-extrabold tabular-nums">{wallet2048.toLocaleString('en-US')} 2048 PTS</b>
+          </div>
+        )}
+
         {/* 2. The 2048 Game */}
         <Game2048
           signedIn={!!profile}
           serverBest={myEntry?.bestScore || 0}
           onSignIn={() => openAccount(null)}
-          onSaveScore={(score) => save2048Score(profile, score, countryOf(profile))}
+          onSaveScore={(score, walletDelta) => save2048Score(profile, score, countryOf(profile), walletDelta)}
         />
 
         {/* 3. Compact Top Runners list at the bottom (max 5 lines: Top 3 + ... + current player's place) */}

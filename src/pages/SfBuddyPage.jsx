@@ -10,12 +10,14 @@ import { SF_PROFILE_FIELDS } from '../config/settings.js';
 
 // The dossier of the person I am secret friend of: what they wrote about themselves + the secret chat with them.
 export default function SfBuddyPage() {
-  const { profile, openAccount } = useApp();
+  const { profile, openAccount, users } = useApp();
   const { byId, nameOf, countryOfId } = useGame('sf');
   const me = profile ? byId.get(profile.id) : null;
-  const ward = me?.targetId ? byId.get(me.targetId) : null;
+  const hasRevealedTarget = !!(isJoined(me) && me.targetId && me.revealed !== false);
+  const ward = hasRevealedTarget ? byId.get(me.targetId) : null;
+  const wardUser = hasRevealedTarget ? users.find((u) => u.id === me.targetId) : null;
   const wp = ward?.profile || {};
-  const name = me?.targetId ? nameOf(me.targetId) : '';
+  const name = hasRevealedTarget ? nameOf(me.targetId) : '';
   const legacy = ward && (ward.likes || ward.dislikes);
 
   return (
@@ -26,16 +28,16 @@ export default function SfBuddyPage() {
         {!profile && (
           <div className="box p-6 flex flex-col gap-3 items-start"><p className="font-medium">Sign in to open the dossier of your secret friend.</p><button className="btn bg-neon" onClick={() => openAccount(null)}>Sign in / Register</button></div>
         )}
-        {profile && !(isJoined(me) && me.targetId) && (
-          <div className="box p-6 flex flex-col gap-3 items-start"><p className="font-medium">You do not have a secret friend yet. Join the game and press “Show me who I am secret friend of”.</p><Link to="/secret-friend" className="btn bg-neon">← Secret friend page</Link></div>
+        {profile && !hasRevealedTarget && (
+          <div className="box p-6 flex flex-col gap-3 items-start"><p className="font-medium">You have not revealed your secret friend yet. Join the game and press “Show me who I am secret friend of”.</p><Link to="/secret-friend" className="btn bg-neon">← Secret friend page</Link></div>
         )}
-        {profile && isJoined(me) && me.targetId && (
+        {profile && hasRevealedTarget && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-7 flex flex-col gap-6">
               <Win title={`DOSSIER // ${name}.TXT`} right={<span className="tag bg-hot text-white">FOR YOUR EYES ONLY</span>}>
                 <div className="p-4 sm:p-6 bg-paper flex flex-col gap-6">
                   <div className="border-[3px] border-ink rounded-xl shadow-b6 bg-sun p-4 sm:p-6 flex flex-wrap items-center gap-5">
-                    <Avatar photo={wp.photo} name={name} />
+                    <Avatar user={wardUser} photo={wp.photo} photoSprite={wp.photoSprite || wardUser?.photoSprite} name={name} />
                     <div className="min-w-0">
                       <span className="tag bg-ink text-white">YOU ARE THEIR SECRET FRIEND</span>
                       <h1 className="text-3xl sm:text-5xl font-extrabold uppercase leading-none break-words mt-2">{name}</h1>

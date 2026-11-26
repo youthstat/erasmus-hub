@@ -55,6 +55,7 @@ export default function GamePanel({ game }) {
   const me = profile ? byId.get(profile.id) : null;
   const enrolled = !!profile && playing.some((u) => u.id === profile.id);
   const joined = isJoined(me);
+  const revealed = !!(me?.targetId && (game !== 'sf' || me.revealed !== false));
   const aliveCount = playing.filter((u) => !dead.has(u.id)).length;
   const joinedCount = players.filter(isJoined).length;
 
@@ -129,8 +130,8 @@ export default function GamePanel({ game }) {
           </form>
         )}
 
-        {/* 2. joined, nothing drawn yet */}
-        {enrolled && !me?.dead && joined && !me.targetId && !(game === 'kg' && aliveCount <= 1 && playing.length > 1) && (
+        {/* 2. joined, nothing drawn/revealed yet */}
+        {enrolled && !me?.dead && joined && !revealed && !(game === 'kg' && aliveCount <= 1 && playing.length > 1) && (
           <div className="max-w-xl mx-auto text-center items-center flex flex-col gap-4">
             <span className="tag bg-neon shadow-b4 -rotate-1 self-center text-sm px-4 py-1.5">✓ {profile.name}</span>
             <h3 className="text-xl sm:text-2xl font-extrabold uppercase">{c.joined}</h3>
@@ -142,7 +143,7 @@ export default function GamePanel({ game }) {
         )}
 
         {/* last survivor */}
-        {enrolled && game === 'kg' && !me?.dead && joined && !me.targetId && aliveCount <= 1 && playing.length > 1 && (
+        {enrolled && game === 'kg' && !me?.dead && joined && !revealed && aliveCount <= 1 && playing.length > 1 && (
           <div className="max-w-xl mx-auto text-center border-[3px] border-ink rounded-xl shadow-b6 p-6 bg-sun">
             <div className="text-2xl font-extrabold uppercase">🏆 You are the last survivor</div>
             <p className="mt-2 font-bold">You are the Master Killer! Tell the organizers.</p>
@@ -150,7 +151,7 @@ export default function GamePanel({ game }) {
         )}
 
         {/* 3. result */}
-        {enrolled && !me?.dead && joined && me.targetId && (
+        {enrolled && !me?.dead && joined && revealed && (
           <div className="max-w-xl mx-auto flex flex-col gap-4">
             {notice && <p className="border-[3px] border-ink rounded-xl bg-neon px-4 py-3 font-bold shadow-b4 text-center">{notice}</p>}
             <div className={`border-[3px] border-ink rounded-xl shadow-b6 p-6 text-center ${game === 'sf' ? 'bg-neon' : 'bg-hot text-white'}`}>

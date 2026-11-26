@@ -15,22 +15,37 @@ export const subscribe2048Scores = (cb, onErr = noop) =>
 export const subscribe2048Config = (cb, onErr = noop) =>
   onSnapshot(doc(db, 'game2048Config', 'main'), (s) => cb(s.exists() ? s.data() : { awarded: false, winners: [] }), onErr);
 
-export async function save2048Score(user, score, country = '') {
+export async function save2048Score(user, score, country = '', walletDelta = 0) {
   const clean = Math.max(0, Math.floor(Number(score) || 0));
-  if (!user?.id || clean <= 0) return { saved: false, bestScore: 0 };
+  const addWallet = Math.max(0, Math.floor(Number(walletDelta) || 0));
+  if (!user?.id || (clean <= 0 && addWallet <= 0)) return { saved: false, bestScore: 0, walletAdded: 0 };
+
   const ref = doc(db, 'game2048Scores', user.id);
+  const uRef = doc(db, 'users', user.id);
   return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
+    const [snap, uSnap] = await Promise.all([tx.get(ref), tx.get(uRef)]);
     const prev = snap.exists() ? Number(snap.data().bestScore) || 0 : 0;
-    if (clean <= prev) return { saved: false, bestScore: prev };
-    tx.set(ref, {
-      userId: user.id,
-      userName: user.name,
-      country: country || user.country || '',
-      bestScore: clean,
-      updatedAt: serverTimestamp(),
-    });
-    return { saved: true, bestScore: clean };
+    const isRecord = clean > prev;
+
+    if (isRecord) {
+      tx.set(ref, {
+        userId: user.id,
+        userName: user.name,
+        country: country || user.country || '',
+        bestScore: clean,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    let newWallet = 0;
+    if (addWallet > 0 && uSnap.exists()) {
+      const u = uSnap.data();
+      const curWallet = typeof u.game2048Points === 'number' ? u.game2048Points : prev;
+      newWallet = curWallet + addWallet;
+      tx.update(uRef, { game2048Points: newWallet });
+    }
+
+    return { saved: isRecord, bestScore: Math.max(prev, clean), walletAdded: addWallet, newWallet };
   });
 }
 

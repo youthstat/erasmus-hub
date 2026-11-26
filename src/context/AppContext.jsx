@@ -1,12 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { auth, firebaseConfigured } from '../firebase/config.js';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db, firebaseConfigured } from '../firebase/config.js';
 import * as api from '../firebase/services.js';
 import * as games from '../firebase/games.js';
 import * as chat from '../firebase/chat.js';
 import * as rattie from '../firebase/rattie.js';
+import * as reflection from '../firebase/reflection.js';
+import * as punishment from '../firebase/punishment.js';
+import * as mouseAvatar from '../firebase/mouseAvatar.js';
 import { SEED_MISSIONS } from '../data/missions.js';
-import { ADMIN_PASSWORD } from '../config/settings.js';
+import { ADMIN_PASSWORD, PADLET_URL, REFLECTION_POINTS_PER_DAY } from '../config/settings.js';
 
 const AppContext = createContext(null);
 export const useApp = () => useContext(AppContext);
@@ -32,6 +36,10 @@ export function AppProvider({ children }) {
   const [mySfPlayer, setMySfPlayer] = useState(null);
   const [sfReceived, setSfReceived] = useState([]);
   const [sfWardMsgs, setSfWardMsgs] = useState([]);
+  const [reflectionConfig, setReflectionConfig] = useState({ padletUrl: PADLET_URL, pointsPerDay: REFLECTION_POINTS_PER_DAY, teams: [] });
+  const [reflectionLogs, setReflectionLogs] = useState([]);
+  const [punishments, setPunishments] = useState([]);
+  const [my2048Best, setMy2048Best] = useState(0);
   const [homeHidden, setHomeHiddenState] = useState({});   // sections the admin switched off for participants
   const [homeReady, setHomeReady] = useState(false);
   const [error, setError] = useState('');
@@ -48,17 +56,21 @@ export function AppProvider({ children }) {
     if (!uid) return;
     const onErr = (e) => setError(e.message);
     rattie.ensureDefaultHeistTasks().catch(() => {});
+    api.ensureDemoAccounts().catch(() => {});
     const offs = [
       api.subscribeMissions(setMissions, onErr),
       api.subscribeUsers(setUsers, onErr),
       api.subscribePointsLog(setPointsLog, onErr),
       api.subscribeHomeConfig((h) => { setHomeHiddenState(h); setHomeReady(true); }, onErr),
       rattie.subscribeHeistTasks(setHeistTasks, onErr),
+      reflection.subscribeReflectionConfig(setReflectionConfig, onErr),
+      reflection.subscribeReflectionLogs(setReflectionLogs, onErr),
     ];
     if (isAdmin) {
       offs.push(api.subscribeAllSubmissions(setSubmissions, onErr));
       offs.push(api.subscribeGossips(setGossips, onErr));
       offs.push(rattie.subscribeStealRequests(setStealRequests, onErr));
+      offs.push(punishment.subscribePunishments(setPunishments, onErr));
     } else if (accountId) {
       offs.push(api.subscribeMySubmissions(accountId, setSubmissions, onErr));
     } else {
@@ -68,12 +80,20 @@ export function AppProvider({ children }) {
       offs.push(rattie.subscribeMyNotices(accountId, setMyNotices, onErr));
       offs.push(games.subscribePlayer('sf', accountId, setMySfPlayer, onErr));
       offs.push(chat.subscribeReceived(accountId, setSfReceived, onErr));
+      offs.push(
+        onSnapshot(
+          doc(db, 'game2048Scores', accountId),
+          (snap) => setMy2048Best(snap.exists() ? Number(snap.data().bestScore) || 0 : 0),
+          onErr,
+        ),
+      );
     } else {
       setMyNotices([]);
       setMySfPlayer(null);
       setSfReceived([]);
+      setMy2048Best(0);
     }
-    if (!isAdmin) { setGossips([]); setStealRequests([]); }
+    if (!isAdmin) { setGossips([]); setStealRequests([]); setPunishments([]); }
     return () => offs.forEach((o) => o());
   }, [uid, isAdmin, accountId]);
 
@@ -89,6 +109,7 @@ export function AppProvider({ children }) {
 
   const profile = useMemo(() => users.find((u) => u.id === accountId) || null, [users, accountId]);
   const rank = profile ? users.findIndex((u) => u.id === profile.id) + 1 : 0;
+  const wallet2048 = profile && typeof profile.game2048Points === 'number' ? profile.game2048Points : my2048Best;
   const visibleMissions = useMemo(() => (isAdmin ? missions : missions.filter((m) => m.active !== false)), [missions, isAdmin]);
   const activeHeistTasks = useMemo(() => heistTasks.filter((t) => t.active !== false), [heistTasks]);
   const pendingCount = submissions.filter((s) => s.status === 'pending').length + stealRequests.filter((r) => r.status === 'pending').length;
@@ -161,7 +182,7 @@ export function AppProvider({ children }) {
   const run = async (fn) => { try { await fn(); } catch (e) { setError(e.message); } };
   const actions = {
     sendGossip: (text, showName, via) => api.sendGossip({ id: accountId, name: profile?.name || '' }, text, showName, via),   // throws: the mascot shows the message itself
-    giftPoints: (recipientId, amount) => rattie.giftPoints(accountId, recipientId, amount),
+    giftPoints: (recipientId, amount, comment) => rattie.giftPoints(accountId, recipientId, amount, comment),
     submitStealRequest: (payload) => rattie.submitStealRequest({ ...payload, thiefId: accountId, thiefName: profile?.name || '' }),
     approveStealRequest: (req) => run(() => rattie.approveStealRequest(req)),
     rejectStealRequest: (id) => run(() => rattie.rejectStealRequest(id)),
@@ -178,6 +199,12 @@ export function AppProvider({ children }) {
     approve: (s) => run(() => api.approveSubmission(s)),
     reject: (id) => run(() => api.rejectSubmission(id)),
     adjustPoints: (userId, delta, reason) => run(() => api.adjustPoints(userId, delta, reason)),
+    adjustPointsBatch: (userIds, delta, reason) => run(() => api.adjustPointsBatch(userIds, delta, reason)),
+    syncDemoAccounts: () => run(() => api.ensureDemoAccounts(true)),
+    saveReflectionConfig: (patch) => reflection.saveReflectionConfig(patch),
+    setReflectionTeamLeader: (teamId, leaderName, leaderId) => reflection.setReflectionTeamLeader(teamId, leaderName, leaderId),
+    confirmReflectionDone: (payload) => reflection.confirmReflectionDone(payload),
+    resetReflectionLog: (log) => reflection.resetReflectionLog(log),
     saveMission: (data, id) => run(() => api.saveMission(data, id)),
     deleteMission: (id) => run(() => api.removeMission(id)),
     saveUser: (data, id) => run(() => api.saveUser(data, id)),
@@ -192,12 +219,15 @@ export function AppProvider({ children }) {
     setHomeHidden: (id, hidden) => run(() => api.setHomeHidden(id, hidden)),
     setAllHomeHidden: (ids, hidden) => run(() => api.setAllHomeHidden(ids, hidden)),
     seedMissions: () => run(() => Promise.all(SEED_MISSIONS.map((m) => api.saveMission(m)))),
+    saveMouseLook: (look) => mouseAvatar.saveMouseLook(accountId, look),
+    buyMouseCostume: (opts) => mouseAvatar.buyMouseCostume({ userId: accountId, ...opts }),
   };
 
   return (
     <AppContext.Provider value={{
-      uid, accountId, gossips, isAdmin, homeHidden, homeReady, modal, users, profile, rank, lastChange, myHistory, submissions, pendingCount,
-      mySfPlayer, unreadSfMessages,
+      uid, accountId, gossips, isAdmin, homeHidden, homeReady, modal, users, profile, rank, wallet2048, lastChange, myHistory, pointsLog, submissions, pendingCount,
+      mySfPlayer, unreadSfMessages, punishments,
+      reflectionConfig, reflectionLogs,
       missions: visibleMissions, allMissions: missions,
       heistTasks: activeHeistTasks, allHeistTasks: heistTasks, stealRequests, myNotices,
       error, setError, firebaseConfigured, statusFor, openAuth, openMission, openThanks, openAccount, openEditor, openUserEditor,

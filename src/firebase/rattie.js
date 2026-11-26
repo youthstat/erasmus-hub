@@ -70,8 +70,9 @@ export async function ensureDefaultHeistTasks() {
 }
 
 /* ---------- gift points (instant, anonymous to recipient) ---------- */
-export async function giftPoints(senderId, recipientId, rawAmount) {
+export async function giftPoints(senderId, recipientId, rawAmount, rawComment = '') {
   const amount = Math.floor(Number(rawAmount));
+  const comment = String(rawComment || '').trim().slice(0, 200);
   if (!senderId || !recipientId) throw fail('invalid', 'Choose a participant first.');
   if (senderId === recipientId) throw fail('self', 'You cannot gift points to yourself!');
   if (!Number.isFinite(amount) || amount <= 0) throw fail('amount', 'Enter a positive number of points.');
@@ -83,30 +84,28 @@ export async function giftPoints(senderId, recipientId, rawAmount) {
     if (!sSnap.exists()) throw fail('nouser', 'Your account was not found.');
     if (!rSnap.exists()) throw fail('notarget', 'Recipient account was not found.');
     const senderScore = Number(sSnap.data().score) || 0;
-    if (senderScore < amount) throw fail('funds', `You only have ${senderScore} PTS to give.`);
+    if (!Number.isFinite(senderScore) || senderScore < amount) {
+      throw fail('funds', `You only have ${senderScore === -Infinity ? '-∞' : senderScore} PTS to give.`);
+    }
 
+    // Update sender balance silently (no -amount pointsLog so sender never leaks or sees -delta)
     tx.update(sRef, { score: increment(-amount) });
     tx.update(rRef, {
       score: increment(amount),
       lastRattieEvent: { kind: 'gift', amount, at: serverTimestamp() },
     });
-    tx.set(doc(collection(db, 'pointsLog')), {
-      userId: senderId,
-      delta: -amount,
-      reason: '🎁 Sent a secret gift via Rattie Patty',
-      createdAt: serverTimestamp(),
-    });
-    // Generic reason & notice: NEVER reveals who sent the gift
+    // Generic reason & notice on recipient ONLY: NEVER reveals who sent the gift
     tx.set(doc(collection(db, 'pointsLog')), {
       userId: recipientId,
       delta: amount,
-      reason: '🎁 Secret gift received!',
+      reason: comment ? `🎁 Secret gift received: “${comment}”` : '🎁 Secret gift received!',
       createdAt: serverTimestamp(),
     });
     tx.set(doc(collection(db, 'pointNotices')), {
       userId: recipientId,
       kind: 'gift',
       amount,
+      ...(comment ? { comment } : {}),
       seen: false,
       createdAt: serverTimestamp(),
     });
@@ -115,9 +114,10 @@ export async function giftPoints(senderId, recipientId, rawAmount) {
 }
 
 /* ---------- steal points (task proof + admin approval) ---------- */
-export async function submitStealRequest({ thiefId, thiefName, victimId, victimName, amount, taskId, taskTitle, description, photo }) {
+export async function submitStealRequest({ thiefId, thiefName, victimId, victimName, amount, taskId, taskTitle, description, photo, comment = '' }) {
   const cleanAmount = Math.floor(Number(amount));
   const cleanDesc = String(description || '').trim();
+  const cleanComment = String(comment || '').trim().slice(0, 200);
   if (!thiefId || !victimId) throw fail('invalid', 'Choose who you want to rob.');
   if (thiefId === victimId) throw fail('self', 'You cannot rob yourself!');
   if (!Number.isFinite(cleanAmount) || cleanAmount <= 0) throw fail('amount', 'Choose how many points to steal.');
@@ -134,6 +134,7 @@ export async function submitStealRequest({ thiefId, thiefName, victimId, victimN
     taskId: taskId || null,
     taskTitle,
     description: cleanDesc.slice(0, 600),
+    ...(cleanComment ? { comment: cleanComment } : {}),
     photo,
     status: 'pending',
     createdAt: serverTimestamp(),
@@ -150,32 +151,30 @@ export async function approveStealRequest(req) {
     if (!tSnap.exists() || !vSnap.exists()) throw fail('missing', 'Participant account no longer exists.');
 
     const victimScore = Number(vSnap.data().score) || 0;
-    const stolen = Math.min(Math.floor(Number(req.amount) || 0), victimScore);
-    if (stolen <= 0) throw fail('empty', `${vSnap.data().name} currently has 0 PTS left to steal.`);
+    const stolen = Number.isFinite(victimScore) ? Math.min(Math.floor(Number(req.amount) || 0), victimScore) : 0;
+    if (stolen <= 0) throw fail('empty', `${vSnap.data().name} currently has no PTS left to steal.`);
+
+    const comment = String(req.comment || reqSnap.data().comment || '').trim().slice(0, 200);
 
     // Update victim (NO thief name stored anywhere on victim record/notice/log)
     tx.update(vRef, {
       score: increment(-stolen),
       lastRattieEvent: { kind: 'robbed', amount: stolen, at: serverTimestamp() },
     });
+    // Credit thief silently (no +stolen pointsLog entry so thief stays 100% anonymous and doesn't display +delta)
     tx.update(tRef, { score: increment(stolen) });
 
     tx.set(doc(collection(db, 'pointsLog')), {
       userId: req.victimId,
       delta: -stolen,
-      reason: '🕵️ You were robbed!',
-      createdAt: serverTimestamp(),
-    });
-    tx.set(doc(collection(db, 'pointsLog')), {
-      userId: req.thiefId,
-      delta: stolen,
-      reason: '🕵️ Successful heist with Rattie Patty',
+      reason: comment ? `🕵️ You were robbed: “${comment}”` : '🕵️ You were robbed!',
       createdAt: serverTimestamp(),
     });
     tx.set(doc(collection(db, 'pointNotices')), {
       userId: req.victimId,
       kind: 'robbed',
       amount: stolen,
+      ...(comment ? { comment } : {}),
       seen: false,
       createdAt: serverTimestamp(),
     });
