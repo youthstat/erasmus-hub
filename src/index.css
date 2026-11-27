@@ -4,6 +4,9 @@
 
 @layer base {
   html { scroll-behavior: smooth; overflow-x: clip; }
+  @media (max-width: 639px) {
+    html { font-size: 95%; }
+  }
   body { @apply bg-[#F4F3EE] text-ink font-sans m-0 antialiased selection:bg-sun selection:text-ink overflow-x-clip; }
   :focus-visible { outline: 3px solid #2E5BFF; outline-offset: 2px; }
 }

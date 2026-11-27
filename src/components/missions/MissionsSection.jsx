@@ -1,4 +1,5 @@
 import { useApp } from '../../context/AppContext.jsx';
+import { ERASMUS_STICKERS } from '../../assets/erasmus/index.js';
 import MissionCard from './MissionCard.jsx';
 
 export default function MissionsSection() {
@@ -16,7 +17,10 @@ export default function MissionsSection() {
     <section className="box shadow-b8 overflow-hidden">
       <div className="bg-[#FFE200] border-b-[3px] border-ink px-4 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h2 className="text-base sm:text-xl font-extrabold uppercase flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 bg-ink shrink-0" /><span>Missions</span></h2>
+          <h2 className="text-base sm:text-xl font-extrabold uppercase flex items-center gap-2">
+            <img src={ERASMUS_STICKERS.coin} alt="" className="w-5 h-5 object-contain shrink-0" draggable={false} />
+            <span>Missions</span>
+          </h2>
           <span className="tag bg-hot text-white shadow-b2 !text-[10px] sm:!text-[11px]">
             {isParticipant && openCount !== missions.length
               ? `${openCount} LEFT · ${missions.length} TOTAL`

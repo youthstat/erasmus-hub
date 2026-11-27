@@ -173,23 +173,23 @@ export const JOURNEY_STOPS = [
   {
     id: 4,
     slug: 'hacked-exchange',
-    title: 'Hacked Exchange',
-    location: 'Computer Room',
+    title: 'Vault Code Breaker',
+    location: 'Cyber Control Room',
     competenceKey: 'digital',
     competenceLabel: '4. Digital',
     maxPoints: 8,
     barHex: '#B89CFF',
     bgKey: 'computerRoom',
     pattyPose: 'pattyGlasses',
-    failPose: 'catSmirk',
-    failLine: 'Hacker Cat giggles! Check sender, links, consent & sources!',
-    summary: 'Defeat Hacker Cat across 4 security rooms: phishing email, photo consent wall, password vault & fake news.',
+    failPose: 'pattySoot',
+    failLine: 'Vault alarm beeped! Double-check sender, consent rules, passphrases & official sources!',
+    summary: 'See the locked Vault Safe right away: clear all 4 cyber stations to collect the 4 secret PIN digits and crack the code!',
   },
   {
     id: 5,
     slug: 'exchange-journey',
     title: 'Exchange Journey',
-    location: 'City Streets',
+    location: 'Color Adventure Board',
     competenceKey: 'personal',
     competenceLabel: '5. Personal & Social',
     maxPoints: 8,
@@ -197,13 +197,13 @@ export const JOURNEY_STOPS = [
     bgKey: 'journeyMap',
     pattyPose: 'pattySuitcase',
     failPose: 'pattyCry',
-    failLine: 'Oof! Slipped down a snake — teamwork will get us back up!',
-    summary: 'Roll the dice across 60 squares, climb ladders, dodge snakes & solve 8 real exchange dilemmas.',
+    failLine: 'No worries! Keep rolling toward square 60!',
+    summary: 'Reach square 60 (8 PTS) · Hit any of the 10 Question tiles for Extra Hub Points (not added to Erasmus+ score) or Yellow Missions (+500 Coins)!',
   },
   {
     id: 6,
     slug: 'priority-tetris',
-    title: 'Priority Tetris',
+    title: 'Civic City Builder',
     location: 'Town Square',
     competenceKey: 'citizenship',
     competenceLabel: '6. Citizenship',
@@ -212,38 +212,38 @@ export const JOURNEY_STOPS = [
     bgKey: 'townSquare',
     pattyPose: 'pattyHardhat',
     failPose: 'pattySoot',
-    failLine: 'Whoops! Wrong priority lane — look at the core goal of this idea!',
-    summary: 'Steer 8 falling project ideas into the matching Erasmus+ horizontal priority building!',
+    failLine: 'Whoops! Check which EU priority district this civic project builds!',
+    summary: 'Build 4 vibrant Erasmus+ priority districts in Town Square by placing 8 youth civic blueprints!',
   },
   {
     id: 7,
     slug: 'pitch-lab',
-    title: 'Pitch Lab',
+    title: 'Startup Mouse Launchpad',
     location: 'Pitch Stage',
     competenceKey: 'entrepreneurship',
     competenceLabel: '7. Entrepreneurship',
     maxPoints: 8,
     barHex: '#FFB4A2',
     bgKey: 'pitchStage',
-    pattyPose: 'pattyPassport',
-    failPose: 'mentorFoxSerious',
-    failLine: 'Fox frowns — that pitch needs sharper structure and impact!',
-    summary: 'Spin the 3-reel topic slot machine and build a winning 4-step pitch for Owl, Turtle & Fox.',
+    pattyPose: 'trioCurious',
+    failPose: 'pattyCry',
+    failLine: 'Stage spotlight flickered! Sharpen the plan, budget coins, or crisis fix!',
+    summary: 'Lead Pretty Patty’s Youth Project on stage: define the aim, balance 8 grant coins, handle a crisis & order the launch!',
   },
   {
     id: 8,
     slug: 'culture-iceberg',
-    title: 'Culture Iceberg',
-    location: 'The Sea',
+    title: 'Culture Quest',
+    location: 'Intercultural Horizon',
     competenceKey: 'cultural',
     competenceLabel: '8. Cultural Awareness',
     maxPoints: 8,
     barHex: '#38BDF8',
     bgKey: 'iceberg',
     pattyPose: 'pattyHeart',
-    failPose: 'pattyCry',
-    failLine: 'Splash! Is that visible on the surface, or hidden below the waterline?',
-    summary: 'Sort 8 cultural clues above vs below the waterline and uncover where misunderstandings happen.',
+    failPose: 'pattyReading',
+    failLine: 'Pause and look closer — what cultural value sits underneath this moment?',
+    summary: 'Decode 8 real intercultural moments on exchange — turn awkward surprises into mutual respect!',
   },
   {
     id: 9,
@@ -432,11 +432,11 @@ export const GRANT_LOCKS = [
   },
 ];
 
-/* ---------- GAME 4: HACKED EXCHANGE (4 rooms × 2 pts = 8 pts) ---------- */
+/* ---------- GAME 4: VAULT CODE BREAKER (Digital · 4 stations × 2 pts = 8 pts + PIN safe) ---------- */
 export const HACKED_ROOMS = {
   room1: {
-    title: 'Room 1 · Phishing Email Trap',
-    instruction: 'Hacker Cat disguised a fake Erasmus+ grant email. Click ALL 3 red flags hidden in the message below to expose the scam!',
+    title: 'Station 1 · Phishing Email Trap',
+    instruction: 'Someone sent a fake Erasmus+ grant email to lock Patty’s vault. Click ALL 3 red flags below to earn Safe Digit #1!',
     subject: 'URGENT!! EU ERASMUS+ GRANT SUSPENDED — CLICK NOW!!',
     sender: 'erasmus-support@free-cheesemail.ru',
     segments: [
@@ -448,8 +448,8 @@ export const HACKED_ROOMS = {
     ],
   },
   room2: {
-    title: 'Room 2 · Photo Consent Wall',
-    instruction: 'Sort these 6 photos/posts from the Youth Exchange into the right privacy rule: OK to post · Ask consent first · Never post.',
+    title: 'Station 2 · Photo Consent Wall',
+    instruction: 'Sort these 6 photos/posts into the right privacy rule (OK to post · Ask consent first · Never post) to earn Safe Digit #2!',
     items: [
       { id: 'p1', label: 'Wide stage photo of the Youthpass ceremony (participants signed photo release)', correct: 'OK' },
       { id: 'p2', label: 'Close-up crying face of a stressed teammate during reflection', correct: 'NEVER' },
@@ -460,12 +460,12 @@ export const HACKED_ROOMS = {
     ],
   },
   room3: {
-    title: 'Room 3 · Password Vault',
-    instruction: 'Pick the ONLY safe password & security habit to lock Hacker Cat out of your team drive!',
+    title: 'Station 3 · Password Vault Shield',
+    instruction: 'Pick the ONLY safe passphrase & security habit to unlock Safe Digit #3!',
     options: [
       { id: 'a', text: 'erasmus2026 — easy for every country leader to remember', ok: false, feedback: 'Dictionary word + current year is cracked in seconds!' },
       { id: 'b', text: '12345678 — fast to type during energizers', ok: false, feedback: 'One of the top 3 hacked passwords worldwide.' },
-      { id: 'c', text: 'Krakow!Train#Cheese94 + 2-Factor Authentication (2FA) turned on', ok: true, feedback: 'Long passphrase with symbols + 2FA stops Hacker Cat cold!' },
+      { id: 'c', text: 'Krakow!Train#Cheese94 + 2-Factor Authentication (2FA) turned on', ok: true, feedback: 'Long unique passphrase with symbols + 2FA keeps the team safe!' },
       { id: 'd', text: 'PrettyPatty — stored in a public Google Doc titled PASSWORDS', ok: false, feedback: 'Never keep shared passwords in a public document!' },
     ],
   },
@@ -495,189 +495,464 @@ export const HACKED_ROOMS = {
   },
 };
 
-/* ---------- GAME 5: EXCHANGE JOURNEY (60 squares, Snakes & Ladders + 8 Dilemmas = 8 pts) ---------- */
-export const BOARD_LADDERS = { 4: 14, 15: 25, 29: 39, 44: 53 };
-export const BOARD_SNAKES = { 17: 7, 32: 21, 46: 35, 57: 49 };
-export const SITUATION_SQUARES = [6, 12, 19, 27, 34, 41, 48, 55];
+/* ---------- GAME 5: COLOR ADVENTURE BOARD (60 squares: 10 Question Squares for Extra Hub PTS, Yellow Missions for +500 Outfit Coins, Green +steps, Red -steps) ---------- */
+export const BOARD_GREEN_SQUARES = {
+  4: { stepDelta: 3, label: 'Green Boost! Sunny teamwork lifts Pretty Patty +3 steps forward to #7!' },
+  14: { stepDelta: 2, label: 'Green Boost! Shared snack break jumps Pretty Patty +2 steps to #16!' },
+  22: { stepDelta: 3, label: 'Green Boost! Helpful translation boosts Pretty Patty +3 steps to #25!' },
+  31: { stepDelta: 2, label: 'Green Boost! Smooth night train speeds Pretty Patty +2 steps to #33!' },
+  40: { stepDelta: 2, label: 'Green Boost! Inclusive circle boosts Pretty Patty +2 steps to #42!' },
+  49: { stepDelta: 3, label: 'Green Boost! Creative brainstorm jumps Pretty Patty +3 steps to #52!' },
+  56: { stepDelta: 3, label: 'Green Boost! Final sprint lifts Pretty Patty +3 steps to #59!' },
+};
 
-export const EXCHANGE_DILEMMAS = [
+export const BOARD_RED_SQUARES = {
+  9: { stepDelta: -3, label: 'Red Detour! Missed the morning alarm — step back −3 to #6.' },
+  15: { stepDelta: -2, label: 'Red Detour! Forgot water bottle at workshop — step back −2 to #13.' },
+  26: { stepDelta: -2, label: 'Red Detour! Wrong tram stop — step back −2 to #24.' },
+  34: { stepDelta: -2, label: 'Red Detour! Lost name tag at break — step back −2 to #32.' },
+  44: { stepDelta: -2, label: 'Red Detour! Rainy shortcut — step back −2 to #42.' },
+  51: { stepDelta: -3, label: 'Red Detour! Left notebook in kitchen — step back −3 to #48.' },
+  57: { stepDelta: -2, label: 'Red Detour! Slippery steps near finish — step back −2 to #55.' },
+};
+
+export const SELF_REFLECTION_PROMPTS = [
+  {
+    id: 'r1',
+    badge: 'Mission · Warm Connection',
+    prompt: 'Who on this project would you genuinely love to have a deeper conversation with today?',
+    hint: 'Think of them or jot a quick note — then claim +500 Outfit Coins for the Mouse Wardrobe!',
+  },
+  {
+    id: 'r2',
+    badge: 'Mission · Gratitude Check',
+    prompt: 'Who has supported, encouraged, or made you feel welcomed the most during this exchange?',
+    hint: 'Take a warm moment to appreciate them and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r3',
+    badge: 'Mission · Comfort Check-In',
+    prompt: 'Do you feel comfortable, safe, and heard right now? What small thing could make today even cozier?',
+    hint: 'Honour your own pace and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r4',
+    badge: 'Mission · Best Memory',
+    prompt: 'What have you enjoyed the absolute most during this project so far?',
+    hint: 'Picture that highlight in your mind and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r5',
+    badge: 'Mission · Bright Laughter',
+    prompt: 'What was your funniest or happiest laugh-out-loud moment on this Youth Exchange?',
+    hint: 'Smile at the memory and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r6',
+    badge: 'Mission · Kind Gesture',
+    prompt: 'Think of someone who seemed a little quiet today — try asking them "How are you doing?" over the next break!',
+    hint: 'Small warmth changes someone’s day! Claim +500 Outfit Coins.',
+  },
+  {
+    id: 'r7',
+    badge: 'Mission · Invisible Thank-You',
+    prompt: 'If you could hand a surprise thank-you card to one teammate right now, who would it be and why?',
+    hint: 'Celebrate silent helpers and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r8',
+    badge: 'Mission · Positive Surprise',
+    prompt: 'Which teammate surprised you in the nicest way that you did not expect on Day 1?',
+    hint: 'Reflect gently and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r9',
+    badge: 'Mission · Culture Spark',
+    prompt: 'What new word, song, snack, or tradition from another country warmed your heart the most?',
+    hint: 'Hold onto that new memory and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r10',
+    badge: 'Mission · Proud Moment',
+    prompt: 'When did you feel quietly proud of yourself here — speaking up, translating, or trying something new?',
+    hint: 'Give yourself gentle credit and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r11',
+    badge: 'Mission · Replay One Hour',
+    prompt: 'If you could replay one single hour from this exchange again just to enjoy the vibe, which hour would it be?',
+    hint: 'Enjoy the memory and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r12',
+    badge: 'Mission · Recharge Routine',
+    prompt: 'What helps you recharge best during a busy exchange day — a quiet walk, music, tea, or chatting with friends?',
+    hint: 'Protect your energy kindly and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r13',
+    badge: 'Mission · Kind Compliment',
+    prompt: 'Pick one genuine, kind compliment you would happily tell someone on your team today!',
+    hint: 'Tell them later if you feel like it — and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r14',
+    badge: 'Mission · Unexpected Bridge',
+    prompt: 'What shared interest or funny habit connected you with someone from a completely different country?',
+    hint: 'Celebrate small bridges and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r15',
+    badge: 'Mission · Home Spark',
+    prompt: 'Which workshop topic or game sparked an idea you would love to bring back to your own town?',
+    hint: 'Reflect freely and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r16',
+    badge: 'Mission · Time Capsule',
+    prompt: 'One year from today, what tiny memory from this group do you know will still make you smile?',
+    hint: 'Save that feeling and claim +500 Outfit Coins!',
+  },
+  {
+    id: 'r17',
+    badge: 'Mission · Team Vibe',
+    prompt: 'What makes our group atmosphere feel respectful, playful, and supportive to you?',
+    hint: 'Take a gentle pause and collect +500 Outfit Coins!',
+  },
+  {
+    id: 'r18',
+    badge: 'Mission · Warm Wish',
+    prompt: 'In one warm wish, what do you hope every participant takes home from this Youth Exchange?',
+    hint: 'No pressure — claim +500 Outfit Coins for your Wardrobe!',
+  },
+];
+
+/* 10 fixed Question Squares placed all around the 60-square circle */
+export const STOP5_BOARD_QUESTIONS = {
+  5: {
+    square: 5,
+    extraPts: 5,
+    q: 'A teammate arrives late, tired, and quiet because their bus broke down. What builds the best team spirit?',
+    options: [
+      'Offer them water, catch them up calmly in 2 minutes & welcome them warmly',
+      'Tease them loudly in front of the whole circle',
+      'Ignore them so they figure everything out alone',
+    ],
+    correct: 0,
+    explain: 'Warm practical support turns travel stress into instant belonging!',
+  },
+  11: {
+    square: 11,
+    extraPts: 5,
+    q: 'Why does Erasmus+ provide extra Inclusion Support & accessible travel funding?',
+    options: [
+      'So young people facing economic, geographical, social, or health barriers can join equally',
+      'Only to buy extra souvenirs for team leaders',
+      'To limit exchanges strictly to capital cities',
+    ],
+    correct: 0,
+    explain: 'Inclusion & Diversity is a core EU priority — removing real barriers opens doors for everyone!',
+  },
+  17: {
+    square: 17,
+    extraPts: 5,
+    q: 'At Intercultural Night, a friend offers a traditional snack whose smell surprises you. What is the kindest reaction?',
+    options: [
+      'Say thank you politely, try a small bite if safe with your allergies, or smile and appreciate their pride',
+      'Make a loud disgusted face so everyone laughs',
+      'Throw it in the bin while they watch',
+    ],
+    correct: 0,
+    explain: 'Curiosity and polite honesty (like mentioning allergies kindly) respect your host’s tradition!',
+  },
+  23: {
+    square: 23,
+    extraPts: 5,
+    q: 'What is the main purpose of Youthpass after completing an Erasmus+ Youth Exchange?',
+    options: [
+      'Official EU recognition of your non-formal learning across 8 Key Competences',
+      'A boarding pass for free flights next summer',
+      'A strict written final school exam',
+    ],
+    correct: 0,
+    explain: 'Youthpass helps you reflect on real skills you practised and showcase them for jobs or studies!',
+  },
+  29: {
+    square: 29,
+    extraPts: 5,
+    q: 'During small-group work, two friends switch to rapid inside jokes in their native language while two others look lost. Best move?',
+    options: [
+      'Gently invite a shared language or translate the joke warmly so everyone stays in the loop',
+      'Keep whispering in your own language all afternoon',
+      'Tell the others they should just guess',
+    ],
+    correct: 0,
+    explain: 'Quick peer translation keeps humour and teamwork open to every nationality!',
+  },
+  35: {
+    square: 35,
+    extraPts: 5,
+    q: 'Which travel choices qualify as Green Travel in Erasmus+?',
+    options: [
+      'Train, bus, shared carpool (2+ passengers), bike, or ferry',
+      'Any domestic or international commercial flight',
+      'Solo sports car with no passengers',
+    ],
+    correct: 0,
+    explain: 'Low-emission ground and ferry travel earns higher Green Travel grants and extra travel days!',
+  },
+  41: {
+    square: 41,
+    extraPts: 5,
+    q: 'You filmed a funny candid clip of friends dancing at break time. Before posting it online, what should you always do?',
+    options: [
+      'Ask everyone clearly visible in the clip if they are happy for you to share it',
+      'Post immediately with no tags or consent check',
+      'Share only if their passport or room key shows in the background',
+    ],
+    correct: 0,
+    explain: 'Respecting consent keeps digital memories fun, safe, and respectful for every participant!',
+  },
+  47: {
+    square: 47,
+    extraPts: 5,
+    q: 'One quiet teammate has brilliant ideas in their notebook but rarely jumps into fast debates. How can the group help?',
+    options: [
+      'Try round-robin turns or small-pair sharing first so every voice gets calm space',
+      'Speak louder so silent people stay quiet',
+      'Vote without reading their notebook ideas',
+    ],
+    correct: 0,
+    explain: 'Structured turns give thoughtful and quieter voices equal room to shine!',
+  },
+  53: {
+    square: 53,
+    extraPts: 5,
+    q: 'Who can participate in an Erasmus+ Youth Exchange?',
+    options: [
+      'Participants aged 13–30, plus group leaders aged 18+ (no upper age limit for leaders)',
+      'Only 20–24 year old university students',
+      'Only teachers and ministry officials',
+    ],
+    correct: 0,
+    explain: 'Youth Exchanges welcome young people aged 13–30 from every background, led by 18+ group leaders!',
+  },
+  58: {
+    square: 58,
+    extraPts: 5,
+    q: 'What makes a Youth Exchange workshop truly "non-formal learning" rather than a lecture?',
+    options: [
+      'Learning by doing — games, role-play, teamwork & reflection chosen together by youth',
+      'Sitting silently for 6 hours reading textbooks for a grade',
+      'Zero interaction between partner countries',
+    ],
+    correct: 0,
+    explain: 'Participatory methods, voluntary engagement, and guided reflection are the heart of non-formal education!',
+  },
+};
+
+/* ---------- GAME 6: CIVIC CITY BUILDER (8 projects → 4 priority districts = 8 pts) ---------- */
+export const CIVIC_CITY_DISTRICTS = [
+  {
+    id: 'inclusion',
+    label: 'Inclusion & Diversity',
+    short: 'Inclusion',
+    districtName: 'Access Plaza',
+    stickerKey: 'portal',
+    bg: 'bg-[#FFB4A2]',
+    accent: '#F97316',
+    motto: 'Open doors for every youth',
+  },
+  {
+    id: 'digital',
+    label: 'Digital Transformation',
+    short: 'Digital',
+    districtName: 'Tech Beacon Hub',
+    stickerKey: 'lantern',
+    bg: 'bg-[#90DBF4]',
+    accent: '#0284C7',
+    motto: 'Safe & smart media literacy',
+  },
+  {
+    id: 'green',
+    label: 'Environment & Climate',
+    short: 'Climate',
+    districtName: 'Eco Green Park',
+    stickerKey: 'island',
+    bg: 'bg-neon',
+    accent: '#16A34A',
+    motto: 'Green travel & zero waste',
+  },
+  {
+    id: 'participation',
+    label: 'Democratic Participation',
+    short: 'Democracy',
+    districtName: 'Civic Town Hall',
+    stickerKey: 'signpost',
+    bg: 'bg-sun',
+    accent: '#EAB308',
+    motto: 'Youth voices shape policy',
+  },
+];
+
+export const CIVIC_CITY_PROJECTS = [
+  { id: 1, title: 'Wheelchair-accessible eco trail & sign-language buddy app', target: 'inclusion', iconKey: 'bridge', reason: 'Removes physical & communication barriers so young people with disabilities can join fully.' },
+  { id: 2, title: 'Fact-checking lab fighting deepfakes & online harassment', target: 'digital', iconKey: 'magnifier', reason: 'Builds critical digital literacy, online safety, and media verification skills.' },
+  { id: 3, title: 'Zero-waste swap market + train-only travel challenge', target: 'green', iconKey: 'crates', reason: 'Directly lowers carbon footprint and fosters everyday climate action.' },
+  { id: 4, title: 'Youth town hall co-designing safe bike lanes with the city council', target: 'participation', iconKey: 'megaphone', reason: 'Connects young citizens directly with local democratic decision-makers.' },
+  { id: 5, title: 'Rural teens exchange with travel mentors & translated handbooks', target: 'inclusion', iconKey: 'treasureMap', reason: 'Overcomes geographical and language barriers for fewer-opportunities youth.' },
+  { id: 6, title: 'Community repair café turning donated laptops into study stations', target: 'digital', iconKey: 'key', reason: 'Expands practical digital skills and responsible tech access.' },
+  { id: 7, title: 'River clean-up brigade tracking microplastics & urban biodiversity', target: 'green', iconKey: 'barrel', reason: 'Protects local ecosystems through hands-on climate action.' },
+  { id: 8, title: 'First-time EU voter café & mock Youth Parliament debate', target: 'participation', iconKey: 'flagFinish', reason: 'Strengthens civic dialogue, voting literacy, and active democracy.' },
+];
+
+/* ---------- GAME 7: STARTUP MOUSE LAUNCHPAD (Entrepreneurship · Mouse Only · 8 pts) ---------- */
+export const STARTUP_CONCEPTS = [
+  { id: 'c1', name: 'Midnight Train Swap Market', goal: 'Cut exchange waste & boost local youth climate action' },
+  { id: 'c2', name: 'Barrier-Free Audio City Map', goal: 'Help blind, deaf & rural youth explore partner towns safely' },
+  { id: 'c3', name: 'Fact-Check Radio Bootcamp', goal: 'Equip high-schoolers to spot scams & co-produce EU podcasts' },
+];
+
+export const STARTUP_BUDGET_ITEMS = [
+  { id: 'access', label: 'Accessibility & peer translation', hint: 'Inclusion priority', recommendedMin: 2, isTrap: false },
+  { id: 'green', label: 'Night trains & reusable kits', hint: 'Green travel + sustainability', recommendedMin: 2, isTrap: false },
+  { id: 'tools', label: 'Workshop supplies & street lab', hint: 'Hands-on non-formal learning', recommendedMin: 2, isTrap: false },
+  { id: 'followup', label: 'Open toolkit & Youthpass event', hint: 'Lasting local impact', recommendedMin: 1, isTrap: false },
+  { id: 'vip', label: 'VIP limo & confetti cannon', hint: 'Trap — zero learning value!', recommendedMin: 0, isTrap: true },
+];
+
+export const STARTUP_ROUND_1 = {
+  title: 'Mission 1 · Define the Impact Aim',
+  prompt: 'Pretty Patty steps onto the Pitch Stage! How should Patty open the Youth Initiative proposal to convince partners?',
+  options: [
+    { text: 'Pinpoint ONE real youth need locally and show the concrete skills participants gain together.', ok: true, feedback: 'Clear purpose + measurable youth growth is the heart of strong entrepreneurship!' },
+    { text: 'Promise a chill beach vacation with zero workshops so everyone signs up fast.', ok: false, feedback: 'An initiative without learning value or clear community need will not fly!' },
+    { text: 'Write 12 pages of vague buzzwords without naming who benefits.', ok: false, feedback: 'Always keep your initiative grounded in real youth needs.' },
+  ],
+};
+
+export const STARTUP_ROUND_3 = {
+  title: 'Mission 3 · Live Event Crisis Fix',
+  prompt: 'Surprise rain floods the outdoor Youth Fair an hour before doors open, and 2 teens cannot climb the temporary stage steps. What does Patty do?',
+  options: [
+    { text: 'Move booths into the ground-floor community hall, team up buddies, and run adaptive pop-up stations!', ok: true, feedback: 'Resourceful pivoting + universal accessibility saves the event for everyone!' },
+    { text: 'Cancel the showcase completely and go back to sleep.', ok: false, feedback: 'Entrepreneurs adapt calmly under pressure instead of giving up.' },
+    { text: 'Leave the indoor stage unreachable and tell affected youth to just watch from afar.', ok: false, feedback: 'Never exclude teammates — always redesign for full access!' },
+  ],
+};
+
+export const STARTUP_SEQUENCE = [
+  { id: 'listen', label: '1. Listen to local youth & spot a real community need', order: 1 },
+  { id: 'co_create', label: '2. Co-design inclusive workshops & sustainable budget', order: 2 },
+  { id: 'multiply', label: '3. Share open results back home & log Youthpass growth', order: 3 },
+];
+
+/* ---------- GAME 8: CULTURE QUEST DECODER (8 intercultural moments × 1 pt = 8 pts) ---------- */
+export const CULTURE_QUEST_CARDS = [
   {
     id: 1,
-    square: 6,
-    title: 'Lost at the Border Station',
-    text: 'Two teammates missed the connecting bus and do not speak the local language. What do you do?',
-    choices: [
-      { label: 'Share live location, calm them down & translate options with the group leader', ok: true, feedback: 'Calm communication and peer solidarity keep everyone safe!' },
-      { label: 'Leave them behind so you get the best bunk beds first', ok: false, feedback: 'Leaving teammates behind breaks group trust.' },
-      { label: 'Switch off your phone until morning', ok: false, feedback: 'Avoidance turns a small delay into a crisis.' },
+    tag: 'Morning Schedule · Spain & Germany team',
+    clue: 'A workshop is set for "10:00". One country team is seated at 09:57 with notebooks ready; another strolls in happily at 10:12 chatting with coffee.',
+    question: 'What hidden cultural norm explains this without blaming anyone?',
+    options: [
+      { text: 'Different unwritten ideas of "on time" (strict clock time vs relationship-first time).', ok: true },
+      { text: 'The late group intentionally dislikes Erasmus+.', ok: false },
+      { text: 'Neither group cares about friendships.', ok: false },
     ],
+    hiddenValue: 'Time & Punctuality Norms',
+    explain: 'Attitudes toward time live beneath the cultural surface! Agreeing a clear group charter on Day 1 aligns everyone cheerfully.',
   },
   {
     id: 2,
-    square: 12,
-    title: 'Quiet Voice in Reflection',
-    text: 'One participant stays silent in every evening reflection while two confident speakers dominate.',
-    choices: [
-      { label: 'Talk over everyone else to fill the awkward pause', ok: false, feedback: 'Loud interruptions push quiet members further out.' },
-      { label: 'Suggest a small-pair check-in or talking stick so everyone has equal space', ok: true, feedback: 'Great facilitation! Inclusive methods help quieter voices shine.' },
-      { label: 'Tell them loudly that they are boring the circle', ok: false, feedback: 'Shaming destroys psychological safety.' },
+    tag: 'Feedback Circle · Cross-border prep',
+    clue: 'A peer says bluntly: "This poster font is unreadable, redo slide 2." Their teammate feels deeply offended, though no insult was meant.',
+    question: 'What is happening below the surface?',
+    options: [
+      { text: 'Direct vs indirect communication styles — clarity vs saving face politely.', ok: true },
+      { text: 'They forgot how to use markers.', ok: false },
+      { text: 'Direct feedback is banned in Europe.', ok: false },
     ],
+    hiddenValue: 'Direct vs Indirect Feedback',
+    explain: 'What feels like helpful honesty in one culture can sound harsh in another — sharing how we give feedback builds trust!',
   },
   {
     id: 3,
-    square: 19,
-    title: 'Homesick Teammate',
-    text: 'On Day 3, a younger participant feels overwhelmed by constant noise and misses home.',
-    choices: [
-      { label: 'Offer a quiet tea walk, listen without judging, and let the facilitator know', ok: true, feedback: 'Empathy + alerting support staff creates real emotional safety.' },
-      { label: 'Laugh and tell them to tough it out', ok: false, feedback: 'Dismissing feelings worsens stress and isolation.' },
-      { label: 'Post a joke about it on the Gossip Board', ok: false, feedback: 'Never turn private stress into public gossip.' },
+    tag: 'Coffee Break · Icebreaker Chat',
+    clue: 'During chat, Participant A stands close and taps shoulders warmly; Participant B keeps stepping backward to breathe.',
+    question: 'How should Pretty Patty read this situation?',
+    options: [
+      { text: 'Unspoken personal space & touch boundaries differ across cultures — respect comfort zones!', ok: true },
+      { text: 'Participant B refuses to make any friends forever.', ok: false },
+      { text: 'Everyone in Europe uses the exact same arm-length rule.', ok: false },
     ],
+    hiddenValue: 'Personal Space & Body Language',
+    explain: 'Invisible bubbles of personal distance vary widely — noticing body cues and asking before hugs keeps everyone comfortable.',
   },
   {
     id: 4,
-    square: 27,
-    title: 'Food & Allergy Mix-Up',
-    text: 'Dinner arrives without a labelled vegetarian option for two teammates.',
-    choices: [
-      { label: 'Eat quietly and tell them to skip dinner', ok: false, feedback: 'Basic care & inclusion mean making sure everyone eats safely.' },
-      { label: 'Politely alert the kitchen/organizers immediately and wait together until solved', ok: true, feedback: 'Proactive, respectful problem-solving guarantees inclusion!' },
-      { label: 'Shout at the kitchen staff in front of everyone', ok: false, feedback: 'Aggression never solves logistics smoothly.' },
+    tag: 'Group Planning · Silent Nodding',
+    clue: 'You propose a complicated timetable and a teammate smiles and says "Maybe yes, we will see." Later you learn they disagreed.',
+    question: 'Why did they not say "No!" right away?',
+    options: [
+      { text: 'In high-context harmony cultures, saying a flat "no" openly feels impolite — gentle hints signal concern.', ok: true },
+      { text: 'They were asleep with their eyes open.', ok: false },
+      { text: 'They never understood any words at all.', ok: false },
     ],
+    hiddenValue: 'High-Context Harmony',
+    explain: 'Soft phrases like "maybe" or silence can mean hesitation! Offering anonymous sticky notes lets everyone share honest ideas safely.',
   },
   {
     id: 5,
-    square: 34,
-    title: 'Disagreement During Workshop Prep',
-    text: 'Your international team disagrees completely on how to present tomorrow’s cultural night.',
-    choices: [
-      { label: 'Hold a 5-minute brainstorm combining one element from each person’s idea', ok: true, feedback: 'Co-creation blends strengths instead of splitting the team!' },
-      { label: 'Secretly delete their slides at midnight', ok: false, feedback: 'Sabotage destroys collaboration.' },
-      { label: 'Refuse to participate unless your country goes first', ok: false, feedback: 'Rigidity stalls the whole group.' },
+    tag: 'Leadership Check-in · Town Walk',
+    clue: 'One team asks organizers before changing any game rule; another jumps straight in and invents two extra rounds.',
+    question: 'What deep cultural dimension shapes this?',
+    options: [
+      { text: 'Different expectations about hierarchy vs flat equality with leaders.', ok: true },
+      { text: 'One group lost their shoes.', ok: false },
+      { text: 'Rules are illegal in Youth Exchanges.', ok: false },
     ],
+    hiddenValue: 'Views on Authority & Initiative',
+    explain: 'Some backgrounds defer respectfully to leaders; others expect co-ownership immediately. Clarifying roles empowers both!',
   },
   {
     id: 6,
-    square: 41,
-    title: 'Energy Crash After Lunch',
-    text: 'Half the room looks sleepy before the afternoon citizenship debate.',
-    choices: [
-      { label: 'Lead a 3-minute inclusive energizer where nobody is singled out', ok: true, feedback: 'Playful movement wakes up focus and group energy!' },
-      { label: 'Read 14 pages of EU regulation aloud monotonically', ok: false, feedback: 'That guarantees nap time!' },
-      { label: 'Cancel the workshop and scroll reels separately', ok: false, feedback: 'You miss the heart of the exchange.' },
+    tag: 'Cultural Night · Traditional Table',
+    clue: 'A host team insists you take a third serving of homemade pastry even after you say "Thank you, I am full!" once.',
+    question: 'What unspoken message does their insistence carry?',
+    options: [
+      { text: 'Generous hospitality ritual — refusing once politely is expected before happily accepting or explaining allergies.', ok: true },
+      { text: 'They want to spoil your dinner schedule.', ok: false },
+      { text: 'Saying "no thank you" is rude everywhere on Earth.', ok: false },
     ],
+    hiddenValue: 'Hospitality & Gift Etiquette',
+    explain: 'Food sharing carries deep warmth in many cultures — a warm smile and clear explanation (e.g. allergies) honours the host kindly!',
   },
   {
     id: 7,
-    square: 48,
-    title: 'Language Barrier in Mixed Groups',
-    text: 'Two participants feel nervous because their English is basic.',
-    choices: [
-      { label: 'Slow down, avoid slang, use visuals & invite peers to translate key words', ok: true, feedback: 'Multilingual care and clear speech make exchanges accessible to all!' },
-      { label: 'Switch exclusively to your fast native slang with friends', ok: false, feedback: 'Exclusive cliques leave partners isolated.' },
-      { label: 'Give them zero tasks in the presentation', ok: false, feedback: 'Excluding them removes their learning opportunity.' },
+    tag: 'Quiet Moment · Evening Reflection',
+    clue: 'Between two fast sentences, a Nordic participant pauses silently for 4 seconds to think before replying, and others jump in over them.',
+    question: 'What helpful intercultural habit fixes this?',
+    options: [
+      { text: 'Recognise conversational silence as thoughtful respect, not awkward emptiness — give room to finish!', ok: true },
+      { text: 'Speak twice as fast so pauses never exist.', ok: false },
+      { text: 'Tell them to skip evening reflections.', ok: false },
     ],
+    hiddenValue: 'Conversational Pacing & Silence',
+    explain: 'Turn-taking speed varies! Allowing a 3-second pause opens the floor for deeper, calmer voices.',
   },
   {
     id: 8,
-    square: 55,
-    title: 'Youthpass Reflection Check',
-    text: 'It is the final evening! How do you turn this exchange into real personal growth?',
-    choices: [
-      { label: 'Note concrete examples of challenges you overcame for your Youthpass & daily life', ok: true, feedback: 'Connecting experience to Youthpass cements lifelong learning!' },
-      { label: 'Throw away your notes and forget everyone’s names', ok: false, feedback: 'You lose half the long-term impact!' },
-      { label: 'Copy someone else’s reflection paragraph word for word', ok: false, feedback: 'Your learning story is uniquely yours.' },
-    ],
-  },
-];
-
-/* ---------- GAME 6: PRIORITY TETRIS (8 blocks → 4 priorities = 8 pts) ---------- */
-export const TETRIS_PRIORITIES = [
-  { id: 'inclusion', label: 'Inclusion & Diversity', short: 'Inclusion', color: '#F97316', bg: 'bg-[#FFB4A2]' },
-  { id: 'digital', label: 'Digital Transformation', short: 'Digital', color: '#0284C7', bg: 'bg-[#90DBF4]' },
-  { id: 'green', label: 'Environment & Climate', short: 'Climate', color: '#16A34A', bg: 'bg-neon' },
-  { id: 'participation', label: 'Democratic Participation', short: 'Democracy', color: '#EAB308', bg: 'bg-sun' },
-];
-
-export const TETRIS_BLOCKS = [
-  { id: 1, title: 'Wheelchair-accessible eco trail & sign-language buddy app', target: 'inclusion', reason: 'Focuses on disability access and equal participation for young people with fewer opportunities.' },
-  { id: 2, title: 'Fact-checking bootcamp against deepfakes & cyberbullying', target: 'digital', reason: 'Builds critical digital media literacy and online safety.' },
-  { id: 3, title: 'Zero-waste swap market + train-only travel challenge', target: 'green', reason: 'Directly cuts carbon emissions and tackles climate habits.' },
-  { id: 4, title: 'Youth town hall debating local council bike lanes with mayor', target: 'participation', reason: 'Connects young citizens directly with democratic decision-makers.' },
-  { id: 5, title: 'Rural teens exchange: free travel mentors & translated toolkit', target: 'inclusion', reason: 'Breaks geographical and language barriers for rural youth.' },
-  { id: 6, title: 'Open-source coding club turning old laptops into study hubs', target: 'digital', reason: 'Boosts practical digital skills and technology access.' },
-  { id: 7, title: 'River clean-up lab measuring microplastics & local biodiversity', target: 'green', reason: 'Hands-on environmental protection and climate action.' },
-  { id: 8, title: 'Mock European Parliament & first-time voter café', target: 'participation', reason: 'Encourages active civic engagement and democratic participation.' },
-];
-
-/* ---------- GAME 7: PITCH LAB (Slot Machine + 4-Step Builder = 8 pts) ---------- */
-export const PITCH_REELS = {
-  topics: ['Urban Rooftop Gardens', 'AI Fact-Checking Squad', 'Plastic-Free Campus Festival', 'Cross-Border Indie Radio'],
-  targets: ['Rural teens (14–18) with fewer opportunities', 'Deaf & hearing youth buddies', 'First-time EU voters & high schoolers', 'Young climate volunteers across 4 countries'],
-  twists: ['All travel by night train + digital Youthpass diaries', 'Zero-budget swap market + local mayor Q&A', 'Sign-language & 4-language live podcast', 'Solar-powered pop-up stage in a small town'],
-};
-
-export const PITCH_STEPS = [
-  {
-    step: 1,
-    mentor: 'Owl',
-    mentorSprite: 'mentorOwl',
-    title: 'Step 1 · Clear Problem & Aim',
-    prompt: 'How do you open your 60-second pitch to convince the Youth Agency jury?',
+    tag: 'Beyond Stereotypes · First Impressions',
+    clue: 'Someone jokes on Day 1: "All people from Country X are super loud!" A quiet teammate from Country X smiles awkwardly.',
+    question: 'What is the smartest Youth Exchange takeaway?',
     options: [
-      { text: 'Define ONE concrete youth challenge locally, plus the measurable change your exchange creates.', ok: true, feedback: 'Owl nods wisely: crystal-clear problem + objective is a grant winner!' },
-      { text: 'Say "We just want a free holiday in Spain with random parties."', ok: false, feedback: 'Owl shakes head: non-formal learning needs clear educational aims!' },
-      { text: 'Read a 9-page philosophical essay with zero mention of young people.', ok: false, feedback: 'Owl blinks: keep it focused and youth-centred!' },
+      { text: 'Visible clichés hide real individuals — meet the actual person with curiosity, not national labels.', ok: true },
+      { text: 'National stereotypes predict every single person accurately.', ok: false },
+      { text: 'Culture means only flags, dances, and souvenirs.', ok: false },
     ],
+    hiddenValue: 'Curiosity Over Stereotypes',
+    explain: 'Food and folk dances are easy to spot above the surface, but real cultural competence means listening deeply to every unique individual!',
   },
-  {
-    step: 2,
-    mentor: 'Turtle',
-    mentorSprite: 'mentorTurtle',
-    title: 'Step 2 · Inclusion & Group Balance',
-    prompt: 'Turtle checks your group plan: how do you ensure Inclusion & Diversity?',
-    options: [
-      { text: 'Reserve seats for fewer-opportunities peers, provide peer translation, and keep venues accessible.', ok: true, feedback: 'Turtle smiles slowly: thoughtful access makes every step steady and fair!' },
-      { text: 'Only accept influencers who already speak C2 English and pay extra deposits.', ok: false, feedback: 'Turtle pulls into shell: charging entry barriers breaks Erasmus+ inclusion!' },
-      { text: 'Skip accessibility checks to save planning time.', ok: false, feedback: 'Turtle frowns: inclusion cannot be an afterthought.' },
-    ],
-  },
-  {
-    step: 3,
-    mentor: 'Fox',
-    mentorSprite: 'mentorFox',
-    title: 'Step 3 · Non-Formal Methods & Budget',
-    prompt: 'Fox leans in: how will you run the 7 days and manage unit-cost grants?',
-    options: [
-      { text: 'Mix simulations, street interviews & evening Youthpass reflections — funded via green travel + per-day unit costs.', ok: true, feedback: 'Fox grins: practical non-formal methods + smart green budgeting!' },
-      { text: 'Sit in a dark hall listening to 8 hours of lectures daily.', ok: false, feedback: 'Fox sighs: Youth Exchanges are active non-formal learning, not lectures!' },
-      { text: 'Guess random ticket prices without checking the Distance Calculator.', ok: false, feedback: 'Fox points at the calculator: grants strictly follow distance bands!' },
-    ],
-  },
-  {
-    step: 4,
-    mentor: 'Owl, Turtle & Fox',
-    mentorSprite: 'pattyCelebrate',
-    title: 'Step 4 · Real Impact & Follow-Up',
-    prompt: 'What happens AFTER participants return home?',
-    options: [
-      { text: 'Share an open toolkit online, host a local follow-up event, and award Youthpass certificates.', ok: true, feedback: 'Standing ovation from Owl, Turtle & Fox — project approved!' },
-      { text: 'Delete the WhatsApp group on the flight home and tell nobody.', ok: false, feedback: 'All three mentors gasp: Erasmus+ multiplies impact back home!' },
-      { text: 'Wait 10 years before writing down what anyone learned.', ok: false, feedback: 'Reflect right away while memories are fresh!' },
-    ],
-  },
-];
-
-/* ---------- GAME 8: CULTURE ICEBERG (8 items, 1 pt each = 8 pts) ---------- */
-export const ICEBERG_PIECES = [
-  { id: 'food', label: 'Traditional dishes & street food', zone: 'ABOVE', explain: 'Visible surface! Easy to taste and spot right away on Day 1.' },
-  { id: 'music', label: 'Folk dances & pop music', zone: 'ABOVE', explain: 'Above the water — immediately seen and heard at Cultural Night.' },
-  { id: 'clothes', label: 'Festive costumes & everyday dress', zone: 'ABOVE', explain: 'Above the water — visible outward clothing styles.' },
-  { id: 'festivals', label: 'National holidays & celebrations', zone: 'ABOVE', explain: 'Above the water — public events and traditions anyone can observe.' },
-  { id: 'time', label: 'Attitude to punctuality & schedules', zone: 'BELOW', explain: 'Below the water! What counts as "on time" vs "10 minutes late" is an unspoken cultural norm.' },
-  { id: 'comm', label: 'Direct vs indirect feedback style', zone: 'BELOW', explain: 'Below the water! Blunt honesty vs polite hints often causes accidental friction.' },
-  { id: 'space', label: 'Personal space & eye contact norms', zone: 'BELOW', explain: 'Below the water! Invisible comfort rules around touch, distance, and gaze.' },
-  { id: 'hier', label: 'Views on authority & group leadership', zone: 'BELOW', explain: 'Below the water! Expectations around challenging leaders or speaking up.' },
 ];
 
 /* ---------- GAME 9: FINAL TEST (10 questions × 3 pts = 30 pts) ---------- */
@@ -777,14 +1052,14 @@ export const FINAL_TEST_QUESTIONS = [
   },
   {
     id: 10,
-    q: 'Where do most intercultural misunderstandings happen on the Culture Iceberg?',
+    q: 'What causes most intercultural misunderstandings at a Youth Exchange?',
     options: [
-      'Above the water (food & music)',
-      'Below the water (time, directness, space, unspoken norms)',
-      'Only in airport security lines',
-      'Nowhere — culture is identical everywhere',
+      'Traditional food and folk music on Cultural Night',
+      'Unspoken cultural norms (time, directness, personal space) hidden beneath the surface',
+      'Only airport security lines',
+      'Nowhere — cultural habits are identical everywhere',
     ],
     correct: 1,
-    explanation: 'Visible traditions are easy to enjoy; invisible unspoken norms below the water cause most misunderstandings.',
+    explanation: 'Visible traditions are easy to enjoy; invisible unspoken norms below the surface cause most misunderstandings.',
   },
 ];

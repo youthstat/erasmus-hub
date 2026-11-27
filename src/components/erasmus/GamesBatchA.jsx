@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ERASMUS_BGS, ERASMUS_PROPS, ERASMUS_SPRITES } from '../../assets/erasmus/index.js';
+import { useCallback, useEffect, useState } from 'react';
+import { ERASMUS_BGS, ERASMUS_PROPS, ERASMUS_SPRITES, ERASMUS_STICKERS } from '../../assets/erasmus/index.js';
 import {
   GRANT_LOCKS,
   GRANT_RATES,
@@ -12,7 +12,7 @@ import { GameCompleteCard, PattyReaction, SceneHero } from './PrettyPattyBanner.
 /* ============================================================================
    GAME 1 · MYTH BUSTERS (Literacy · 8 pts)
    ============================================================================ */
-export function MythBustersGame({ stop, onFinish, onBack, onNextStop }) {
+export function MythBustersGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
   const [idx, setIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(20);
   const [score, setScore] = useState(0);
@@ -95,6 +95,8 @@ export function MythBustersGame({ stop, onFinish, onBack, onNextStop }) {
           earned={score}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
@@ -177,7 +179,7 @@ function buildMemoryDeck() {
   return cards;
 }
 
-export function ErasmusMemoryGame({ stop, onFinish, onBack, onNextStop }) {
+export function ErasmusMemoryGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
   const [deck, setDeck] = useState(buildMemoryDeck);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
@@ -268,6 +270,8 @@ export function ErasmusMemoryGame({ stop, onFinish, onBack, onNextStop }) {
           earned={finalScore}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
@@ -390,7 +394,7 @@ function PocketCalculator() {
   );
 }
 
-export function GrantEscapeGame({ stop, onFinish, onBack, onNextStop }) {
+export function GrantEscapeGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
   const [lockIdx, setLockIdx] = useState(0);
   const [input, setInput] = useState('');
   const [attempts, setAttempts] = useState(0);
@@ -478,6 +482,8 @@ export function GrantEscapeGame({ stop, onFinish, onBack, onNextStop }) {
           earned={totalScore}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
@@ -604,44 +610,72 @@ export function GrantEscapeGame({ stop, onFinish, onBack, onNextStop }) {
 }
 
 /* ============================================================================
-   GAME 4 · HACKED EXCHANGE (Digital · 4 rooms × 2 pts = 8 pts)
+   GAME 4 · VAULT CODE BREAKER (Digital · 4 stations × 2 pts = 8 pts + Safe Keypad)
    ============================================================================ */
-export function HackedExchangeGame({ stop, onFinish, onBack, onNextStop }) {
-  const [room, setRoom] = useState(1);
+function makeSecretPin() {
+  return Array.from({ length: 4 }, () => String(Math.floor(Math.random() * 9) + 1));
+}
+
+export function HackedExchangeGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
+  const [pinDigits, setPinDigits] = useState(makeSecretPin);
+  const [unlockedCount, setUnlockedCount] = useState(0); // 0..4 digits revealed
+  const [room, setRoom] = useState(1); // 1..4 stations, 5 = enter PIN on Vault Safe
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [saveResult, setSaveResult] = useState(null);
   const [feedback, setFeedback] = useState(null);
 
-  // Room 1 state
+  // Station 1 state
   const [pickedFlags, setPickedFlags] = useState([]);
-  // Room 2 state
+  // Station 2 state
   const [photoWall, setPhotoWall] = useState({});
-  // Room 4 state
+  // Station 4 state
   const [fakeChoice, setFakeChoice] = useState({ source: null, verdict: null });
 
   const completeRoom = (pts, ok, explain) => {
     if (ok) setScore((s) => s + pts);
+    setUnlockedCount((c) => Math.max(c, room));
     setFeedback({
       ok,
-      line: ok ? `Hacker Cat blocked! (+${pts} PTS)` : `${stop.failLine} (+${pts} PTS)`,
+      digit: pinDigits[room - 1],
+      line: ok
+        ? `Station ${room} cleared! Safe Digit #${room} unlocked: [ ${pinDigits[room - 1]} ] (+${pts} PTS)`
+        : `Vault alert triggered — Digit #${room} recovered: [ ${pinDigits[room - 1]} ] (+${pts} PTS)`,
       explanation: explain,
     });
   };
 
-  const nextRoom = async () => {
+  const nextRoom = () => {
     setFeedback(null);
-    if (room >= 4) {
+    setRoom((r) => r + 1);
+  };
+
+  const pressKey = (k) => {
+    setPinError('');
+    if (k === 'C') setPinInput('');
+    else if (k === '⌫') setPinInput((p) => p.slice(0, -1));
+    else if (pinInput.length < 4) setPinInput((p) => p + k);
+  };
+
+  const tryOpenVault = async () => {
+    const targetPin = pinDigits.join('');
+    if (pinInput === targetPin) {
       setDone(true);
       const res = await onFinish(score);
       setSaveResult(res);
     } else {
-      setRoom((r) => r + 1);
+      setPinError(`Wrong code "${pinInput || '----'}"! Check your 4 revealed digits above: ${pinDigits.join(' · ')}`);
     }
   };
 
   const replay = () => {
+    setPinDigits(makeSecretPin());
+    setUnlockedCount(0);
     setRoom(1);
+    setPinInput('');
+    setPinError('');
     setScore(0);
     setDone(false);
     setSaveResult(null);
@@ -655,10 +689,13 @@ export function HackedExchangeGame({ stop, onFinish, onBack, onNextStop }) {
     return (
       <div className="flex flex-col gap-5">
         <div className="box shadow-b8 overflow-hidden">
-          <div className="relative h-48 w-full border-b-[3px] border-ink overflow-hidden">
-            <img src={ERASMUS_BGS.accessRestored} alt="Access Restored" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
-              <span className="tag bg-neon text-ink text-base px-4 py-1.5">ACCESS RESTORED!</span>
+          <div className="relative h-48 sm:h-56 w-full border-b-[3px] border-ink overflow-hidden">
+            <img src={ERASMUS_BGS.accessRestored} alt="Vault Unlocked" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-3 px-4">
+              <img src={ERASMUS_STICKERS.key} alt="" className="w-12 h-12 object-contain" draggable={false} />
+              <span className="tag bg-neon text-ink text-sm sm:text-base px-4 py-1.5">
+                SAFE UNLOCKED · PIN {pinDigits.join('')} · ACCESS RESTORED!
+              </span>
             </div>
           </div>
         </div>
@@ -667,10 +704,12 @@ export function HackedExchangeGame({ stop, onFinish, onBack, onNextStop }) {
           earned={score}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
-          extraNote="You defeated Hacker Cat! Keep protecting team accounts, checking sources, and respecting photo consent."
+          extraNote="You collected all 4 secret PIN digits and cracked the Vault Safe! Keep verifying senders, consent rules, passwords, and EU sources."
         />
       </div>
     );
@@ -678,220 +717,333 @@ export function HackedExchangeGame({ stop, onFinish, onBack, onNextStop }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <SceneHero stop={stop} scoreLabel={`Room ${room}/4 · ${score}/${stop.maxPoints} PTS`} onBack={onBack} />
+      <SceneHero
+        stop={stop}
+        scoreLabel={room <= 4 ? `Station ${room}/4 · ${score}/${stop.maxPoints} PTS` : `Crack Safe · ${score}/${stop.maxPoints} PTS`}
+        onBack={onBack}
+      />
 
-      <div className="box shadow-b8 p-5 sm:p-6 bg-white flex flex-col gap-5">
-        <div className="flex items-center justify-between gap-3 border-b-2 border-ink/15 pb-3">
-          <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-            Room {room} of 4 · Defeat Hacker Cat
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Visible Immediately: Locked Safe Vault & 4-Digit Code Tracker */}
+        <div className="lg:col-span-4 box shadow-b8 overflow-hidden bg-ink text-white">
+          <div className="bg-[#B89CFF] text-ink border-b-[3px] border-ink px-4 py-2.5 font-mono text-xs font-extrabold uppercase flex items-center justify-between gap-2">
+            <span>Locked Security Safe</span>
+            <img src={ERASMUS_PROPS.lock} alt="" className="w-6 h-6 object-contain" draggable={false} />
           </div>
-          <img
-            src={feedback?.ok ? ERASMUS_SPRITES.catAngry : ERASMUS_SPRITES.catHoodie}
-            alt="Hacker Cat"
-            className="w-12 h-12 object-contain"
-            draggable={false}
-          />
-        </div>
+          <div className="p-4 flex flex-col items-center text-center gap-3">
+            <div className="relative flex items-center justify-center gap-2">
+              <img src={ERASMUS_STICKERS.chest} alt="Vault Safe" className="w-20 h-20 object-contain" draggable={false} />
+              <img
+                src={room === 5 ? ERASMUS_SPRITES.pattyHappy : ERASMUS_SPRITES.trioCurious}
+                alt="Pretty Patty"
+                className="w-16 h-16 object-contain"
+                draggable={false}
+              />
+            </div>
+            <p className="text-xs font-bold text-paper/90 leading-snug">
+              Pass each station (1–4) to reveal one secret digit of the vault password, then enter all 4 digits on the keypad!
+            </p>
 
-        {/* ROOM 1: Phishing Email */}
-        {room === 1 && (
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room1.title}</h3>
-              <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room1.instruction}</p>
-            </div>
-            <div className="border-[3px] border-ink rounded-2xl bg-paper p-4 flex flex-col gap-2.5">
-              <div className="font-mono text-xs font-extrabold uppercase text-hot">
-                Subject: {HACKED_ROOMS.room1.subject}
-              </div>
-              {HACKED_ROOMS.room1.segments.map((seg) => {
-                const picked = pickedFlags.includes(seg.id);
-                return (
-                  <button
-                    key={seg.id}
-                    type="button"
-                    disabled={!!feedback}
-                    onClick={() =>
-                      setPickedFlags((p) => (p.includes(seg.id) ? p.filter((x) => x !== seg.id) : [...p, seg.id]))
-                    }
-                    className={`text-left p-3 rounded-xl border-2 border-ink font-medium text-sm transition-colors cursor-pointer ${
-                      picked ? 'bg-[#FFB4A2] font-bold' : 'bg-white hover:bg-sun/30'
-                    }`}
-                  >
-                    {picked ? '🚩 ' : '▫ '}
-                    {seg.text}
-                  </button>
-                );
-              })}
-            </div>
-            {!feedback && (
-              <button
-                type="button"
-                disabled={pickedFlags.length === 0}
-                onClick={() => {
-                  const trueFlags = HACKED_ROOMS.room1.segments.filter((s) => s.isFlag).map((s) => s.id);
-                  const hits = pickedFlags.filter((id) => trueFlags.includes(id)).length;
-                  const wrong = pickedFlags.filter((id) => !trueFlags.includes(id)).length;
-                  const earned = hits === 3 && wrong === 0 ? 2 : hits >= 2 ? 1 : 0;
-                  completeRoom(
-                    earned,
-                    earned === 2,
-                    'The 3 red flags: fake free-mail domain, false urgency/payment demand, and suspicious shortened link asking for PIN/passport!',
-                  );
-                }}
-                className="btn bg-neon text-ink self-start disabled:opacity-50"
-              >
-                Inspect Flags ({pickedFlags.length} selected) →
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ROOM 2: Photo Consent Wall */}
-        {room === 2 && (
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room2.title}</h3>
-              <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room2.instruction}</p>
-            </div>
-            <div className="flex flex-col gap-3">
-              {HACKED_ROOMS.room2.items.map((item) => {
-                const val = photoWall[item.id];
+            {/* 4-Digit Code Display */}
+            <div className="grid grid-cols-4 gap-2 w-full">
+              {pinDigits.map((digit, i) => {
+                const open = i < unlockedCount;
                 return (
                   <div
-                    key={item.id}
-                    className="border-2 border-ink rounded-xl p-3 bg-paper flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    key={i}
+                    className={`border-[3px] rounded-xl py-2.5 flex flex-col items-center justify-center ${
+                      open
+                        ? 'border-neon bg-neon/20 text-neon'
+                        : room === i + 1
+                          ? 'border-sun bg-sun/15 text-sun'
+                          : 'border-white/25 bg-white/5 text-white/40'
+                    }`}
                   >
-                    <span className="text-sm font-bold flex-1">{item.label}</span>
-                    <div className="flex gap-1.5 shrink-0">
-                      {[
-                        { k: 'OK', label: 'OK to post', cls: 'bg-neon text-ink' },
-                        { k: 'ASK', label: 'Ask first', cls: 'bg-sun text-ink' },
-                        { k: 'NEVER', label: 'Never post', cls: 'bg-[#FFB4A2] text-ink' },
-                      ].map((b) => (
-                        <button
-                          key={b.k}
-                          type="button"
-                          disabled={!!feedback}
-                          onClick={() => setPhotoWall((w) => ({ ...w, [item.id]: b.k }))}
-                          className={`px-2.5 py-1.5 rounded-lg border-2 border-ink font-mono text-[11px] font-extrabold uppercase cursor-pointer ${
-                            val === b.k ? `${b.cls} shadow-b2` : 'bg-white text-ink/70'
-                          }`}
-                        >
-                          {b.label}
-                        </button>
-                      ))}
-                    </div>
+                    <span className="font-mono text-[9px] font-bold uppercase">#{i + 1}</span>
+                    <span className="font-mono text-2xl font-extrabold tabular-nums">
+                      {open ? digit : '?'}
+                    </span>
                   </div>
                 );
               })}
             </div>
-            {!feedback && (
-              <button
-                type="button"
-                disabled={Object.keys(photoWall).length < HACKED_ROOMS.room2.items.length}
-                onClick={() => {
-                  const correct = HACKED_ROOMS.room2.items.filter((it) => photoWall[it.id] === it.correct).length;
-                  const earned = correct === 6 ? 2 : correct >= 4 ? 1 : 0;
-                  completeRoom(
-                    earned,
-                    correct === 6,
-                    `You placed ${correct}/6 correctly! Never post passports or vulnerable crying faces; ask consent before posting personal moments.`,
-                  );
-                }}
-                className="btn bg-neon text-ink self-start disabled:opacity-50"
-              >
-                Check Photo Wall →
-              </button>
+
+            {room < 5 ? (
+              <div className="w-full rounded-xl border-2 border-white/20 bg-white/5 px-3 py-2 font-mono text-[11px] font-bold text-sun">
+                {unlockedCount < 4
+                  ? `Playing Station ${room}/4 → unlocks Digit #${room}`
+                  : 'All 4 digits ready!'}
+              </div>
+            ) : (
+              <div className="w-full rounded-xl border-2 border-neon bg-neon/15 px-3 py-2 font-mono text-[11px] font-extrabold text-neon">
+                ALL 4 DIGITS FOUND! Enter PIN on the keypad →
+              </div>
             )}
           </div>
-        )}
+        </div>
 
-        {/* ROOM 3: Password Vault */}
-        {room === 3 && (
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room3.title}</h3>
-              <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room3.instruction}</p>
+        {/* Right: Active Station OR Final Vault Safe Keypad */}
+        <div className="lg:col-span-8 box shadow-b8 p-5 sm:p-6 bg-white flex flex-col gap-5">
+          <div className="flex items-center justify-between gap-3 border-b-2 border-ink/15 pb-3">
+            <div className="font-mono text-xs font-extrabold uppercase text-cobalt flex items-center gap-2">
+              <img src={ERASMUS_STICKERS.folderLock} alt="" className="w-5 h-5 object-contain" draggable={false} />
+              <span>{room <= 4 ? `Station ${room} of 4 · Unlock Digit #${room}` : 'Final Step · Crack the Vault Safe'}</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {HACKED_ROOMS.room3.options.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={!!feedback}
-                  onClick={() => completeRoom(opt.ok ? 2 : 0, opt.ok, opt.feedback)}
-                  className="border-[3px] border-ink rounded-2xl p-4 bg-paper hover:bg-sun/35 text-left font-bold text-sm shadow-b4 cursor-pointer"
-                >
-                  {opt.text}
-                </button>
-              ))}
-            </div>
+            <img
+              src={feedback ? (feedback.ok ? ERASMUS_SPRITES.pattyHappy : stop.failPose ? ERASMUS_SPRITES[stop.failPose] : ERASMUS_SPRITES.pattyCry) : ERASMUS_SPRITES.pattyGlasses}
+              alt="Pretty Patty"
+              className="w-12 h-12 object-contain"
+              draggable={false}
+            />
           </div>
-        )}
 
-        {/* ROOM 4: Fake Post Inspector */}
-        {room === 4 && (
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room4.title}</h3>
-              <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room4.instruction}</p>
-            </div>
-            <div className="border-[3px] border-ink rounded-2xl bg-[#FFE200]/35 p-4 font-extrabold text-sm sm:text-base">
-              {HACKED_ROOMS.room4.postText}
-            </div>
-            {HACKED_ROOMS.room4.questions.map((qu) => (
-              <div key={qu.id} className="flex flex-col gap-2">
-                <div className="font-mono text-xs font-extrabold uppercase">{qu.q}</div>
-                <div className="grid grid-cols-1 gap-2">
-                  {qu.options.map((o, idx) => (
+          {/* STATION 1: Phishing Email */}
+          {room === 1 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room1.title}</h3>
+                <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room1.instruction}</p>
+              </div>
+              <div className="border-[3px] border-ink rounded-2xl bg-paper p-4 flex flex-col gap-2.5">
+                <div className="font-mono text-xs font-extrabold uppercase text-hot">
+                  Subject: {HACKED_ROOMS.room1.subject}
+                </div>
+                {HACKED_ROOMS.room1.segments.map((seg) => {
+                  const picked = pickedFlags.includes(seg.id);
+                  return (
                     <button
-                      key={o.text}
+                      key={seg.id}
                       type="button"
                       disabled={!!feedback}
-                      onClick={() => setFakeChoice((prev) => ({ ...prev, [qu.id]: idx }))}
-                      className={`border-2 border-ink rounded-xl p-3 text-left text-sm font-bold cursor-pointer ${
-                        fakeChoice[qu.id] === idx ? 'bg-sun shadow-b2' : 'bg-paper'
+                      onClick={() =>
+                        setPickedFlags((p) => (p.includes(seg.id) ? p.filter((x) => x !== seg.id) : [...p, seg.id]))
+                      }
+                      className={`text-left p-3 rounded-xl border-2 border-ink font-medium text-sm transition-colors cursor-pointer ${
+                        picked ? 'bg-[#FFB4A2] font-bold' : 'bg-white hover:bg-sun/30'
                       }`}
                     >
-                      {o.text}
+                      {picked ? '🚩 ' : '▫ '}
+                      {seg.text}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            ))}
-            {!feedback && (
+              {!feedback && (
+                <button
+                  type="button"
+                  disabled={pickedFlags.length === 0}
+                  onClick={() => {
+                    const trueFlags = HACKED_ROOMS.room1.segments.filter((s) => s.isFlag).map((s) => s.id);
+                    const hits = pickedFlags.filter((id) => trueFlags.includes(id)).length;
+                    const wrong = pickedFlags.filter((id) => !trueFlags.includes(id)).length;
+                    const earned = hits === 3 && wrong === 0 ? 2 : hits >= 2 ? 1 : 0;
+                    completeRoom(
+                      earned,
+                      earned === 2,
+                      'The 3 red flags: fake free-mail domain, false urgency/payment demand, and suspicious shortened link asking for PIN/passport!',
+                    );
+                  }}
+                  className="btn bg-neon text-ink self-start disabled:opacity-50"
+                >
+                  Inspect Flags ({pickedFlags.length} selected) →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* STATION 2: Photo Consent Wall */}
+          {room === 2 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room2.title}</h3>
+                <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room2.instruction}</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                {HACKED_ROOMS.room2.items.map((item) => {
+                  const val = photoWall[item.id];
+                  return (
+                    <div
+                      key={item.id}
+                      className="border-2 border-ink rounded-xl p-3 bg-paper flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <span className="text-sm font-bold flex-1">{item.label}</span>
+                      <div className="flex gap-1.5 shrink-0">
+                        {[
+                          { k: 'OK', label: 'OK to post', cls: 'bg-neon text-ink' },
+                          { k: 'ASK', label: 'Ask first', cls: 'bg-sun text-ink' },
+                          { k: 'NEVER', label: 'Never post', cls: 'bg-[#FFB4A2] text-ink' },
+                        ].map((b) => (
+                          <button
+                            key={b.k}
+                            type="button"
+                            disabled={!!feedback}
+                            onClick={() => setPhotoWall((w) => ({ ...w, [item.id]: b.k }))}
+                            className={`px-2.5 py-1.5 rounded-lg border-2 border-ink font-mono text-[11px] font-extrabold uppercase cursor-pointer ${
+                              val === b.k ? `${b.cls} shadow-b2` : 'bg-white text-ink/70'
+                            }`}
+                          >
+                            {b.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {!feedback && (
+                <button
+                  type="button"
+                  disabled={Object.keys(photoWall).length < HACKED_ROOMS.room2.items.length}
+                  onClick={() => {
+                    const correct = HACKED_ROOMS.room2.items.filter((it) => photoWall[it.id] === it.correct).length;
+                    const earned = correct === 6 ? 2 : correct >= 4 ? 1 : 0;
+                    completeRoom(
+                      earned,
+                      correct === 6,
+                      `You placed ${correct}/6 correctly! Never post passports or vulnerable crying faces; ask consent before posting personal moments.`,
+                    );
+                  }}
+                  className="btn bg-neon text-ink self-start disabled:opacity-50"
+                >
+                  Check Photo Wall →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* STATION 3: Password Vault Shield */}
+          {room === 3 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room3.title}</h3>
+                <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room3.instruction}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {HACKED_ROOMS.room3.options.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={!!feedback}
+                    onClick={() => completeRoom(opt.ok ? 2 : 0, opt.ok, opt.feedback)}
+                    className="border-[3px] border-ink rounded-2xl p-4 bg-paper hover:bg-sun/35 text-left font-bold text-sm shadow-b4 cursor-pointer"
+                  >
+                    {opt.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* STATION 4: Fake Post Inspector */}
+          {room === 4 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-xl font-extrabold uppercase">{HACKED_ROOMS.room4.title}</h3>
+                <p className="text-sm font-medium mt-1">{HACKED_ROOMS.room4.instruction}</p>
+              </div>
+              <div className="border-[3px] border-ink rounded-2xl bg-[#FFE200]/35 p-4 font-extrabold text-sm sm:text-base">
+                {HACKED_ROOMS.room4.postText}
+              </div>
+              {HACKED_ROOMS.room4.questions.map((qu) => (
+                <div key={qu.id} className="flex flex-col gap-2">
+                  <div className="font-mono text-xs font-extrabold uppercase">{qu.q}</div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {qu.options.map((o, idx) => (
+                      <button
+                        key={o.text}
+                        type="button"
+                        disabled={!!feedback}
+                        onClick={() => setFakeChoice((prev) => ({ ...prev, [qu.id]: idx }))}
+                        className={`border-2 border-ink rounded-xl p-3 text-left text-sm font-bold cursor-pointer ${
+                          fakeChoice[qu.id] === idx ? 'bg-sun shadow-b2' : 'bg-paper'
+                        }`}
+                      >
+                        {o.text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {!feedback && (
+                <button
+                  type="button"
+                  disabled={fakeChoice.source === null || fakeChoice.verdict === null}
+                  onClick={() => {
+                    const sOk = HACKED_ROOMS.room4.questions[0].options[fakeChoice.source]?.ok;
+                    const vOk = HACKED_ROOMS.room4.questions[1].options[fakeChoice.verdict]?.ok;
+                    const pts = (sOk ? 1 : 0) + (vOk ? 1 : 0);
+                    completeRoom(
+                      pts,
+                      pts === 2,
+                      'Always verify dramatic claims on erasmus-plus.ec.europa.eu or your National Agency before forwarding!',
+                    );
+                  }}
+                  className="btn bg-neon text-ink self-start disabled:opacity-50"
+                >
+                  Reveal Digit #4 →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* STAGE 5: Enter the 4 Collected Digits on the Vault Keypad */}
+          {room === 5 && (
+            <div className="flex flex-col items-center gap-4 text-center max-w-sm mx-auto w-full">
+              <div className="flex items-center gap-2">
+                <img src={ERASMUS_STICKERS.key} alt="" className="w-8 h-8 object-contain" draggable={false} />
+                <h3 className="text-xl font-extrabold uppercase">Enter 4-Digit Safe Code</h3>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-ink/80">
+                Type the 4 digits you unlocked on the left panel ({pinDigits.join(' · ')}) to unlock the Erasmus+ Vault!
+              </p>
+
+              <div className="w-full border-[3px] border-ink rounded-2xl bg-ink text-neon font-mono text-3xl font-extrabold tracking-[0.45em] py-3 px-4 tabular-nums shadow-b4">
+                {pinInput.padEnd(4, '•')}
+              </div>
+
+              {pinError && (
+                <div className="w-full rounded-xl border-2 border-ink bg-[#FFB4A2] px-3 py-2 text-xs font-extrabold text-ink">
+                  {pinError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2 w-full">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => pressKey(k)}
+                    className={`py-3 rounded-xl border-[3px] border-ink font-mono font-extrabold text-lg shadow-b2 cursor-pointer active:translate-y-0.5 ${
+                      k === 'C' || k === '⌫' ? 'bg-[#FFB4A2] text-ink' : 'bg-paper hover:bg-sun text-ink'
+                    }`}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+
               <button
                 type="button"
-                disabled={fakeChoice.source === null || fakeChoice.verdict === null}
-                onClick={() => {
-                  const sOk = HACKED_ROOMS.room4.questions[0].options[fakeChoice.source]?.ok;
-                  const vOk = HACKED_ROOMS.room4.questions[1].options[fakeChoice.verdict]?.ok;
-                  const pts = (sOk ? 1 : 0) + (vOk ? 1 : 0);
-                  completeRoom(
-                    pts,
-                    pts === 2,
-                    'Always verify dramatic claims on erasmus-plus.ec.europa.eu or your National Agency before forwarding!',
-                  );
-                }}
-                className="btn bg-neon text-ink self-start disabled:opacity-50"
+                disabled={pinInput.length < 4}
+                onClick={tryOpenVault}
+                className="btn bg-neon text-ink w-full py-3 text-sm disabled:opacity-50"
               >
-                Restore Access →
+                🔓 Crack Vault Safe →
               </button>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {feedback && (
-          <PattyReaction
-            mood={feedback.ok ? 'ok' : 'fail'}
-            spriteKey={feedback.ok ? 'pattyCelebrate' : 'catSmirk'}
-            line={feedback.line}
-            explanation={feedback.explanation}
-            onNext={nextRoom}
-            nextLabel={room >= 4 ? 'Unlock Access →' : `Enter Room ${room + 1} →`}
-          />
-        )}
+          {feedback && (
+            <PattyReaction
+              mood={feedback.ok ? 'ok' : 'fail'}
+              spriteKey={feedback.ok ? 'trioCheer' : 'pattySoot'}
+              line={feedback.line}
+              explanation={feedback.explanation}
+              onNext={nextRoom}
+              nextLabel={room >= 4 ? 'Go to Vault Keypad →' : `Enter Station ${room + 1} →`}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

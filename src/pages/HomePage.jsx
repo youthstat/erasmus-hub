@@ -69,13 +69,15 @@ function NavCard({ n, hiddenTag, dim }) {
           {hiddenTag(n.id)}
           <div className="flex items-center gap-1.5 min-w-0">
             {n.sticker && (
-              <img src={n.sticker} alt="" draggable={false} className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0 drop-shadow-[0_1px_0_rgba(17,17,17,0.2)]" />
+              <img src={n.sticker} alt="" draggable={false} className="hidden sm:block w-6 h-6 object-contain shrink-0 drop-shadow-[0_1px_0_rgba(17,17,17,0.2)]" />
             )}
             <h3 className="text-base sm:text-2xl font-extrabold uppercase leading-tight tracking-tight break-words">{n.title}</h3>
           </div>
           <p className="hidden sm:block text-sm mt-2 font-medium leading-snug opacity-95">{n.text}</p>
         </div>
-        <CardMouse frames={n.frames} customFrames={n.customFrames} anim={n.anim} speed={n.speed} hovered={hovered} />
+        <div className="hidden sm:block">
+          <CardMouse frames={n.frames} customFrames={n.customFrames} anim={n.anim} speed={n.speed} hovered={hovered} />
+        </div>
       </div>
       {n.href ? (
         <a href={n.href} target="_blank" rel="noopener noreferrer" className={`btn !px-3 !py-2 sm:!px-4 sm:!py-2 text-[11px] sm:text-xs font-extrabold leading-tight justify-between sm:justify-center w-full sm:w-auto sm:self-start ${n.btn}`}>

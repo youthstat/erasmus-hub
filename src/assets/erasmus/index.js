@@ -28,17 +28,6 @@ import trioWalk from './trio_walk.png';
 import trioCurious from './trio_curious.png';
 import trioCheer from './trio_cheer.png';
 
-import catHacker from './cat_hacker.png';
-import catHoodie from './cat_hoodie.png';
-import catAngry from './cat_angry.png';
-import catSmirk from './cat_smirk.png';
-import mentorOwl from './mentor_owl.png';
-import mentorTurtle from './mentor_turtle.png';
-import mentorFox from './mentor_fox.png';
-import mentorFoxSerious from './mentor_fox_serious.png';
-import friendMouseScarf from './friend_mouse_scarf.png';
-import friendMouseLetter from './friend_mouse_letter.png';
-
 import propScroll from './prop_scroll.png';
 import propLock from './prop_lock.png';
 import propCoins from './prop_coins.png';
@@ -62,6 +51,25 @@ import stickerMapPins from './sticker_map_pins.png';
 import stickerMegaphone from './sticker_megaphone.png';
 import stickerOscar from './sticker_oscar.png';
 import stickerScrollDoc from './sticker_scroll_doc.png';
+
+import worldBridge from './world_bridge.png';
+import worldSignpost from './world_signpost.png';
+import worldLadder from './world_ladder.png';
+import worldIsland from './world_island.png';
+import worldChest from './world_chest.png';
+import worldKey from './world_key.png';
+import worldDiamond from './world_diamond.png';
+import worldCoin from './world_coin.png';
+import worldFlagRed from './world_flag_red.png';
+import worldFlagFinish from './world_flag_finish.png';
+import worldLantern from './world_lantern.png';
+import worldPortal from './world_portal.png';
+import worldCrane from './world_crane.png';
+import worldBarrel from './world_barrel.png';
+import worldCrates from './world_crates.png';
+import worldBarrier from './world_barrier.png';
+import worldCone from './world_cone.png';
+import worldTreasureMap from './world_treasure_map.png';
 
 export const ERASMUS_BGS = {
   titleTrain: bgTitleTrain,
@@ -94,16 +102,6 @@ export const ERASMUS_SPRITES = {
   trioWalk,
   trioCurious,
   trioCheer,
-  catHacker,
-  catHoodie,
-  catAngry,
-  catSmirk,
-  mentorOwl,
-  mentorTurtle,
-  mentorFox,
-  mentorFoxSerious,
-  friendMouseScarf,
-  friendMouseLetter,
 };
 
 export const ERASMUS_PROPS = {
@@ -133,4 +131,22 @@ export const ERASMUS_STICKERS = {
   oscar: stickerOscar,
   scrollDoc: stickerScrollDoc,
   cheese: propCheese,
+  bridge: worldBridge,
+  signpost: worldSignpost,
+  ladder: worldLadder,
+  island: worldIsland,
+  chest: worldChest,
+  key: worldKey,
+  diamond: worldDiamond,
+  coin: worldCoin,
+  flagRed: worldFlagRed,
+  flagFinish: worldFlagFinish,
+  lantern: worldLantern,
+  portal: worldPortal,
+  crane: worldCrane,
+  barrel: worldBarrel,
+  crates: worldCrates,
+  barrier: worldBarrier,
+  cone: worldCone,
+  treasureMap: worldTreasureMap,
 };

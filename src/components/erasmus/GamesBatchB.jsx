@@ -1,130 +1,322 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ERASMUS_BGS, ERASMUS_PROPS, ERASMUS_SPRITES } from '../../assets/erasmus/index.js';
+import { ERASMUS_BGS, ERASMUS_PROPS, ERASMUS_SPRITES, ERASMUS_STICKERS } from '../../assets/erasmus/index.js';
 import {
-  BOARD_LADDERS,
-  BOARD_SNAKES,
-  EXCHANGE_DILEMMAS,
+  BOARD_GREEN_SQUARES,
+  BOARD_RED_SQUARES,
+  CIVIC_CITY_DISTRICTS,
+  CIVIC_CITY_PROJECTS,
+  CULTURE_QUEST_CARDS,
   FINAL_TEST_QUESTIONS,
-  ICEBERG_PIECES,
-  PITCH_REELS,
-  PITCH_STEPS,
-  SITUATION_SQUARES,
-  TETRIS_BLOCKS,
-  TETRIS_PRIORITIES,
+  SELF_REFLECTION_PROMPTS,
+  STARTUP_BUDGET_ITEMS,
+  STARTUP_CONCEPTS,
+  STARTUP_ROUND_1,
+  STARTUP_ROUND_3,
+  STARTUP_SEQUENCE,
+  STOP5_BOARD_QUESTIONS,
 } from '../../data/erasmusGames.js';
 import { GameCompleteCard, PattyReaction, SceneHero } from './PrettyPattyBanner.jsx';
 
 /* ============================================================================
-   GAME 5 · EXCHANGE JOURNEY (60-square Snakes & Ladders + 8 Dilemmas = 8 pts)
+   GAME 5 · EXCHANGE JOURNEY (Compact Top Dice + 60-Sq Board + 10 Question Tiles + Missions)
    ============================================================================ */
-export function ExchangeJourneyGame({ stop, onFinish, onBack, onNextStop }) {
+export function ExchangeJourneyGame({
+  stop,
+  attemptsUsed = 0,
+  maxAttempts = 3,
+  wallet2048 = 0,
+  onBeginRun,
+  onExtraReward,
+  onCompleteChallenge,
+  onBack,
+  onNextStop,
+}) {
   const [pos, setPos] = useState(1);
   const [dice, setDice] = useState(null);
-  const [score, setScore] = useState(0);
-  const [solvedSquares, setSolvedSquares] = useState([]);
-  const [activeDilemma, setActiveDilemma] = useState(null);
-  const [bannerMsg, setBannerMsg] = useState('Roll the dice to begin Patty’s 60-square Youth Exchange adventure!');
-  const [feedback, setFeedback] = useState(null);
+  const [spinFace, setSpinFace] = useState(1);
+  const [isRolling, setIsRolling] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const [showGuide, setShowGuide] = useState(true);
+
+  const [runStarted, setRunStarted] = useState(false);
+  const [runAttemptNum, setRunAttemptNum] = useState(attemptsUsed);
+  const [runExtraHubPts, setRunExtraHubPts] = useState(0);
+  const [runCoins, setRunCoins] = useState(0);
+
+  const [visitedSquares, setVisitedSquares] = useState([]);
+  const [usedMissionIds, setUsedMissionIds] = useState([]);
+
+  // Floating pop-up modal: { type: 'mission'|'question', square, data }
+  const [modalEvent, setModalEvent] = useState(null);
+  const [missionNote, setMissionNote] = useState('');
+  const [modalFeedback, setModalFeedback] = useState(null);
+
+  const [bannerMsg, setBannerMsg] = useState(
+    'Tap Roll Dice above the map! Reach #60 (8 PTS), hit purple ? for Extra Hub PTS, or yellow ★ for +500 Outfit Coins!',
+  );
   const [done, setDone] = useState(false);
   const [saveResult, setSaveResult] = useState(null);
+  const [blockedMsg, setBlockedMsg] = useState('');
 
-  const finishJourney = async (finalPts) => {
-    setDone(true);
-    const res = await onFinish(finalPts);
-    setSaveResult(res);
+  const unmountedRef = useRef(false);
+  const timersRef = useRef([]);
+
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach((id) => {
+      clearTimeout(id);
+      clearInterval(id);
+    });
+    timersRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      clearTimers();
+    };
+  }, [clearTimers]);
+
+  const scheduleTimeout = (fn, ms) => {
+    const id = setTimeout(() => {
+      if (!unmountedRef.current) fn();
+    }, ms);
+    timersRef.current.push(id);
+    return id;
   };
 
-  const rollDice = () => {
-    if (activeDilemma || done) return;
-    const roll = Math.floor(Math.random() * 6) + 1;
-    setDice(roll);
-    setFeedback(null);
+  const finishStop5 = async () => {
+    setBannerMsg('Finish line reached! Pretty Patty completed all 60 squares (+8 Erasmus+ PTS)!');
+    setDone(true);
+    if (onCompleteChallenge) {
+      const res = await onCompleteChallenge(stop.maxPoints);
+      setSaveResult(res);
+    }
+  };
 
-    const rawNext = Math.min(60, pos + roll);
-    // Stop on the first unvisited dilemma square along the path so participant can solve all scenarios
-    const hitSq = SITUATION_SQUARES.find((sq) => sq > pos && sq <= rawNext && !solvedSquares.includes(sq));
-    if (hitSq) {
-      setPos(hitSq);
-      const dilemma = EXCHANGE_DILEMMAS.find((d) => d.square === hitSq);
-      setActiveDilemma(dilemma);
-      setBannerMsg(`Square ${hitSq}: Situation Card — ${dilemma.title}!`);
+  const stepAnimated = (fromSq, toSq, onDone) => {
+    setIsMoving(true);
+    if (fromSq === toSq) {
+      setIsMoving(false);
+      onDone(toSq);
+      return;
+    }
+    const dir = toSq > fromSq ? 1 : -1;
+    let cur = fromSq;
+    const hop = () => {
+      cur += dir;
+      setPos(cur);
+      if (cur === toSq) {
+        scheduleTimeout(() => {
+          setIsMoving(false);
+          onDone(cur);
+        }, 150);
+      } else {
+        scheduleTimeout(hop, 120);
+      }
+    };
+    scheduleTimeout(hop, 120);
+  };
+
+  const openMissionPopup = (square) => {
+    const availM = SELF_REFLECTION_PROMPTS.filter((m) => !usedMissionIds.includes(m.id));
+    const poolM = availM.length > 0 ? availM : SELF_REFLECTION_PROMPTS;
+    const chosenM = poolM[Math.floor(Math.random() * poolM.length)];
+    setUsedMissionIds((prev) => (prev.includes(chosenM.id) ? prev : [...prev, chosenM.id]));
+    setMissionNote('');
+    setModalEvent({ type: 'mission', square, data: chosenM });
+    setModalFeedback(null);
+  };
+
+  const handleLanding = async (sq) => {
+    if (sq >= 60) {
+      await finishStop5();
       return;
     }
 
-    if (BOARD_LADDERS[rawNext]) {
-      const dest = BOARD_LADDERS[rawNext];
-      setPos(dest);
-      setBannerMsg(`🪜 Yay! Ladder at ${rawNext} boosts Patty up to square ${dest}!`);
-    } else if (BOARD_SNAKES[rawNext]) {
-      const dest = BOARD_SNAKES[rawNext];
-      setPos(dest);
-      setBannerMsg(`🐍 Oops! Snake at ${rawNext} slides Patty back to ${dest} — keep going!`);
-    } else {
-      setPos(rawNext);
-      setBannerMsg(`Rolled a ${roll}! Pretty Patty reached square ${rawNext}.`);
+    const green = BOARD_GREEN_SQUARES[sq];
+    if (green) {
+      setBannerMsg(`Square ${sq}: ${green.label}`);
+      const boostedSq = Math.min(60, sq + green.stepDelta);
+      scheduleTimeout(() => {
+        stepAnimated(sq, boostedSq, async (finalSq) => {
+          if (finalSq >= 60) {
+            await finishStop5();
+          } else {
+            setBannerMsg(`Boost landed on square #${finalSq} — roll again!`);
+          }
+        });
+      }, 300);
+      return;
     }
 
-    if (rawNext >= 60) {
-      finishJourney(score);
+    const red = BOARD_RED_SQUARES[sq];
+    if (red) {
+      setBannerMsg(`Square ${sq}: ${red.label}`);
+      const detourSq = Math.max(1, sq + red.stepDelta);
+      scheduleTimeout(() => {
+        stepAnimated(sq, detourSq, (finalSq) => {
+          setBannerMsg(`Detour ended on square #${finalSq} — keep rolling!`);
+        });
+      }, 300);
+      return;
     }
+
+    const boardQuestion = STOP5_BOARD_QUESTIONS[sq];
+    if (boardQuestion) {
+      if (visitedSquares.includes(sq)) {
+        setBannerMsg(`Question #${sq} already checked on this run — roll again!`);
+        return;
+      }
+      setVisitedSquares((prev) => [...prev, sq]);
+      setBannerMsg(`Square #${sq}: Bonus Question! Answer for +${boardQuestion.extraPts} Extra Hub PTS!`);
+      setModalEvent({ type: 'question', square: sq, data: boardQuestion });
+      setModalFeedback(null);
+      return;
+    }
+
+    // Yellow square -> Mission / Self-Reflection (+500 Outfit Coins)
+    if (!visitedSquares.includes(sq)) {
+      setVisitedSquares((prev) => [...prev, sq]);
+    }
+    setBannerMsg(`Square #${sq}: Mission! Complete for +500 Outfit Coins (or skip)!`);
+    openMissionPopup(sq);
   };
 
-  const answerDilemma = (choice) => {
-    if (!activeDilemma || feedback) return;
-    const nextScore = choice.ok ? score + 1 : score;
-    if (choice.ok) setScore(nextScore);
-    setSolvedSquares((prev) => [...prev, activeDilemma.square]);
-    setFeedback({
-      ok: choice.ok,
-      line: choice.ok ? 'Great teamwork! (+1 PT)' : stop.failLine,
-      explanation: choice.feedback,
-      nextScore,
+  const rollDice = async () => {
+    if (isRolling || isMoving || modalEvent || showGuide || done) return;
+    setBlockedMsg('');
+
+    if (!runStarted) {
+      if (attemptsUsed >= maxAttempts) {
+        setBlockedMsg(`All ${maxAttempts}/${maxAttempts} attempts on this block have been used.`);
+        return;
+      }
+      if (onBeginRun) {
+        const res = await onBeginRun();
+        if (!res?.allowed) {
+          setBlockedMsg(`All ${maxAttempts}/${maxAttempts} attempts on this block have been used.`);
+          return;
+        }
+        setRunAttemptNum(res.attempts || attemptsUsed + 1);
+      } else {
+        setRunAttemptNum(attemptsUsed + 1);
+      }
+      setRunStarted(true);
+    }
+
+    setIsRolling(true);
+    setBannerMsg('Rolling the dice...');
+
+    const spinInterval = setInterval(() => {
+      if (unmountedRef.current) return;
+      setSpinFace(Math.floor(Math.random() * 6) + 1);
+    }, 75);
+    timersRef.current.push(spinInterval);
+
+    scheduleTimeout(() => {
+      clearInterval(spinInterval);
+      const rolled = Math.floor(Math.random() * 6) + 1;
+      setSpinFace(rolled);
+      setDice(rolled);
+      setIsRolling(false);
+      setBannerMsg(`Rolled ${rolled}! Moving Pretty Patty...`);
+
+      const target = Math.min(60, pos + rolled);
+      stepAnimated(pos, target, handleLanding);
+    }, 620);
+  };
+
+  const completeMission = () => {
+    if (!modalEvent || modalFeedback) return;
+    setRunCoins((c) => c + 500);
+    onExtraReward?.({
+      outfitCoins: 500,
+      extraHubPts: 0,
+      reason: '',
+    }).catch(() => {});
+
+    setModalFeedback({
+      ok: true,
+      title: '+500 Outfit Coins Added to Wardrobe!',
+      text: 'Nice mission! Spend your Outfit Coins on Pretty Patty’s costumes in the Mouse Wardrobe!',
     });
   };
 
-  const closeDilemma = () => {
-    const reachedEnd = pos >= 60 || solvedSquares.length >= EXCHANGE_DILEMMAS.length;
-    const sc = feedback?.nextScore ?? score;
-    setActiveDilemma(null);
-    setFeedback(null);
-    if (pos >= 60) {
-      finishJourney(sc);
-    } else if (reachedEnd && pos < 60) {
-      setBannerMsg('All 8 dilemmas solved! Keep rolling to cross square 60!');
+  const answerQuestion = (choiceIdx) => {
+    if (!modalEvent || modalFeedback) return;
+    const q = modalEvent.data;
+    const ok = choiceIdx === q.correct;
+    if (ok) {
+      setRunExtraHubPts((p) => p + q.extraPts);
+      setRunCoins((c) => c + 500);
+      onExtraReward?.({
+        outfitCoins: 500,
+        extraHubPts: q.extraPts,
+        reason: `Extra Hub PTS (Map Q#${modalEvent.square})`,
+      }).catch(() => {});
     }
+    setModalFeedback({
+      ok,
+      title: ok
+        ? `Correct! +${q.extraPts} Extra Hub PTS & +500 Outfit Coins!`
+        : 'Not quite — good try!',
+      text: ok
+        ? `${q.explain} (+500 Outfit Coins added to your Wardrobe, and Extra Hub PTS go to the main leaderboard only — not Erasmus+ Challenge score.)`
+        : q.explain,
+    });
+  };
+
+  const closeModal = () => {
+    setModalEvent(null);
+    setModalFeedback(null);
+    setMissionNote('');
   };
 
   const replay = () => {
+    clearTimers();
     setPos(1);
     setDice(null);
-    setScore(0);
-    setSolvedSquares([]);
-    setActiveDilemma(null);
-    setFeedback(null);
-    setDone(false);
+    setSpinFace(1);
+    setIsRolling(false);
+    setIsMoving(false);
+    setRunStarted(false);
+    setRunExtraHubPts(0);
+    setRunCoins(0);
+    setVisitedSquares([]);
+    setUsedMissionIds([]);
+    setModalEvent(null);
+    setModalFeedback(null);
+    setMissionNote('');
+    setBlockedMsg('');
     setSaveResult(null);
-    setBannerMsg('Roll the dice to begin Patty’s 60-square Youth Exchange adventure!');
+    setDone(false);
+    setBannerMsg(
+      'Tap Roll Dice above the map! Reach #60 (8 PTS), hit purple ? for Extra Hub PTS, or yellow ★ for +500 Outfit Coins!',
+    );
   };
 
   if (done) {
     return (
       <div className="flex flex-col gap-5">
-        <SceneHero stop={stop} scoreLabel={`${score}/${stop.maxPoints} PTS`} onBack={onBack} />
+        <SceneHero stop={stop} scoreLabel={`${stop.maxPoints}/${stop.maxPoints} PTS`} onBack={onBack} />
         <GameCompleteCard
           stop={stop}
-          earned={score}
+          earned={stop.maxPoints}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={saveResult?.attempts ?? runAttemptNum}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
-          extraNote="Personal, social & learning-to-learn skills shine whenever teams care for every member!"
+          extraNote={`Finished the 60-square trail (+${stop.maxPoints} Erasmus+ PTS)! During this run you also collected +${runExtraHubPts} Extra Hub Rating PTS (main leaderboard only) & +${runCoins.toLocaleString()} Outfit Coins!`}
         />
       </div>
     );
   }
 
-  // Build 6 rows of 10 squares (boustrophedon 60 down to 1 so square 60 sits at top-left or top-right)
+  // Build 6 boustrophedon rows of 10 squares (60 at top down to 1 at bottom-left)
   const rows = [];
   for (let r = 5; r >= 0; r--) {
     const start = r * 10 + 1;
@@ -133,48 +325,154 @@ export function ExchangeJourneyGame({ stop, onFinish, onBack, onNextStop }) {
     rows.push(rowArr);
   }
 
+  const questionSquaresHit = Object.keys(STOP5_BOARD_QUESTIONS).filter((sq) =>
+    visitedSquares.includes(Number(sq)),
+  ).length;
+
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <SceneHero
         stop={stop}
-        scoreLabel={`Square ${pos}/60 · ${score}/${stop.maxPoints} PTS`}
+        scoreLabel={`Sq ${pos}/60 · Extra +${runExtraHubPts} PTS · +${runCoins.toLocaleString()} Coins`}
         onBack={onBack}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left/Top: Interactive 60-square Board */}
-        <div className="lg:col-span-8 box shadow-b8 p-3 sm:p-4 bg-white">
-          <div className="grid grid-cols-10 gap-1 sm:gap-1.5">
+      {/* Unified Board Card with Compact Dice Roller DIRECTLY ABOVE the Map */}
+      <div className="box shadow-b8 overflow-hidden bg-white max-w-5xl w-full mx-auto">
+        {/* Top Metadata Bar */}
+        <div className="bg-ink text-white px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 border-b-[3px] border-ink">
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] font-extrabold uppercase">
+            <span className="text-sun">
+              Attempt {Math.min(maxAttempts, runStarted ? runAttemptNum : attemptsUsed + 1)}/{maxAttempts}
+            </span>
+            <span className="text-white/60">·</span>
+            <span className="text-[#D8B4FE]">Questions: {questionSquaresHit}/10</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[11px] font-extrabold uppercase text-neon">
+              Wallet: {wallet2048.toLocaleString()} Coins
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowGuide(true)}
+              className="border-2 border-white/80 rounded-md px-2 py-0.5 font-mono text-[10px] font-extrabold uppercase text-white hover:bg-white hover:text-ink cursor-pointer"
+            >
+              ? Rules
+            </button>
+          </div>
+        </div>
+
+        {/* Compact Dice Roller Bar RIGHT ABOVE the 60-Square Map (visible together on phone!) */}
+        <div className="bg-[#FFF7D6] border-b-[3px] border-ink px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {/* Compact Spinning Dice */}
+              <div
+                className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl border-[3px] border-ink bg-sun flex items-center justify-center shadow-b2 shrink-0 transition-transform duration-150 ${
+                  isRolling ? 'animate-spin scale-105' : ''
+                }`}
+              >
+                <img
+                  src={ERASMUS_PROPS.dice}
+                  alt=""
+                  className="w-7 h-7 object-contain opacity-25"
+                  draggable={false}
+                />
+                <span className="absolute font-mono font-extrabold text-xl sm:text-2xl text-ink tabular-nums">
+                  {isRolling ? spinFace : dice ?? '?'}
+                </span>
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] sm:text-xs font-extrabold uppercase">
+                  <span className="tag bg-white text-ink !text-[10px]">Sq {pos}/60</span>
+                  <span className="tag bg-[#A855F7] text-white !text-[10px]">Extra +{runExtraHubPts} Hub PTS</span>
+                  <span className="tag bg-neon text-ink !text-[10px]">+{runCoins} Coins</span>
+                </div>
+                <p className="text-[11px] sm:text-xs font-bold leading-snug text-ink/90 mt-1 truncate sm:whitespace-normal">
+                  {bannerMsg}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={isRolling || isMoving || !!modalEvent || showGuide || done}
+              onClick={rollDice}
+              className="btn bg-sun text-ink !px-3.5 !py-2 sm:!px-5 sm:!py-2.5 text-xs sm:text-sm shrink-0 disabled:opacity-50"
+            >
+              {isRolling ? 'Rolling...' : isMoving ? 'Moving...' : 'Roll Dice →'}
+            </button>
+          </div>
+
+          {blockedMsg && (
+            <div className="rounded-lg border-2 border-ink bg-[#FFB4A2] px-3 py-1.5 text-xs font-extrabold">
+              {blockedMsg}
+            </div>
+          )}
+        </div>
+
+        {/* 60-Square Bright Color Board (ZERO Stickers inside squares) */}
+        <div className="p-2 sm:p-4 bg-[#FFFDF4]">
+          <div className="grid grid-cols-10 gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-2xl border-[3px] border-ink bg-ink/5 shadow-inner">
             {rows.flat().map((sq) => {
               const isPatty = sq === pos;
-              const isLadder = !!BOARD_LADDERS[sq];
-              const isSnake = !!BOARD_SNAKES[sq];
-              const isDilemma = SITUATION_SQUARES.includes(sq);
-              const isSolved = solvedSquares.includes(sq);
+              const green = BOARD_GREEN_SQUARES[sq];
+              const red = BOARD_RED_SQUARES[sq];
+              const isQuestion = !!STOP5_BOARD_QUESTIONS[sq];
+              const isStart = sq === 1;
+              const isGoal = sq === 60;
+              const isVisited = visitedSquares.includes(sq);
 
-              let bg = 'bg-paper';
-              if (sq === 60) bg = 'bg-neon';
-              else if (isSolved) bg = 'bg-neon/40';
-              else if (isDilemma) bg = 'bg-sun';
-              else if (isLadder) bg = 'bg-[#B89CFF]/55';
-              else if (isSnake) bg = 'bg-[#FFB4A2]/65';
+              let tileCls = 'bg-[#FFE200] text-ink';
+              if (isGoal) tileCls = 'bg-[#39FF14] text-ink';
+              else if (isStart) tileCls = 'bg-[#38BDF8] text-ink';
+              else if (green) tileCls = 'bg-[#22C55E] text-white';
+              else if (red) tileCls = 'bg-[#EF4444] text-white';
+              else if (isQuestion) tileCls = isVisited ? 'bg-[#C084FC] text-white/85' : 'bg-[#9333EA] text-white';
+              else if (isVisited) tileCls = 'bg-[#FFF3A1] text-ink/75';
 
               return (
                 <div
                   key={sq}
-                  className={`relative aspect-square rounded-lg border-2 border-ink flex flex-col items-center justify-center p-0.5 text-[10px] sm:text-xs font-mono font-extrabold ${bg} ${
-                    isPatty ? 'ring-2 ring-cobalt bg-white scale-105 z-10' : ''
+                  className={`relative aspect-square rounded-lg sm:rounded-xl border-2 border-ink flex flex-col items-center justify-between p-0.5 sm:p-1 transition-transform duration-150 ${tileCls} ${
+                    isPatty ? 'ring-4 ring-cobalt scale-110 z-20 shadow-b4' : ''
                   }`}
                 >
-                  <span className="leading-none">{sq}</span>
-                  {isLadder && <span className="text-[9px] leading-none">🪜{BOARD_LADDERS[sq]}</span>}
-                  {isSnake && <span className="text-[9px] leading-none">🐍{BOARD_SNAKES[sq]}</span>}
-                  {isDilemma && !isPatty && <span className="text-[9px] leading-none">{isSolved ? '✓' : '★'}</span>}
-                  {isPatty && (
+                  <span className="self-start font-mono font-extrabold text-[8px] sm:text-[10px] leading-none">
+                    {sq}
+                  </span>
+
+                  {!isPatty ? (
+                    <div className="flex flex-col items-center justify-center flex-1 leading-none text-center">
+                      {isStart && (
+                        <span className="font-mono font-extrabold text-[7px] sm:text-[9px] uppercase">GO</span>
+                      )}
+                      {isGoal && (
+                        <span className="font-mono font-extrabold text-[7px] sm:text-[9px] uppercase">WIN</span>
+                      )}
+                      {green && (
+                        <span className="font-mono font-extrabold text-[9px] sm:text-[11px]">+{green.stepDelta}</span>
+                      )}
+                      {red && (
+                        <span className="font-mono font-extrabold text-[9px] sm:text-[11px]">{red.stepDelta}</span>
+                      )}
+                      {isQuestion && (
+                        <span className="font-mono font-extrabold text-[10px] sm:text-xs">
+                          {isVisited ? '✓' : '?'}
+                        </span>
+                      )}
+                      {!isStart && !isGoal && !green && !red && !isQuestion && (
+                        <span className="font-mono font-extrabold text-[9px] sm:text-xs opacity-75">
+                          {isVisited ? '✓' : '★'}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
                     <img
-                      src={ERASMUS_SPRITES.pattySuitcase}
-                      alt="Patty"
-                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain absolute inset-0 m-auto drop-shadow"
+                      src={ERASMUS_SPRITES.trioWalk}
+                      alt="Pretty Patty"
+                      className="w-6 h-6 sm:w-9 sm:h-9 object-contain absolute inset-0 m-auto drop-shadow-[0_2px_0_rgba(17,17,17,0.45)]"
                       draggable={false}
                     />
                   )}
@@ -182,216 +480,295 @@ export function ExchangeJourneyGame({ stop, onFinish, onBack, onNextStop }) {
               );
             })}
           </div>
-          <div className="mt-3 flex flex-wrap gap-3 font-mono text-[11px] font-bold uppercase text-ink/80">
-            <span>★ = Situation Card ({solvedSquares.length}/8)</span>
-            <span>🪜 = Ladder</span>
-            <span>🐍 = Snake</span>
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-2.5 sm:gap-3 font-mono text-[10px] sm:text-xs font-extrabold uppercase">
+            <span className="inline-flex items-center gap-1">
+              <span className="w-3.5 h-3.5 rounded border-2 border-ink bg-[#9333EA]" /> Question (10 tiles = +5 Extra PTS &amp; +500 Coins)
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-3.5 h-3.5 rounded border-2 border-ink bg-[#FFE200]" /> Mission (★ = +500 Outfit Coins)
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-3.5 h-3.5 rounded border-2 border-ink bg-[#22C55E]" /> Boost (+Steps)
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-3.5 h-3.5 rounded border-2 border-ink bg-[#EF4444]" /> Detour (−Steps)
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-3.5 h-3.5 rounded border-2 border-ink bg-[#39FF14]" /> Finish (8 Erasmus+ PTS)
+            </span>
           </div>
-        </div>
-
-        {/* Right: Dice & Active Dilemma */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          <div className="box shadow-b6 p-4 sm:p-5 bg-white flex flex-col gap-3 items-center text-center">
-            <img src={ERASMUS_PROPS.dice} alt="Dice" className="w-16 h-16 object-contain" draggable={false} />
-            <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-              {dice ? `Last roll: ${dice}` : 'Ready to roll'}
-            </div>
-            <p className="text-sm font-bold leading-snug">{bannerMsg}</p>
-            <button
-              type="button"
-              disabled={!!activeDilemma}
-              onClick={rollDice}
-              className="btn bg-sun text-ink w-full disabled:opacity-50"
-            >
-              Roll Dice →
-            </button>
-          </div>
-
-          {activeDilemma && (
-            <div className="box shadow-b8 p-4 sm:p-5 bg-sun/25 flex flex-col gap-3">
-              <div className="tag bg-sun text-ink self-start">Square {activeDilemma.square} · Dilemma</div>
-              <h3 className="text-lg font-extrabold uppercase leading-tight">{activeDilemma.title}</h3>
-              <p className="text-sm font-medium">{activeDilemma.text}</p>
-
-              {!feedback ? (
-                <div className="flex flex-col gap-2">
-                  {activeDilemma.choices.map((c) => (
-                    <button
-                      key={c.label}
-                      type="button"
-                      onClick={() => answerDilemma(c)}
-                      className="border-2 border-ink rounded-xl bg-white hover:bg-sun/45 p-3 text-left text-xs sm:text-sm font-bold cursor-pointer"
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <PattyReaction
-                  mood={feedback.ok ? 'ok' : 'fail'}
-                  spriteKey={feedback.ok ? 'pattyHappy' : stop.failPose}
-                  line={feedback.line}
-                  explanation={feedback.explanation}
-                  onNext={closeDilemma}
-                  nextLabel="Continue →"
-                />
-              )}
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Rules Pop-Up Modal Explaining Extra Hub Points vs Missions vs Erasmus+ Score */}
+      {showGuide && (
+        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="box shadow-b8 bg-white max-w-lg w-full overflow-hidden">
+            <div className="bg-[#FFE200] border-b-[3px] border-ink px-5 py-3 flex items-center justify-between gap-2">
+              <span className="font-mono text-xs sm:text-sm font-extrabold uppercase text-ink">
+                How This Map Works · Extra Points vs Missions
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowGuide(false)}
+                className="font-mono font-extrabold text-sm text-ink cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <img src={ERASMUS_SPRITES.trioCurious} alt="Pretty Patty" className="w-14 h-14 object-contain shrink-0" draggable={false} />
+                <p className="text-xs sm:text-sm font-bold leading-snug text-ink">
+                  Every tile you land on gives you either a <b>Question</b> or a <b>Mission</b> (depending on your dice roll!):
+                </p>
+              </div>
+
+              <div className="border-[3px] border-ink rounded-xl bg-[#F3E8FF] p-3">
+                <div className="font-mono text-xs font-extrabold uppercase text-[#6B21A8]">
+                  ❓ 10 Question Squares → +5 Extra Hub PTS &amp; +500 Coins
+                </div>
+                <p className="text-xs font-medium text-ink mt-1">
+                  Answer right to earn <b>+5 Extra Hub Points</b> straight to the <b>Main Hub Rating</b> AND <b>+500 Outfit Coins</b> for the Mouse Wardrobe! Because there are 10 questions placed around the board, which ones you hit depends on your dice rolls. <b>Note: Extra Points do NOT add to your Erasmus+ Challenge score!</b>
+                </p>
+              </div>
+
+              <div className="border-[3px] border-ink rounded-xl bg-[#FEF9C3] p-3">
+                <div className="font-mono text-xs font-extrabold uppercase text-ink">
+                  ★ Yellow Mission Squares → +500 Outfit Coins
+                </div>
+                <p className="text-xs font-medium text-ink mt-1">
+                  Missions give kind team challenges &amp; self-reflections that reward <b>+500 Outfit Coins</b> for Pretty Patty’s Mouse Wardrobe (you can skip anytime).
+                </p>
+              </div>
+
+              <div className="border-[3px] border-ink rounded-xl bg-neon/35 p-3">
+                <div className="font-mono text-xs font-extrabold uppercase text-ink">
+                  🏁 Square 60 → 8/8 Erasmus+ Challenge PTS
+                </div>
+                <p className="text-xs font-medium text-ink mt-1">
+                  Reach the green Finish tile (#60) to complete Stop 5 and earn your <b>8/8 PTS</b> on the Erasmus+ Competence Trail!
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowGuide(false)}
+                className="btn bg-ink text-[#FFE200] text-xs sm:text-sm w-full mt-1"
+              >
+                Got It — Let’s Roll! →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Tile Pop-Up Modal (Question OR Mission) */}
+      {modalEvent && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="box shadow-b8 bg-white max-w-lg w-full overflow-hidden">
+            <div
+              className={`border-b-[3px] border-ink px-4 sm:px-5 py-3 flex items-center justify-between gap-2 ${
+                modalEvent.type === 'question' ? 'bg-[#9333EA] text-white' : 'bg-[#FFE200] text-ink'
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="tag bg-white text-ink text-[10px] shrink-0">
+                  Sq #{modalEvent.square}
+                </span>
+                <span className="font-mono text-[11px] sm:text-xs font-extrabold uppercase truncate">
+                  {modalEvent.type === 'question'
+                    ? `❓ Question · +${modalEvent.data.extraPts} Extra PTS & +500 Coins`
+                    : `${modalEvent.data.badge} · +500 Coins`}
+                </span>
+              </div>
+              {!modalFeedback && (
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="font-mono text-xs font-extrabold uppercase underline shrink-0 cursor-pointer"
+                >
+                  Skip
+                </button>
+              )}
+            </div>
+
+            <div className="p-4 sm:p-6 flex flex-col gap-3.5">
+              <div className="flex items-start gap-3">
+                <img
+                  src={
+                    modalFeedback
+                      ? modalFeedback.ok
+                        ? ERASMUS_SPRITES.pattyHeart
+                        : ERASMUS_SPRITES.pattyReading
+                      : ERASMUS_SPRITES.trioCurious
+                  }
+                  alt="Pretty Patty"
+                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain shrink-0"
+                  draggable={false}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono text-[10px] font-extrabold uppercase text-cobalt mb-1">
+                    {modalEvent.type === 'question'
+                      ? 'Extra Hub PTS (Main Rating only) + 500 Wardrobe Coins'
+                      : 'Board Mission (Rewards +500 Wardrobe Outfit Coins)'}
+                  </div>
+                  <h3 className="text-sm sm:text-lg font-extrabold leading-snug text-ink">
+                    {modalEvent.type === 'question' ? modalEvent.data.q : modalEvent.data.prompt}
+                  </h3>
+                  {modalEvent.type === 'mission' && !modalFeedback && (
+                    <p className="text-xs font-medium text-mute mt-1">{modalEvent.data.hint}</p>
+                  )}
+                </div>
+              </div>
+
+              {!modalFeedback && modalEvent.type === 'mission' && (
+                <>
+                  <textarea
+                    rows={2}
+                    value={missionNote}
+                    onChange={(e) => setMissionNote(e.target.value)}
+                    placeholder="Optional reflection note for yourself..."
+                    className="w-full rounded-xl border-[3px] border-ink bg-paper p-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:bg-white"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={completeMission}
+                      className="btn bg-sun text-ink text-xs flex-1"
+                    >
+                      Complete Mission (+500 Outfit Coins) ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="btn bg-paper text-ink text-xs"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {!modalFeedback && modalEvent.type === 'question' && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    {modalEvent.data.options.map((opt, idx) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => answerQuestion(idx)}
+                        className="border-[3px] border-ink rounded-xl bg-paper hover:bg-sun/45 p-3 text-left text-xs sm:text-sm font-bold cursor-pointer"
+                      >
+                        <span className="font-mono mr-2">{String.fromCharCode(65 + idx)}.</span>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="btn bg-paper text-ink text-xs w-full"
+                  >
+                    Skip Question (0 Extra PTS)
+                  </button>
+                </>
+              )}
+
+              {modalFeedback && (
+                <div
+                  className={`rounded-2xl border-[3px] border-ink p-4 flex flex-col gap-2 ${
+                    modalFeedback.ok ? 'bg-neon/40' : 'bg-[#FFB4A2]/45'
+                  }`}
+                >
+                  <div className="font-extrabold text-sm sm:text-base">{modalFeedback.title}</div>
+                  <p className="text-xs sm:text-sm font-medium text-ink/90">{modalFeedback.text}</p>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="btn bg-ink text-white text-xs self-end mt-1"
+                  >
+                    Back to Map →
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ============================================================================
-   GAME 6 · PRIORITY TETRIS (Citizenship · Canvas Sorter · 8 pts)
+   GAME 6 · CIVIC CITY BUILDER (Stop 6 · Citizenship · 8 projects = 8 pts)
    ============================================================================ */
-export function PriorityTetrisGame({ stop, onFinish, onBack, onNextStop }) {
-  const [blockIdx, setBlockIdx] = useState(0);
-  const [lane, setLane] = useState(1); // 0..3
-  const [yRatio, setYRatio] = useState(0); // 0..1
+export function PriorityTetrisGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
+  const [projIdx, setProjIdx] = useState(0);
+  const [builtByDistrict, setBuiltByDistrict] = useState({
+    inclusion: [],
+    digital: [],
+    green: [],
+    participation: [],
+  });
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [done, setDone] = useState(false);
   const [saveResult, setSaveResult] = useState(null);
 
-  const canvasRef = useRef(null);
-  const laneRef = useRef(lane);
-  const yRef = useRef(yRatio);
-  laneRef.current = lane;
-  yRef.current = yRatio;
+  const project = CIVIC_CITY_PROJECTS[projIdx];
 
-  const currentBlock = TETRIS_BLOCKS[blockIdx];
-
-  const resolveDrop = useCallback(
-    (chosenLane) => {
-      if (feedback || done || !currentBlock) return;
-      const pickedPriority = TETRIS_PRIORITIES[chosenLane];
-      const ok = pickedPriority.id === currentBlock.target;
-      if (ok) setScore((s) => s + 1);
+  const placeIntoDistrict = useCallback(
+    (district) => {
+      if (feedback || done || !project) return;
+      const ok = district.id === project.target;
+      if (ok) {
+        setScore((s) => s + 1);
+      }
+      setBuiltByDistrict((prev) => ({
+        ...prev,
+        [project.target]: [...prev[project.target], { id: project.id, title: project.title, iconKey: project.iconKey, matched: ok }],
+      }));
       setFeedback({
         ok,
-        line: ok ? `Sorted into ${pickedPriority.label}! (+1 PT)` : stop.failLine,
-        explanation: currentBlock.reason,
+        line: ok
+          ? `Built in ${district.districtName} (${district.short})! (+1 PT)`
+          : `${stop.failLine} Placed correctly into ${CIVIC_CITY_DISTRICTS.find((d) => d.id === project.target)?.short}.`,
+        explanation: project.reason,
       });
     },
-    [currentBlock, done, feedback, stop.failLine],
+    [done, feedback, project, stop.failLine],
   );
 
-  // Smooth falling loop via requestAnimationFrame
-  useEffect(() => {
-    if (done || feedback) return undefined;
-    let rafId;
-    let last = performance.now();
-    const tick = (now) => {
-      const dt = (now - last) / 1000;
-      last = now;
-      setYRatio((prev) => {
-        const next = prev + dt * 0.085; // ~11.5 seconds steady descent per block
-        if (next >= 1) {
-          resolveDrop(laneRef.current);
-          return 1;
-        }
-        return next;
-      });
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [done, feedback, resolveDrop]);
-
-  // Draw crisp 4-column board on <canvas>
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    // Background columns
-    const colW = W / 4;
-    const binH = 64;
-    TETRIS_PRIORITIES.forEach((p, idx) => {
-      const x = idx * colW;
-      ctx.fillStyle = idx === lane ? '#FFF8CC' : '#F4F3EE';
-      ctx.fillRect(x, 0, colW, H - binH);
-      ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, 0, colW, H - binH);
-
-      // Priority bottom bin
-      ctx.fillStyle = p.color;
-      ctx.fillRect(x + 2, H - binH + 2, colW - 4, binH - 4);
-      ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x + 2, H - binH + 2, colW - 4, binH - 4);
-
-      ctx.fillStyle = '#111111';
-      ctx.font = 'bold 14px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(p.short.toUpperCase(), x + colW / 2, H - binH / 2 + 5);
-    });
-
-    // Draw falling card block
-    if (currentBlock) {
-      const bx = lane * colW + 10;
-      const bw = colW - 20;
-      const bh = 68;
-      const by = Math.min(H - binH - bh - 6, yRatio * (H - binH - bh - 6));
-
-      ctx.fillStyle = '#FFE200';
-      ctx.fillRect(bx, by, bw, bh);
-      ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(bx, by, bw, bh);
-
-      ctx.fillStyle = '#111111';
-      ctx.font = 'bold 13px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`Idea #${currentBlock.id}`, bx + bw / 2, by + 28);
-      ctx.font = 'bold 11px monospace';
-      ctx.fillText('▼ DROP ▼', bx + bw / 2, by + 48);
-    }
-  }, [currentBlock, lane, yRatio]);
-
-  // Keyboard controls
+  // Number key shortcuts 1..4 for speed
   useEffect(() => {
     if (done || feedback) return undefined;
     const onKey = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-        e.preventDefault();
-        setLane((l) => Math.max(0, l - 1));
-      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-        e.preventDefault();
-        setLane((l) => Math.min(3, l + 1));
-      } else if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 's' || e.key === 'S') {
-        e.preventDefault();
-        resolveDrop(laneRef.current);
+      const idx = Number(e.key) - 1;
+      if (idx >= 0 && idx < CIVIC_CITY_DISTRICTS.length) {
+        placeIntoDistrict(CIVIC_CITY_DISTRICTS[idx]);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [done, feedback, resolveDrop]);
+  }, [done, feedback, placeIntoDistrict]);
 
   const advance = async () => {
-    if (blockIdx + 1 >= TETRIS_BLOCKS.length) {
+    if (projIdx + 1 >= CIVIC_CITY_PROJECTS.length) {
       setDone(true);
       const res = await onFinish(score);
       setSaveResult(res);
     } else {
-      setBlockIdx((i) => i + 1);
-      setLane(1);
-      setYRatio(0);
+      setProjIdx((i) => i + 1);
       setFeedback(null);
     }
   };
 
   const replay = () => {
-    setBlockIdx(0);
-    setLane(1);
-    setYRatio(0);
+    setProjIdx(0);
+    setBuiltByDistrict({ inclusion: [], digital: [], green: [], participation: [] });
     setScore(0);
     setFeedback(null);
     setDone(false);
@@ -407,10 +784,12 @@ export function PriorityTetrisGame({ stop, onFinish, onBack, onNextStop }) {
           earned={score}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={saveResult?.attempts ?? attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
-          extraNote="You matched youth ideas straight into the 4 Erasmus+ Horizontal Priorities!"
+          extraNote="Your Town Square now shines across all 4 Erasmus+ Horizontal Priorities: Inclusion, Digital, Climate & Democracy!"
         />
       </div>
     );
@@ -420,60 +799,497 @@ export function PriorityTetrisGame({ stop, onFinish, onBack, onNextStop }) {
     <div className="flex flex-col gap-5">
       <SceneHero
         stop={stop}
-        scoreLabel={`Idea ${blockIdx + 1}/${TETRIS_BLOCKS.length} · ${score}/${stop.maxPoints} PTS`}
+        scoreLabel={`Blueprint ${projIdx + 1}/${CIVIC_CITY_PROJECTS.length} · ${score}/${stop.maxPoints} PTS`}
         onBack={onBack}
       />
 
-      <div className="box shadow-b8 p-4 sm:p-6 bg-white flex flex-col gap-4 max-w-3xl w-full mx-auto">
-        <div className="border-[3px] border-ink rounded-2xl bg-sun/40 p-4 text-center">
-          <div className="font-mono text-[11px] font-extrabold uppercase text-cobalt">
-            Active Project Idea #{currentBlock.id}
-          </div>
-          <div className="text-base sm:text-xl font-extrabold mt-1">{currentBlock.title}</div>
-          <div className="font-mono text-xs font-bold text-ink/80 mt-1">
-            Currently over: <u>{TETRIS_PRIORITIES[lane].label}</u>
+      <div className="box shadow-b8 overflow-hidden bg-white">
+        {/* Top Illustrated Construction Blueprint Header */}
+        <div className="relative p-4 sm:p-6 border-b-[3px] border-ink bg-[#FFF7D6]">
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <div className="flex items-center gap-2 shrink-0">
+              <img src={ERASMUS_STICKERS.crane} alt="" className="w-16 h-16 object-contain" draggable={false} />
+              <img src={ERASMUS_SPRITES.pattyHardhat} alt="Builder Patty" className="w-16 h-16 object-contain" draggable={false} />
+            </div>
+
+            <div className="flex-1 text-center md:text-left">
+              <div className="font-mono text-[11px] font-extrabold uppercase text-cobalt flex flex-wrap items-center justify-center md:justify-start gap-2">
+                <span>Active Youth Blueprint #{project.id} of {CIVIC_CITY_PROJECTS.length}</span>
+                <span className="tag bg-white text-ink !text-[10px]">Press 1–4 or tap a district below</span>
+              </div>
+              <div className="mt-1.5 flex items-center justify-center md:justify-start gap-3">
+                <img
+                  src={ERASMUS_STICKERS[project.iconKey] || ERASMUS_STICKERS.crates}
+                  alt=""
+                  className="w-10 h-10 object-contain shrink-0"
+                  draggable={false}
+                />
+                <h3 className="text-lg sm:text-2xl font-extrabold leading-tight text-ink">
+                  {project.title}
+                </h3>
+              </div>
+            </div>
           </div>
         </div>
 
-        <canvas
-          ref={canvasRef}
-          width={640}
-          height={290}
-          className="w-full h-auto border-[3px] border-ink rounded-2xl bg-paper shadow-b4"
-        />
+        {/* 4 Interactive Priority Districts in Town Square */}
+        <div className="p-4 sm:p-6 bg-paper flex flex-col gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {CIVIC_CITY_DISTRICTS.map((dist, idx) => {
+              const built = builtByDistrict[dist.id] || [];
+              return (
+                <button
+                  key={dist.id}
+                  type="button"
+                  disabled={!!feedback}
+                  onClick={() => placeIntoDistrict(dist)}
+                  className={`border-[3px] border-ink rounded-2xl p-4 text-left flex flex-col justify-between gap-3 shadow-b6 transition-all cursor-pointer disabled:cursor-default ${
+                    !feedback ? 'hover:-translate-y-1 hover:shadow-b8' : ''
+                  } bg-white`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className={`tag text-[10px] ${dist.bg} text-ink`}>
+                        [{idx + 1}] {dist.short}
+                      </span>
+                      <img
+                        src={ERASMUS_STICKERS[dist.stickerKey]}
+                        alt={dist.districtName}
+                        className="w-11 h-11 object-contain shrink-0"
+                        draggable={false}
+                      />
+                    </div>
+                    <h4 className="font-extrabold text-base uppercase leading-tight">{dist.districtName}</h4>
+                    <p className="text-[11px] font-bold text-ink/75 mt-0.5">{dist.label}</p>
+                    <p className="text-[11px] font-medium text-mute mt-1">{dist.motto}</p>
+                  </div>
 
-        {!feedback ? (
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => setLane((l) => Math.max(0, l - 1))}
-              className="btn bg-paper text-ink px-5 py-3 text-sm"
-            >
-              ← Left
-            </button>
-            <button
-              type="button"
-              onClick={() => resolveDrop(lane)}
-              className="btn bg-neon text-ink px-6 py-3 text-sm"
-            >
-              ↓ Drop into {TETRIS_PRIORITIES[lane].short}
-            </button>
-            <button
-              type="button"
-              onClick={() => setLane((l) => Math.min(3, l + 1))}
-              className="btn bg-paper text-ink px-5 py-3 text-sm"
-            >
-              Right →
-            </button>
+                  {/* 2 Visual Landmark Slots per District */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t-2 border-ink/15">
+                    {[0, 1].map((slotIdx) => {
+                      const item = built[slotIdx];
+                      return (
+                        <div
+                          key={slotIdx}
+                          className={`h-11 rounded-xl border-2 border-ink flex items-center justify-center gap-1 px-1.5 ${
+                            item
+                              ? item.matched
+                                ? 'bg-neon/45'
+                                : 'bg-[#FFB4A2]/50'
+                              : 'bg-paper border-dashed border-ink/35'
+                          }`}
+                        >
+                          {item ? (
+                            <>
+                              <img src={ERASMUS_STICKERS[item.iconKey]} alt="" className="w-5 h-5 object-contain shrink-0" draggable={false} />
+                              <span className="font-mono text-[10px] font-extrabold">
+                                {item.matched ? '✓' : '★'} #{item.id}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-mono text-[10px] font-bold text-mute">Slot {slotIdx + 1}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {!feedback && (
+                    <div className={`w-full py-1.5 rounded-lg border-2 border-ink font-mono text-[11px] font-extrabold uppercase text-center ${dist.bg}`}>
+                      Build Here →
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        ) : (
+
+          {feedback && (
+            <PattyReaction
+              mood={feedback.ok ? 'ok' : 'fail'}
+              spriteKey={feedback.ok ? 'trioCheer' : stop.failPose}
+              line={feedback.line}
+              explanation={feedback.explanation}
+              onNext={advance}
+              nextLabel={projIdx + 1 >= CIVIC_CITY_PROJECTS.length ? 'Open Town Square →' : 'Next Blueprint →'}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+   GAME 7 · STARTUP MOUSE LAUNCHPAD (Entrepreneurship · Mouse Only · 8 pts)
+   ============================================================================ */
+export function PitchLabGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
+  const [concept, setConcept] = useState(STARTUP_CONCEPTS[0]);
+  const [mission, setMission] = useState(1); // 1: Aim, 2: Budget Coins, 3: Crisis, 4: Launch Steps
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const [done, setDone] = useState(false);
+  const [saveResult, setSaveResult] = useState(null);
+
+  // Mission 2 state: 8 Grant Star Coins
+  const [coins, setCoins] = useState({ access: 2, green: 2, tools: 2, followup: 1, vip: 1 });
+  // Mission 4 state: Tap 3 launch milestones in order
+  const [pickedOrder, setPickedOrder] = useState([]);
+
+  const spentCoins = Object.values(coins).reduce((a, b) => a + b, 0);
+  const remainingCoins = 8 - spentCoins;
+
+  const adjustCoin = (id, delta) => {
+    if (feedback) return;
+    setCoins((prev) => {
+      const nextVal = (prev[id] || 0) + delta;
+      if (nextVal < 0) return prev;
+      if (delta > 0 && remainingCoins <= 0) return prev;
+      return { ...prev, [id]: nextVal };
+    });
+  };
+
+  const awardMission = (pts, ok, line, explain) => {
+    setScore((s) => s + pts);
+    setFeedback({ ok, line, explanation: explain });
+  };
+
+  const checkBudgetCoins = () => {
+    if (spentCoins !== 8) return;
+    const trapFree = coins.vip === 0;
+    const strongPillars = coins.access >= 2 && coins.green >= 2 && coins.tools >= 2 && coins.followup >= 1;
+    const pts = trapFree && strongPillars ? 2 : trapFree ? 1 : 0;
+    awardMission(
+      pts,
+      pts === 2,
+      pts === 2
+        ? 'Smart Grant Budget! Every coin fuels real youth impact! (+2 PTS)'
+        : pts === 1
+          ? 'No coins wasted on VIP perks, though one priority pillar needed slightly more support! (+1 PT)'
+          : 'Oops! Watch out — VIP limos eat funds meant for accessibility and green travel! (+0 PTS)',
+      'Balanced Youth Initiatives fund Accessibility (2+), Green Travel (2+), Hands-on Tools (2+), and Follow-Up Impact (1+).',
+    );
+  };
+
+  const toggleSequenceStep = (stepItem) => {
+    if (feedback) return;
+    if (pickedOrder.some((s) => s.id === stepItem.id)) {
+      setPickedOrder((prev) => prev.filter((s) => s.id !== stepItem.id));
+    } else if (pickedOrder.length < 3) {
+      setPickedOrder((prev) => [...prev, stepItem]);
+    }
+  };
+
+  const checkSequence = () => {
+    if (pickedOrder.length < 3) return;
+    const exact = pickedOrder.every((item, idx) => item.order === idx + 1);
+    const pts = exact ? 2 : 1;
+    awardMission(
+      pts,
+      exact,
+      exact
+        ? 'Launch sequence locked! Pretty Patty is ready to take the stage! (+2 PTS)'
+        : 'Close! Remember: start from real Youth Need → Co-design & Budget → Share Open Results! (+1 PT)',
+      '1) Listen to local youth → 2) Co-design inclusive budget & workshops → 3) Share results & log Youthpass growth.',
+    );
+  };
+
+  const nextMission = async () => {
+    setFeedback(null);
+    if (mission >= 4) {
+      setDone(true);
+      const res = await onFinish(score);
+      setSaveResult(res);
+    } else {
+      setMission((m) => m + 1);
+    }
+  };
+
+  const replay = () => {
+    setConcept(STARTUP_CONCEPTS[0]);
+    setMission(1);
+    setScore(0);
+    setFeedback(null);
+    setDone(false);
+    setSaveResult(null);
+    setCoins({ access: 2, green: 2, tools: 2, followup: 1, vip: 1 });
+    setPickedOrder([]);
+  };
+
+  if (done) {
+    return (
+      <div className="flex flex-col gap-5">
+        <SceneHero stop={stop} scoreLabel={`${score}/${stop.maxPoints} PTS`} onBack={onBack} />
+        <GameCompleteCard
+          stop={stop}
+          earned={score}
+          maxPoints={stop.maxPoints}
+          saveResult={saveResult}
+          attemptsUsed={saveResult?.attempts ?? attemptsUsed}
+          maxAttempts={maxAttempts}
+          onReplay={replay}
+          onBackToMap={onBack}
+          onNextStop={onNextStop}
+          extraNote={`Project "${concept.name}" launched smoothly with Pretty Patty at the helm!`}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <SceneHero
+        stop={stop}
+        scoreLabel={`Mission ${mission}/4 · ${score}/${stop.maxPoints} PTS`}
+        onBack={onBack}
+      />
+
+      {/* Choose Your Mouse Startup Brief (Mouse Only!) */}
+      <div className="box shadow-b6 p-4 sm:p-5 bg-white flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <img src={ERASMUS_SPRITES.trioWalk} alt="Pretty Patty" className="w-10 h-10 object-contain" draggable={false} />
+            <div>
+              <div className="font-mono text-[10px] font-extrabold uppercase text-cobalt">
+                Pretty Patty’s Youth Project Theme
+              </div>
+              <div className="font-extrabold text-sm sm:text-base">{concept.name} — <span className="font-medium text-ink/80">{concept.goal}</span></div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {STARTUP_CONCEPTS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setConcept(c)}
+                className={`px-2.5 py-1 rounded-lg border-2 border-ink font-mono text-[10px] font-extrabold uppercase cursor-pointer ${
+                  concept.id === c.id ? 'bg-sun text-ink shadow-b2' : 'bg-paper text-ink/75'
+                }`}
+              >
+                {c.name.split(' ').slice(0, 2).join(' ')}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Active Mission Card */}
+      <div className="box shadow-b8 p-5 sm:p-6 bg-white flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-ink/15 pb-3">
+          <div className="flex items-center gap-2 font-mono text-xs font-extrabold uppercase text-cobalt">
+            <img src={ERASMUS_STICKERS.megaphone} alt="" className="w-6 h-6 object-contain" draggable={false} />
+            <span>Mission {mission} of 4 · Startup Mouse Launchpad</span>
+          </div>
+          <img
+            src={feedback ? (feedback.ok ? ERASMUS_SPRITES.trioCheer : ERASMUS_SPRITES.pattyCry) : ERASMUS_SPRITES.pattyGlasses}
+            alt="Pretty Patty"
+            className="w-14 h-14 object-contain shrink-0"
+            draggable={false}
+          />
+        </div>
+
+        {/* MISSION 1: Impact Aim */}
+        {mission === 1 && (
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="text-xl font-extrabold uppercase">{STARTUP_ROUND_1.title}</h3>
+              <p className="text-sm font-medium mt-1">{STARTUP_ROUND_1.prompt}</p>
+            </div>
+            {!feedback && (
+              <div className="grid grid-cols-1 gap-3">
+                {STARTUP_ROUND_1.options.map((o) => (
+                  <button
+                    key={o.text}
+                    type="button"
+                    onClick={() =>
+                      awardMission(
+                        o.ok ? 2 : 0,
+                        o.ok,
+                        o.ok ? 'Spot-on startup aim! (+2 PTS)' : stop.failLine,
+                        o.feedback,
+                      )
+                    }
+                    className="border-[3px] border-ink rounded-2xl p-4 bg-paper hover:bg-sun/35 text-left font-bold text-sm shadow-b4 cursor-pointer"
+                  >
+                    {o.text}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MISSION 2: Interactive 8-Coin Grant Budget Balancer */}
+        {mission === 2 && (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xl font-extrabold uppercase">Mission 2 · Balance Your 8 Startup Grant Coins</h3>
+                <p className="text-sm font-medium mt-1">
+                  Invest all 8 Gold Coins wisely! Fund accessibility, green travel, tools &amp; follow-up — avoid trap perks!
+                </p>
+              </div>
+              <div className="tag bg-sun text-ink flex items-center gap-1.5 text-xs">
+                <img src={ERASMUS_STICKERS.coin} alt="" className="w-4 h-4 object-contain" />
+                <span>Remaining: {remainingCoins} / 8</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {STARTUP_BUDGET_ITEMS.map((item) => {
+                const count = coins[item.id] || 0;
+                return (
+                  <div
+                    key={item.id}
+                    className={`border-[3px] border-ink rounded-2xl p-3.5 flex items-center justify-between gap-3 ${
+                      item.isTrap && count > 0 ? 'bg-[#FFB4A2]/45' : 'bg-paper'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="font-extrabold text-sm">{item.label}</div>
+                      <div className="font-mono text-[10px] font-bold uppercase text-ink/70 mt-0.5">
+                        {item.hint}
+                      </div>
+                      <div className="flex items-center gap-1 mt-2 min-h-[20px]">
+                        {Array.from({ length: count }).map((_, i) => (
+                          <img key={i} src={ERASMUS_STICKERS.coin} alt="" className="w-5 h-5 object-contain" draggable={false} />
+                        ))}
+                        {count === 0 && <span className="font-mono text-[10px] text-mute">0 coins</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        disabled={!!feedback || count <= 0}
+                        onClick={() => adjustCoin(item.id, -1)}
+                        className="w-9 h-9 rounded-xl border-2 border-ink bg-white font-mono font-extrabold text-base disabled:opacity-40 cursor-pointer"
+                      >
+                        −
+                      </button>
+                      <span className="w-6 text-center font-mono font-extrabold text-sm tabular-nums">{count}</span>
+                      <button
+                        type="button"
+                        disabled={!!feedback || remainingCoins <= 0}
+                        onClick={() => adjustCoin(item.id, 1)}
+                        className="w-9 h-9 rounded-xl border-2 border-ink bg-sun font-mono font-extrabold text-base disabled:opacity-40 cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {!feedback && (
+              <button
+                type="button"
+                disabled={spentCoins !== 8}
+                onClick={checkBudgetCoins}
+                className="btn bg-neon text-ink self-start disabled:opacity-50"
+              >
+                Lock 8-Coin Startup Budget ({spentCoins}/8) →
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* MISSION 3: Live Crisis Fix */}
+        {mission === 3 && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-3">
+              <img src={ERASMUS_STICKERS.lifebuoy} alt="" className="w-10 h-10 object-contain shrink-0" draggable={false} />
+              <div>
+                <h3 className="text-xl font-extrabold uppercase">{STARTUP_ROUND_3.title}</h3>
+                <p className="text-sm font-medium mt-1">{STARTUP_ROUND_3.prompt}</p>
+              </div>
+            </div>
+            {!feedback && (
+              <div className="grid grid-cols-1 gap-3">
+                {STARTUP_ROUND_3.options.map((o) => (
+                  <button
+                    key={o.text}
+                    type="button"
+                    onClick={() =>
+                      awardMission(
+                        o.ok ? 2 : 0,
+                        o.ok,
+                        o.ok ? 'Crisis turned into inclusive teamwork! (+2 PTS)' : stop.failLine,
+                        o.feedback,
+                      )
+                    }
+                    className="border-[3px] border-ink rounded-2xl p-4 bg-paper hover:bg-sun/35 text-left font-bold text-sm shadow-b4 cursor-pointer"
+                  >
+                    {o.text}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MISSION 4: Order the 3 Launch Steps */}
+        {mission === 4 && (
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="text-xl font-extrabold uppercase">Mission 4 · Put the 3 Launch Steps in Order</h3>
+              <p className="text-sm font-medium mt-1">
+                Tap the three Youth Project milestones in the logical order (Start → Action → Lasting Impact).
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              {[STARTUP_SEQUENCE[2], STARTUP_SEQUENCE[0], STARTUP_SEQUENCE[1]].map((stepItem) => {
+                const posIdx = pickedOrder.findIndex((s) => s.id === stepItem.id);
+                const cleanTitle = stepItem.label.replace(/^\d+\.\s*/, '');
+                return (
+                  <button
+                    key={stepItem.id}
+                    type="button"
+                    disabled={!!feedback}
+                    onClick={() => toggleSequenceStep(stepItem)}
+                    className={`border-[3px] border-ink rounded-2xl p-3.5 text-left flex items-center justify-between gap-3 cursor-pointer ${
+                      posIdx >= 0 ? 'bg-sun shadow-b4' : 'bg-paper hover:bg-white'
+                    }`}
+                  >
+                    <span className="font-bold text-sm sm:text-base">{cleanTitle}</span>
+                    <span className="tag bg-white text-ink font-mono text-xs shrink-0">
+                      {posIdx >= 0 ? `Step #${posIdx + 1}` : 'Tap to place'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {!feedback && (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={pickedOrder.length < 3}
+                  onClick={checkSequence}
+                  className="btn bg-neon text-ink disabled:opacity-50"
+                >
+                  🚀 Launch Startup Project →
+                </button>
+                {pickedOrder.length > 0 && (
+                  <button type="button" onClick={() => setPickedOrder([])} className="btn bg-paper text-ink text-xs">
+                    Reset Order
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {feedback && (
           <PattyReaction
             mood={feedback.ok ? 'ok' : 'fail'}
-            spriteKey={feedback.ok ? 'pattyHardhat' : stop.failPose}
+            spriteKey={feedback.ok ? 'trioCheer' : stop.failPose}
             line={feedback.line}
             explanation={feedback.explanation}
-            onNext={advance}
-            nextLabel={blockIdx + 1 >= TETRIS_BLOCKS.length ? 'Finish Stop →' : 'Next Idea →'}
+            onNext={nextMission}
+            nextLabel={mission >= 4 ? 'See Launch Result →' : `Start Mission ${mission + 1} →`}
           />
         )}
       </div>
@@ -482,56 +1298,42 @@ export function PriorityTetrisGame({ stop, onFinish, onBack, onNextStop }) {
 }
 
 /* ============================================================================
-   GAME 7 · PITCH LAB (Slot Machine + 4-Step Builder = 8 pts)
+   GAME 8 · CULTURE QUEST DECODER (Stop 8 · Cultural Awareness · 8 pts)
    ============================================================================ */
-export function PitchLabGame({ stop, onFinish, onBack, onNextStop }) {
-  const [spun, setSpun] = useState(false);
-  const [reels, setReels] = useState({
-    topic: PITCH_REELS.topics[0],
-    target: PITCH_REELS.targets[0],
-    twist: PITCH_REELS.twists[0],
-  });
-  const [stepIdx, setStepIdx] = useState(0);
+export function CultureIcebergGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onNextStop }) {
+  const [idx, setIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [done, setDone] = useState(false);
   const [saveResult, setSaveResult] = useState(null);
 
-  const spinReels = () => {
-    setReels({
-      topic: PITCH_REELS.topics[Math.floor(Math.random() * PITCH_REELS.topics.length)],
-      target: PITCH_REELS.targets[Math.floor(Math.random() * PITCH_REELS.targets.length)],
-      twist: PITCH_REELS.twists[Math.floor(Math.random() * PITCH_REELS.twists.length)],
-    });
-    setSpun(true);
-  };
+  const card = CULTURE_QUEST_CARDS[idx];
 
-  const step = PITCH_STEPS[stepIdx];
-
-  const pickOption = (opt) => {
-    if (feedback) return;
-    if (opt.ok) setScore((s) => s + 2);
+  const handleOption = (opt) => {
+    if (feedback || done) return;
+    if (opt.ok) setScore((s) => s + 1);
     setFeedback({
       ok: opt.ok,
-      line: opt.ok ? `${step.mentor} approves! (+2 PTS)` : stop.failLine,
-      explanation: opt.feedback,
+      line: opt.ok
+        ? `Decoded! Hidden value: ${card.hiddenValue} (+1 PT)`
+        : `${stop.failLine}`,
+      explanation: card.explain,
     });
   };
 
   const advance = async () => {
-    if (stepIdx + 1 >= PITCH_STEPS.length) {
+    if (idx + 1 >= CULTURE_QUEST_CARDS.length) {
       setDone(true);
       const res = await onFinish(score);
       setSaveResult(res);
     } else {
-      setStepIdx((i) => i + 1);
+      setIdx((i) => i + 1);
       setFeedback(null);
     }
   };
 
   const replay = () => {
-    setSpun(false);
-    setStepIdx(0);
+    setIdx(0);
     setScore(0);
     setFeedback(null);
     setDone(false);
@@ -547,10 +1349,12 @@ export function PitchLabGame({ stop, onFinish, onBack, onNextStop }) {
           earned={score}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={saveResult?.attempts ?? attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
           onNextStop={onNextStop}
-          extraNote={`Pitched "${reels.topic}" for ${reels.target} — Owl, Turtle & Fox are impressed!`}
+          extraNote="Food and music are just the visible tip — real intercultural friendship grows when we stay curious about hidden unspoken values!"
         />
       </div>
     );
@@ -560,68 +1364,43 @@ export function PitchLabGame({ stop, onFinish, onBack, onNextStop }) {
     <div className="flex flex-col gap-5">
       <SceneHero
         stop={stop}
-        scoreLabel={spun ? `Step ${stepIdx + 1}/4 · ${score}/${stop.maxPoints} PTS` : 'Spin Concept Reels'}
+        scoreLabel={`Encounter ${idx + 1}/${CULTURE_QUEST_CARDS.length} · ${score}/${stop.maxPoints} PTS`}
         onBack={onBack}
       />
 
-      {/* Slot Machine Banner */}
-      <div className="box shadow-b8 p-5 bg-white flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-              Youth Exchange Pitch Slot Machine
+      <div className="box shadow-b8 overflow-hidden bg-white max-w-3xl w-full mx-auto">
+        <div className="relative h-28 sm:h-36 w-full border-b-[3px] border-ink overflow-hidden bg-ink">
+          <img src={ERASMUS_BGS.iceberg} alt="Intercultural Horizon" className="w-full h-full object-cover" draggable={false} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent p-3 sm:p-4 flex items-end justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <img src={ERASMUS_STICKERS.lantern} alt="" className="w-8 h-8 object-contain" draggable={false} />
+              <span className="tag bg-sun text-ink text-[10px] sm:text-xs">{card.tag}</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-extrabold uppercase">
-              {spun ? 'Your Randomized Exchange Brief:' : 'Spin the 3 reels to lock in your pitch concept!'}
-            </h3>
+            <span className="tag bg-white text-ink text-[10px] sm:text-xs font-mono">
+              {idx + 1} / {CULTURE_QUEST_CARDS.length}
+            </span>
           </div>
-          <button type="button" onClick={spinReels} className="btn bg-sun text-ink text-xs">
-            {spun ? 'Re-spin Brief 🎲' : 'Spin Reels →'}
-          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { label: 'Reel 1 · Topic', val: reels.topic, bg: 'bg-[#FFB4A2]/50' },
-            { label: 'Reel 2 · Target Group', val: reels.target, bg: 'bg-[#90DBF4]/50' },
-            { label: 'Reel 3 · Twist', val: reels.twist, bg: 'bg-neon/40' },
-          ].map((r) => (
-            <div key={r.label} className={`border-[3px] border-ink rounded-2xl p-3.5 ${r.bg}`}>
-              <div className="font-mono text-[10px] font-extrabold uppercase opacity-75">{r.label}</div>
-              <div className="font-extrabold text-sm sm:text-base mt-1">{r.val}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 4-Step Pitch Builder */}
-      {spun && (
-        <div className="box shadow-b8 p-5 sm:p-6 bg-white flex flex-col gap-4">
-          <div className="flex items-center gap-3 border-b-2 border-ink/15 pb-3">
-            <img
-              src={ERASMUS_SPRITES[step.mentorSprite] || ERASMUS_SPRITES.mentorOwl}
-              alt={step.mentor}
-              className="w-16 h-16 object-contain shrink-0"
-              draggable={false}
-            />
+        <div className="p-5 sm:p-7 flex flex-col gap-4">
+          <div className="border-[3px] border-ink rounded-2xl bg-[#E0F4FF] p-4 flex items-start gap-3">
+            <img src={ERASMUS_STICKERS.treasureMap} alt="" className="w-9 h-9 object-contain shrink-0 mt-0.5" draggable={false} />
             <div>
-              <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-                Judge on Stage: {step.mentor}
-              </div>
-              <h3 className="text-xl font-extrabold uppercase">{step.title}</h3>
+              <div className="font-mono text-[10px] font-extrabold uppercase text-cobalt">What Patty Notices on Exchange:</div>
+              <p className="text-sm sm:text-base font-bold text-ink mt-1 leading-snug">{card.clue}</p>
             </div>
           </div>
 
-          <p className="text-sm sm:text-base font-bold">{step.prompt}</p>
+          <div className="font-extrabold text-base sm:text-lg leading-snug">{card.question}</div>
 
           {!feedback ? (
-            <div className="grid grid-cols-1 gap-3">
-              {step.options.map((opt) => (
+            <div className="grid grid-cols-1 gap-2.5">
+              {card.options.map((opt) => (
                 <button
                   key={opt.text}
                   type="button"
-                  onClick={() => pickOption(opt)}
-                  className="border-[3px] border-ink rounded-2xl p-4 bg-paper hover:bg-sun/35 text-left font-bold text-sm shadow-b4 cursor-pointer"
+                  onClick={() => handleOption(opt)}
+                  className="border-[3px] border-ink rounded-2xl p-3.5 bg-paper hover:bg-sun/35 text-left font-bold text-sm shadow-b4 cursor-pointer"
                 >
                   {opt.text}
                 </button>
@@ -630,187 +1409,12 @@ export function PitchLabGame({ stop, onFinish, onBack, onNextStop }) {
           ) : (
             <PattyReaction
               mood={feedback.ok ? 'ok' : 'fail'}
-              spriteKey={feedback.ok ? step.mentorSprite : stop.failPose}
+              spriteKey={feedback.ok ? 'pattyHeart' : stop.failPose}
               line={feedback.line}
               explanation={feedback.explanation}
               onNext={advance}
-              nextLabel={stepIdx + 1 >= PITCH_STEPS.length ? 'Finish Pitch →' : `Next Step (${stepIdx + 2}/4) →`}
+              nextLabel={idx + 1 >= CULTURE_QUEST_CARDS.length ? 'Finish Culture Quest →' : 'Next Encounter →'}
             />
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ============================================================================
-   GAME 8 · CULTURE ICEBERG (Cultural Awareness · 8 pieces = 8 pts)
-   ============================================================================ */
-export function CultureIcebergGame({ stop, onFinish, onBack, onNextStop }) {
-  const [placements, setPlacements] = useState({});
-  const [selectedId, setSelectedId] = useState(ICEBERG_PIECES[0].id);
-  const [checked, setChecked] = useState(false);
-  const [score, setScore] = useState(0);
-  const [saveResult, setSaveResult] = useState(null);
-
-  const selectedPiece = ICEBERG_PIECES.find((p) => p.id === selectedId) || null;
-  const allPlaced = Object.keys(placements).length === ICEBERG_PIECES.length;
-
-  const assignZone = (zone) => {
-    if (checked || !selectedId) return;
-    const next = { ...placements, [selectedId]: zone };
-    setPlacements(next);
-    const nextUnplaced = ICEBERG_PIECES.find((p) => !next[p.id]);
-    setSelectedId(nextUnplaced ? nextUnplaced.id : null);
-  };
-
-  const checkIceberg = async () => {
-    const pts = ICEBERG_PIECES.filter((p) => placements[p.id] === p.zone).length;
-    setScore(pts);
-    setChecked(true);
-    const res = await onFinish(pts);
-    setSaveResult(res);
-  };
-
-  const replay = () => {
-    setPlacements({});
-    setSelectedId(ICEBERG_PIECES[0].id);
-    setChecked(false);
-    setScore(0);
-    setSaveResult(null);
-  };
-
-  if (checked) {
-    return (
-      <div className="flex flex-col gap-5">
-        <SceneHero stop={stop} scoreLabel={`${score}/${stop.maxPoints} PTS`} onBack={onBack} />
-        <GameCompleteCard
-          stop={stop}
-          earned={score}
-          maxPoints={stop.maxPoints}
-          saveResult={saveResult}
-          onReplay={replay}
-          onBackToMap={onBack}
-          onNextStop={onNextStop}
-          extraNote="Most intercultural misunderstandings happen below the water — curiosity and open questions help bridge what isn't visible at first sight!"
-        />
-        <div className="box shadow-b6 p-4 sm:p-6 bg-white grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {ICEBERG_PIECES.map((p) => {
-            const ok = placements[p.id] === p.zone;
-            return (
-              <div key={p.id} className={`border-2 border-ink rounded-xl p-3 ${ok ? 'bg-neon/35' : 'bg-[#FFB4A2]/45'}`}>
-                <div className="font-extrabold text-sm">
-                  {ok ? '✓' : '✕'} {p.label} — <span className="font-mono uppercase">{p.zone} WATER</span>
-                </div>
-                <p className="text-xs font-medium mt-1">{p.explain}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-5">
-      <SceneHero
-        stop={stop}
-        scoreLabel={`Placed ${Object.keys(placements).length}/${ICEBERG_PIECES.length}`}
-        onBack={onBack}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left: Iceberg visual & 2 placement zones */}
-        <div className="lg:col-span-6 box shadow-b8 overflow-hidden bg-white">
-          <div className="relative h-44 w-full border-b-[3px] border-ink overflow-hidden">
-            <img src={ERASMUS_BGS.iceberg} alt="Culture Iceberg" className="w-full h-full object-cover" draggable={false} />
-            <div className="absolute top-3 left-3 tag bg-white text-ink">Above water = Visible</div>
-            <div className="absolute bottom-3 left-3 tag bg-ink text-sun">Below water = Unspoken norms</div>
-          </div>
-
-          <div className="p-4 flex flex-col gap-3">
-            {selectedPiece ? (
-              <div className="border-[3px] border-ink rounded-2xl bg-sun/35 p-4 text-center">
-                <div className="font-mono text-[11px] font-extrabold uppercase text-cobalt">Place selected puzzle piece:</div>
-                <div className="text-base sm:text-lg font-extrabold mt-1">{selectedPiece.label}</div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <button type="button" onClick={() => assignZone('ABOVE')} className="btn bg-white text-ink text-xs">
-                    ☀ Above Water
-                  </button>
-                  <button type="button" onClick={() => assignZone('BELOW')} className="btn bg-cobalt text-white text-xs">
-                    🌊 Below Water
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button type="button" onClick={checkIceberg} className="btn bg-neon text-ink w-full py-3">
-                Check Culture Iceberg →
-              </button>
-            )}
-
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="border-2 border-ink rounded-xl bg-paper p-3">
-                <div className="font-mono font-extrabold uppercase mb-2">☀ Above ({ICEBERG_PIECES.filter((p) => placements[p.id] === 'ABOVE').length})</div>
-                <div className="flex flex-col gap-1">
-                  {ICEBERG_PIECES.filter((p) => placements[p.id] === 'ABOVE').map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedId(p.id)}
-                      className="text-left px-2 py-1 rounded bg-white border border-ink/40 font-bold truncate cursor-pointer"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="border-2 border-ink rounded-xl bg-[#90DBF4]/35 p-3">
-                <div className="font-mono font-extrabold uppercase mb-2">🌊 Below ({ICEBERG_PIECES.filter((p) => placements[p.id] === 'BELOW').length})</div>
-                <div className="flex flex-col gap-1">
-                  {ICEBERG_PIECES.filter((p) => placements[p.id] === 'BELOW').map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedId(p.id)}
-                      className="text-left px-2 py-1 rounded bg-white border border-ink/40 font-bold truncate cursor-pointer"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: All 8 Puzzle Clues */}
-        <div className="lg:col-span-6 box shadow-b6 p-4 sm:p-5 bg-white flex flex-col gap-2.5">
-          <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-            Select a piece to place or change:
-          </div>
-          {ICEBERG_PIECES.map((p) => {
-            const z = placements[p.id];
-            const active = selectedId === p.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setSelectedId(p.id)}
-                className={`p-3 rounded-xl border-2 border-ink text-left flex items-center justify-between gap-3 cursor-pointer ${
-                  active ? 'bg-sun shadow-b2' : z ? 'bg-paper' : 'bg-white hover:bg-paper'
-                }`}
-              >
-                <span className="font-bold text-sm">{p.label}</span>
-                <span className={`tag text-[10px] shrink-0 ${z === 'ABOVE' ? 'bg-white' : z === 'BELOW' ? 'bg-cobalt text-white' : 'bg-paper text-mute'}`}>
-                  {z || 'Unplaced'}
-                </span>
-              </button>
-            );
-          })}
-          {allPlaced && (
-            <button type="button" onClick={checkIceberg} className="btn bg-neon text-ink mt-2">
-              Submit Iceberg Sort →
-            </button>
           )}
         </div>
       </div>
@@ -821,7 +1425,7 @@ export function CultureIcebergGame({ stop, onFinish, onBack, onNextStop }) {
 /* ============================================================================
    GAME 9 · FINAL TEST & YOUTHPASS CEREMONY (10 MCQs × 3 pts = 30 pts)
    ============================================================================ */
-export function FinalTestGame({ stop, onFinish, onBack, onOpenResults }) {
+export function FinalTestGame({ stop, attemptsUsed = 0, maxAttempts = 3, onFinish, onBack, onOpenResults }) {
   const [qIdx, setQIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [score, setScore] = useState(0);
@@ -910,6 +1514,8 @@ export function FinalTestGame({ stop, onFinish, onBack, onOpenResults }) {
           earned={score}
           maxPoints={stop.maxPoints}
           saveResult={saveResult}
+          attemptsUsed={saveResult?.attempts ?? attemptsUsed}
+          maxAttempts={maxAttempts}
           onReplay={replay}
           onBackToMap={onBack}
         />

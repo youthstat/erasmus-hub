@@ -97,8 +97,22 @@ export function PattyReaction({
   );
 }
 
-export function GameCompleteCard({ stop, earned, maxPoints, saveResult, onReplay, onBackToMap, onNextStop, extraNote }) {
+export function GameCompleteCard({
+  stop,
+  earned,
+  maxPoints,
+  saveResult,
+  attemptsUsed = 1,
+  maxAttempts = 3,
+  onReplay,
+  onBackToMap,
+  onNextStop,
+  extraNote,
+}) {
   const perfect = earned >= maxPoints;
+  const resolvedAttempts = saveResult?.attempts ?? attemptsUsed;
+  const maxReached = resolvedAttempts >= maxAttempts || !!saveResult?.maxReached;
+
   return (
     <div className="box shadow-b8 p-6 sm:p-8 bg-white flex flex-col items-center text-center gap-4">
       <div className="flex items-center justify-center gap-3">
@@ -117,7 +131,7 @@ export function GameCompleteCard({ stop, earned, maxPoints, saveResult, onReplay
       </div>
       <div>
         <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-          Stop {stop.id} complete · {stop.competenceLabel}
+          Stop {stop.id} complete · {stop.competenceLabel} · Attempt {Math.min(maxAttempts, resolvedAttempts)}/{maxAttempts}
         </div>
         <h3 className="text-2xl sm:text-3xl font-extrabold uppercase mt-1">{stop.title}</h3>
       </div>
@@ -126,20 +140,26 @@ export function GameCompleteCard({ stop, earned, maxPoints, saveResult, onReplay
       </div>
       {extraNote && <p className="text-sm font-bold max-w-xl text-ink">{extraNote}</p>}
       {saveResult && (
-        <p className="font-mono text-xs font-bold text-ink/80 max-w-lg">
-          {saveResult.saved
-            ? saveResult.ratingClaimed
-              ? `Saved for practice! Total Erasmus+ score: ${saveResult.totalEarned}/100 PTS (your points were already sent to the rating earlier).`
-              : saveResult.improved > 0
-                ? `+${saveResult.improved} PTS improved! Your Erasmus+ score is now ${saveResult.totalEarned}/100 PTS — replay anytime or send to the rating once unlocked.`
+        <p className="font-mono text-xs font-bold text-ink/85 max-w-lg">
+          {saveResult.maxReached
+            ? `All ${maxAttempts}/${maxAttempts} attempts were already used on this block — no extra Hub points added.`
+            : saveResult.saved
+              ? saveResult.improved > 0
+                ? `+${saveResult.improved} PTS added automatically to your Hub rating! (Erasmus+ total: ${saveResult.totalEarned}/100 PTS)`
                 : `Your best score for this stop stays ${saveResult.best}/${maxPoints} PTS (Erasmus+ total: ${saveResult.totalEarned}/100 PTS).`
-            : 'Sign in at the top to save this score and send up to 100 PTS to your Hub rating!'}
+              : 'Sign in at the top so your points credit automatically to the Hub rating!'}
         </p>
       )}
       <div className="flex flex-wrap justify-center gap-3 pt-2">
-        <button type="button" onClick={onReplay} className="btn bg-paper text-ink text-xs">
-          Play again
-        </button>
+        {onReplay && !maxReached ? (
+          <button type="button" onClick={onReplay} className="btn bg-paper text-ink text-xs">
+            Play again ({maxAttempts - resolvedAttempts} left)
+          </button>
+        ) : (
+          <span className="tag bg-paper text-mute text-xs px-3 py-2">
+            3/3 Attempts Used
+          </span>
+        )}
         <button type="button" onClick={onBackToMap} className="btn bg-sun text-ink text-xs">
           Back to map
         </button>

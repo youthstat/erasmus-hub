@@ -5,11 +5,13 @@ import { useApp } from '../context/AppContext.jsx';
 import { ERASMUS_SPRITES, ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 import { JOURNEY_STOPS } from '../data/erasmusGames.js';
 import {
-  claimErasmusPointsToRating,
   EMPTY_ERASMUS_PROGRESS,
+  MAX_STOP_ATTEMPTS,
+  awardStop5ExtraReward,
+  beginStop5Run,
+  completeStop5Challenge,
   recordErasmusGameScore,
   subscribeErasmusProgress,
-  subscribeErasmusSettings,
 } from '../firebase/erasmus.js';
 import JourneyMap from '../components/erasmus/JourneyMap.jsx';
 import ErasmusEssentials from '../components/erasmus/ErasmusEssentials.jsx';
@@ -29,21 +31,14 @@ import {
 } from '../components/erasmus/GamesBatchB.jsx';
 
 export default function ErasmusPlusPage() {
-  const { accountId, profile, openAccount, setError } = useApp();
+  const { accountId, profile, wallet2048, openAccount, setError } = useApp();
   const [tab, setTab] = useState('map'); // 'map' | 'essentials' | 'results'
   const [activeStopId, setActiveStopId] = useState(null);
   const [progress, setProgress] = useState(EMPTY_ERASMUS_PROGRESS);
-  const [erasmusSettings, setErasmusSettings] = useState({ claimOpen: false });
-  const [claimBusy, setClaimBusy] = useState(false);
-  const [claimFlash, setClaimFlash] = useState('');
 
   useEffect(() => {
     const onErr = (e) => setError(e.message);
-    const offs = [
-      subscribeErasmusProgress(accountId, setProgress, onErr),
-      subscribeErasmusSettings(setErasmusSettings, onErr),
-    ];
-    return () => offs.forEach((o) => o());
+    return subscribeErasmusProgress(accountId, setProgress, onErr);
   }, [accountId, setError]);
 
   const totalEarned = Math.min(
@@ -52,6 +47,11 @@ export default function ErasmusPlusPage() {
   );
 
   const openStop = (id) => {
+    const used = Number(progress?.games?.[id]?.attempts) || 0;
+    if (used >= MAX_STOP_ATTEMPTS) {
+      setError(`You have already used all ${MAX_STOP_ATTEMPTS} attempts for Stop ${id}!`);
+      return;
+    }
     setActiveStopId(id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,24 +74,7 @@ export default function ErasmusPlusPage() {
       });
     } catch (e) {
       setError(e.message);
-      return { saved: false, improved: 0, best: earnedScore, totalEarned };
-    }
-  };
-
-  const handleClaimToRating = async () => {
-    if (!accountId) {
-      openAccount(null);
-      return;
-    }
-    setClaimBusy(true);
-    setClaimFlash('');
-    try {
-      const res = await claimErasmusPointsToRating(accountId);
-      setClaimFlash(`+${res.claimedPoints} PTS sent to your Hub rating!`);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setClaimBusy(false);
+      return { saved: false, improved: 0, best: earnedScore, totalEarned, attempts: 1 };
     }
   };
 
@@ -100,11 +83,16 @@ export default function ErasmusPlusPage() {
   const renderActiveGame = () => {
     if (!activeStop) return null;
     const nextId = activeStop.id < 9 ? activeStop.id + 1 : null;
+    const nextStopAttempts = nextId ? Number(progress?.games?.[nextId]?.attempts) || 0 : 0;
+    const attemptsUsed = Number(progress?.games?.[activeStop.id]?.attempts) || 0;
+
     const commonProps = {
       stop: activeStop,
+      attemptsUsed,
+      maxAttempts: MAX_STOP_ATTEMPTS,
       onFinish: (sc) => handleGameFinish(activeStop, sc),
       onBack: closeStop,
-      onNextStop: nextId ? () => openStop(nextId) : null,
+      onNextStop: nextId && nextStopAttempts < MAX_STOP_ATTEMPTS ? () => openStop(nextId) : null,
     };
 
     switch (activeStop.id) {
@@ -117,7 +105,35 @@ export default function ErasmusPlusPage() {
       case 4:
         return <HackedExchangeGame {...commonProps} />;
       case 5:
-        return <ExchangeJourneyGame {...commonProps} />;
+        return (
+          <ExchangeJourneyGame
+            {...commonProps}
+            wallet2048={wallet2048}
+            onBeginRun={() =>
+              beginStop5Run({
+                userId: accountId,
+                title: activeStop.title,
+                competenceKey: activeStop.competenceKey,
+                maxPoints: activeStop.maxPoints,
+              })
+            }
+            onExtraReward={(payload) =>
+              awardStop5ExtraReward({
+                userId: accountId,
+                ...payload,
+              })
+            }
+            onCompleteChallenge={(earned) =>
+              completeStop5Challenge({
+                userId: accountId,
+                title: activeStop.title,
+                competenceKey: activeStop.competenceKey,
+                score: earned,
+                maxPoints: activeStop.maxPoints,
+              })
+            }
+          />
+        );
       case 6:
         return <PriorityTetrisGame {...commonProps} />;
       case 7:
@@ -143,12 +159,11 @@ export default function ErasmusPlusPage() {
     <>
       <Marquee
         className="bg-[#FFE200] text-ink"
-        items={['ERASMUS+ COMPETENCE GAMES', '9 INTERACTIVE STOPS', 'SCORE UP TO 100/100', 'YOUTHPASS RADAR']}
+        items={['ERASMUS+ COMPETENCE GAMES', '9 INTERACTIVE STOPS', 'AUTO HUB POINTS', 'MAX 3 TRIES PER STOP']}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
         <Header back />
 
-        {/* Illustrated Title Hero + Navigation Tabs */}
         {!activeStop && (
           <>
             <div className="box shadow-b8 p-5 sm:p-8 bg-[#FFE200] flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -161,7 +176,7 @@ export default function ErasmusPlusPage() {
                   Erasmus+
                 </h1>
                 <p className="text-sm sm:text-base font-bold text-ink/90 max-w-xl leading-snug">
-                  Master Erasmus+ rules, grants, digital safety, priorities, and Youthpass competences with Pretty Patty across 9 interactive mini-games!
+                  Master Erasmus+ rules, grants, digital safety, priorities, and Youthpass competences with Pretty Patty across 9 stops — points add automatically to your Hub Rating (max {MAX_STOP_ATTEMPTS} tries per block)!
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -214,23 +229,16 @@ export default function ErasmusPlusPage() {
             {!profile && (
               <div className="box px-4 py-3 bg-sun/35 flex flex-wrap items-center justify-between gap-3">
                 <span className="text-xs sm:text-sm font-bold">
-                  Sign in with your participant name to track your 0–100 score and send it to your Hub rating once unlocked!
+                  Sign in with your participant name so points credit automatically to your Hub Rating &amp; Wardrobe Coins!
                 </span>
                 <button type="button" onClick={() => openAccount(null)} className="btn bg-ink text-sun text-xs">
                   Sign in / Register
                 </button>
               </div>
             )}
-
-            {claimFlash && (
-              <div className="border-[3px] border-ink rounded-xl bg-neon px-4 py-3 font-mono text-xs sm:text-sm font-extrabold shadow-b4">
-                ✓ {claimFlash}
-              </div>
-            )}
           </>
         )}
 
-        {/* Active Game Stage OR Tab View */}
         {activeStop ? (
           renderActiveGame()
         ) : tab === 'essentials' ? (
@@ -238,21 +246,14 @@ export default function ErasmusPlusPage() {
         ) : tab === 'results' ? (
           <ErasmusResults
             progress={progress}
-            claimOpen={erasmusSettings.claimOpen}
-            profile={profile}
-            claimBusy={claimBusy}
-            onClaimToRating={handleClaimToRating}
-            onSignIn={() => openAccount(null)}
             onOpenStop={openStop}
             onBackToMap={() => setTab('map')}
           />
         ) : (
           <JourneyMap
             progress={progress}
-            claimOpen={erasmusSettings.claimOpen}
             profile={profile}
-            claimBusy={claimBusy}
-            onClaimToRating={handleClaimToRating}
+            wallet2048={wallet2048}
             onSignIn={() => openAccount(null)}
             onOpenStop={openStop}
             onOpenEssentials={() => setTab('essentials')}

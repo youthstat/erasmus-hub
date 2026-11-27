@@ -119,7 +119,7 @@ export default function MouseAvatarPage() {
           <div className="min-w-0">
             <h1 className="text-xl sm:text-3xl font-extrabold uppercase leading-none tracking-tight">Customize my mouse</h1>
             <p className="font-mono text-[11px] sm:text-xs font-bold mt-1">
-              {FREE_COSTUME_COUNT} classic looks free · 42 outfits to unlock · pick any background color
+              {FREE_COSTUME_COUNT} classic looks free · {COSTUMES.length - FREE_COSTUME_COUNT} outfits to unlock · earn Outfit Coins in Erasmus+ Stop 5 &amp; 2048!
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export default function MouseAvatarPage() {
               </div>
             </div>
             <div className="border-[2.5px] border-ink rounded-xl bg-[#B89CFF] px-2.5 py-1.5 sm:px-3.5 sm:py-2">
-              <div className="font-mono text-[9px] sm:text-[10px] font-extrabold uppercase text-ink/80">2048 PTS</div>
+              <div className="font-mono text-[9px] sm:text-[10px] font-extrabold uppercase text-ink/80">Outfit Coins</div>
               <div className="text-sm sm:text-lg font-extrabold tabular-nums leading-tight">
                 {profile ? wallet2048.toLocaleString('en-US') : '—'}
               </div>
@@ -266,12 +266,17 @@ export default function MouseAvatarPage() {
                       onClick={() => handleBuy('game2048')}
                       className="btn bg-[#B89CFF] text-ink w-full !px-2 sm:!px-3 !py-1.5 sm:!py-2 text-[10px] sm:text-xs disabled:opacity-50"
                     >
-                      {busy ? '…' : `Buy ${nextPrice.game2048.toLocaleString('en-US')} 2048`}
+                      {busy ? '…' : `Buy ${nextPrice.game2048.toLocaleString('en-US')} Coins`}
                     </button>
                     {profile && !canAffordHub && !canAfford2048 && (
-                      <Link to="/mouse-run" className="font-mono text-[10px] font-bold underline text-ink">
-                        Earn more in 2048 →
-                      </Link>
+                      <div className="flex flex-col gap-0.5">
+                        <Link to="/erasmus-plus" className="font-mono text-[10px] font-bold underline text-ink">
+                          Earn +500/prompt in Stop 5 →
+                        </Link>
+                        <Link to="/mouse-run" className="font-mono text-[10px] font-bold underline text-ink/80">
+                          Or play Rattie 2048 →
+                        </Link>
+                      </div>
                     )}
                   </>
                 )}

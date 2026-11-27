@@ -1,6 +1,6 @@
 import { ERASMUS_PROPS, ERASMUS_SPRITES } from '../../assets/erasmus/index.js';
 import { JOURNEY_STOPS, OFFICIAL_LINKS, getRatingLevel } from '../../data/erasmusGames.js';
-import { ErasmusClaimBanner } from './JourneyMap.jsx';
+import { MAX_STOP_ATTEMPTS } from '../../firebase/erasmus.js';
 
 const AXES = [
   { key: 'literacy', stopId: 1, short: 'Literacy', full: '1. Literacy' },
@@ -92,11 +92,6 @@ function CompetenceRadarChart({ values }) {
 
 export default function ErasmusResults({
   progress,
-  claimOpen,
-  profile,
-  claimBusy,
-  onClaimToRating,
-  onSignIn,
   onOpenStop,
   onBackToMap,
 }) {
@@ -118,15 +113,6 @@ export default function ErasmusResults({
 
   return (
     <div className="flex flex-col gap-6">
-      <ErasmusClaimBanner
-        totalEarned={totalScore}
-        progress={progress}
-        claimOpen={claimOpen}
-        profile={profile}
-        claimBusy={claimBusy}
-        onClaimToRating={onClaimToRating}
-        onSignIn={onSignIn}
-      />
 
       {/* Top Score & Rating Card */}
       <div className="box shadow-b8 p-6 sm:p-8 bg-white grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
@@ -180,6 +166,8 @@ export default function ErasmusResults({
         <div className="p-4 sm:p-6 bg-paper grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {JOURNEY_STOPS.map((stop) => {
             const earned = Number(games[stop.id]?.best) || 0;
+            const attempts = Number(games[stop.id]?.attempts) || 0;
+            const exhausted = attempts >= MAX_STOP_ATTEMPTS;
             const pct = Math.round((earned / stop.maxPoints) * 100);
             return (
               <div key={stop.id} className="border-[3px] border-ink rounded-xl bg-white p-4 shadow-b2 flex flex-col justify-between gap-3">
@@ -193,13 +181,19 @@ export default function ErasmusResults({
                     <div className="h-full bg-neon" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onOpenStop(stop.id)}
-                  className="btn bg-paper text-ink text-xs self-start !px-3 !py-1.5"
-                >
-                  {earned > 0 ? 'Replay stop' : 'Play stop →'}
-                </button>
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    disabled={exhausted}
+                    onClick={() => onOpenStop(stop.id)}
+                    className="btn bg-paper text-ink text-xs !px-3 !py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {exhausted ? 'Locked (3/3)' : earned > 0 ? 'Replay stop' : 'Play stop →'}
+                  </button>
+                  <span className="font-mono text-[11px] font-bold text-mute tabular-nums">
+                    {attempts}/{MAX_STOP_ATTEMPTS} tries
+                  </span>
+                </div>
               </div>
             );
           })}

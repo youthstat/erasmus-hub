@@ -48,6 +48,39 @@ import dark_queen from '../assets/costumes/dark_queen.png';
 import punk from '../assets/costumes/punk.png';
 import alien from '../assets/costumes/alien.png';
 
+// Newly added & enhanced Kawaii costumes
+import kawaii_squid_triangle from '../assets/costumes/kawaii_squid_triangle.png';
+import kawaii_squid_square from '../assets/costumes/kawaii_squid_square.png';
+import kawaii_squid_circle from '../assets/costumes/kawaii_squid_circle.png';
+import kawaii_squid_player from '../assets/costumes/kawaii_squid_player.png';
+import kawaii_suit_noir from '../assets/costumes/kawaii_suit_noir.png';
+import kawaii_harry_wand from '../assets/costumes/kawaii_harry_wand.png';
+import kawaii_wizard_tie from '../assets/costumes/kawaii_wizard_tie.png';
+import kawaii_wizard_scarf from '../assets/costumes/kawaii_wizard_scarf.png';
+import kawaii_dark_cloak from '../assets/costumes/kawaii_dark_cloak.png';
+import kawaii_spider from '../assets/costumes/kawaii_spider.png';
+import kawaii_iron from '../assets/costumes/kawaii_iron.png';
+import kawaii_captain from '../assets/costumes/kawaii_captain.png';
+import kawaii_loki from '../assets/costumes/kawaii_loki.png';
+import kawaii_panther from '../assets/costumes/kawaii_panther.png';
+import kawaii_explorer from '../assets/costumes/kawaii_explorer.png';
+import kawaii_freddy from '../assets/costumes/kawaii_freddy.png';
+import kawaii_agent_redtie from '../assets/costumes/kawaii_agent_redtie.png';
+import kawaii_karate from '../assets/costumes/kawaii_karate.png';
+import kawaii_cossack from '../assets/costumes/kawaii_cossack.png';
+import kawaii_mib from '../assets/costumes/kawaii_mib.png';
+import kawaii_hazmat from '../assets/costumes/kawaii_hazmat.png';
+import kawaii_rogue from '../assets/costumes/kawaii_rogue.png';
+import kawaii_king from '../assets/costumes/kawaii_king.png';
+import kawaii_queen from '../assets/costumes/kawaii_queen.png';
+import kawaii_sailor_boy from '../assets/costumes/kawaii_sailor_boy.png';
+import kawaii_panda from '../assets/costumes/kawaii_panda.png';
+import kawaii_dragon from '../assets/costumes/kawaii_dragon.png';
+import kawaii_unicorn from '../assets/costumes/kawaii_unicorn.png';
+import kawaii_ladybug from '../assets/costumes/kawaii_ladybug.png';
+import kawaii_devil from '../assets/costumes/kawaii_devil.png';
+import kawaii_angel from '../assets/costumes/kawaii_angel.png';
+
 export const MOUSE_BACKGROUNDS = [
   { id: 'sun', hex: '#FFE600', label: 'Sun Yellow' },
   { id: 'pink', hex: '#FDB5D0', label: 'Berry Pink' },
@@ -131,6 +164,39 @@ const NEW_PAID_ITEMS = [
   { id: 'dark_queen', name: 'Dark Queen', img: dark_queen, cat: 'spooky' },
   { id: 'punk', name: 'Punk Rocker', img: punk, cat: 'pop' },
   { id: 'alien', name: 'Space Alien', img: alien, cat: 'adventure' },
+
+  // Newly added & enhanced Kawaii collection
+  { id: 'kawaii_cossack', name: 'Ukrainian Costume', img: kawaii_cossack, cat: 'culture' },
+  { id: 'kawaii_unicorn', name: 'Rainbow Unicorn', img: kawaii_unicorn, cat: 'animals' },
+  { id: 'kawaii_spider', name: 'Spider-Mouse', img: kawaii_spider, cat: 'pop' },
+  { id: 'kawaii_iron', name: 'Iron Armor Mouse', img: kawaii_iron, cat: 'pop' },
+  { id: 'kawaii_captain', name: 'Captain Shield', img: kawaii_captain, cat: 'pop' },
+  { id: 'kawaii_loki', name: 'Horned Trickster', img: kawaii_loki, cat: 'pop' },
+  { id: 'kawaii_panther', name: 'Panther Hero', img: kawaii_panther, cat: 'pop' },
+  { id: 'kawaii_karate', name: 'Karate Master', img: kawaii_karate, cat: 'culture' },
+  { id: 'kawaii_king', name: 'Royal King', img: kawaii_king, cat: 'culture' },
+  { id: 'kawaii_queen', name: 'Royal Princess', img: kawaii_queen, cat: 'culture' },
+  { id: 'kawaii_sailor_boy', name: 'Harbor Sailor', img: kawaii_sailor_boy, cat: 'adventure' },
+  { id: 'kawaii_squid_triangle', name: 'Triangle Guard', img: kawaii_squid_triangle, cat: 'pop' },
+  { id: 'kawaii_squid_square', name: 'Square Officer', img: kawaii_squid_square, cat: 'pop' },
+  { id: 'kawaii_squid_circle', name: 'Pink Circle Guard', img: kawaii_squid_circle, cat: 'pop' },
+  { id: 'kawaii_squid_player', name: 'Player 007 Suit', img: kawaii_squid_player, cat: 'pop' },
+  { id: 'kawaii_harry_wand', name: 'Magic Wand Student', img: kawaii_harry_wand, cat: 'spooky' },
+  { id: 'kawaii_wizard_scarf', name: 'Scarf Wizard', img: kawaii_wizard_scarf, cat: 'spooky' },
+  { id: 'kawaii_wizard_tie', name: 'Academy Tie', img: kawaii_wizard_tie, cat: 'spooky' },
+  { id: 'kawaii_dark_cloak', name: 'Shadow Cloak', img: kawaii_dark_cloak, cat: 'spooky' },
+  { id: 'kawaii_mib', name: 'Shades Agent', img: kawaii_mib, cat: 'adventure' },
+  { id: 'kawaii_agent_redtie', name: 'Red-Tie Agent', img: kawaii_agent_redtie, cat: 'adventure' },
+  { id: 'kawaii_suit_noir', name: 'Noir Trenchcoat', img: kawaii_suit_noir, cat: 'adventure' },
+  { id: 'kawaii_explorer', name: 'Fedora Explorer', img: kawaii_explorer, cat: 'adventure' },
+  { id: 'kawaii_hazmat', name: 'Lab Hazmat', img: kawaii_hazmat, cat: 'adventure' },
+  { id: 'kawaii_rogue', name: 'Hooded Rogue', img: kawaii_rogue, cat: 'adventure' },
+  { id: 'kawaii_freddy', name: 'Striped Nightmare', img: kawaii_freddy, cat: 'spooky' },
+  { id: 'kawaii_dragon', name: 'Green Dragon Onesie', img: kawaii_dragon, cat: 'animals' },
+  { id: 'kawaii_panda', name: 'Cozy Panda Onesie', img: kawaii_panda, cat: 'animals' },
+  { id: 'kawaii_ladybug', name: 'Ladybug Onesie', img: kawaii_ladybug, cat: 'animals' },
+  { id: 'kawaii_devil', name: 'Little Devil Suit', img: kawaii_devil, cat: 'spooky' },
+  { id: 'kawaii_angel', name: 'Guardian Halo Suit', img: kawaii_angel, cat: 'spooky' },
 ].map((item) => ({ ...item, free: false }));
 
 export const FREE_COSTUME_COUNT = FREE_CLASSIC_ITEMS.length;

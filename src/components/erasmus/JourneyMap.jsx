@@ -1,91 +1,12 @@
+import { Link } from 'react-router-dom';
 import { ERASMUS_BGS, ERASMUS_PROPS, ERASMUS_SPRITES, ERASMUS_STICKERS } from '../../assets/erasmus/index.js';
 import { JOURNEY_STOPS, getRatingLevel } from '../../data/erasmusGames.js';
-
-export function ErasmusClaimBanner({
-  totalEarned,
-  progress,
-  claimOpen,
-  profile,
-  claimBusy,
-  onClaimToRating,
-  onSignIn,
-}) {
-  const claimed = !!progress?.ratingClaimed;
-  const claimedPoints = Number(progress?.claimedPoints) || 0;
-
-  return (
-    <div className={`border-[3px] border-ink rounded-2xl p-4 sm:p-5 shadow-b6 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-      claimed ? 'bg-neon/35' : claimOpen ? 'bg-[#FFE200]/55' : 'bg-white'
-    }`}>
-      <div className="flex items-start sm:items-center gap-3 min-w-0">
-        <img
-          src={claimed ? ERASMUS_SPRITES.trioCheer : claimOpen ? ERASMUS_STICKERS.cheese : ERASMUS_STICKERS.folderLock}
-          alt=""
-          draggable={false}
-          className="w-12 h-12 object-contain shrink-0"
-        />
-        <div className="min-w-0">
-          <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
-            Hub Rating Transfer · One-time send
-          </div>
-          {claimed ? (
-            <div className="font-extrabold text-sm sm:text-base text-ink">
-              ✓ Sent +{claimedPoints} PTS to your Hub Rating! You can keep replaying any game below for fun.
-            </div>
-          ) : !profile ? (
-            <div className="font-bold text-xs sm:text-sm text-ink">
-              Sign in with your participant name to save your 0–100 score and send it to the leaderboard once unlocked.
-            </div>
-          ) : !claimOpen ? (
-            <div className="font-bold text-xs sm:text-sm text-ink/90">
-              Your Erasmus+ score updates automatically ({totalEarned}/100 PTS). You can replay all 9 games as many times as you want — sending points to your rating unlocks once the organizers allow it (one-time transfer).
-            </div>
-          ) : (
-            <div className="font-bold text-xs sm:text-sm text-ink">
-              Permission is OPEN! Send your current score ({totalEarned}/100 PTS) to your Hub rating — you can only press this button <b>once</b>, so make sure you are happy with your score first!
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="shrink-0">
-        {!profile ? (
-          <button type="button" onClick={onSignIn} className="btn bg-ink text-sun text-xs w-full md:w-auto">
-            Sign in / Register
-          </button>
-        ) : claimed ? (
-          <span className="tag bg-neon text-ink text-xs px-3 py-2 inline-block">
-            ✓ SENT +{claimedPoints} PTS (USED 1/1)
-          </span>
-        ) : (
-          <button
-            type="button"
-            disabled={!claimOpen || totalEarned <= 0 || claimBusy}
-            onClick={onClaimToRating}
-            className={`btn text-xs w-full md:w-auto disabled:opacity-55 disabled:cursor-not-allowed ${
-              claimOpen && totalEarned > 0 ? 'bg-neon text-ink' : 'bg-paper text-ink'
-            }`}
-          >
-            {claimBusy
-              ? 'Sending…'
-              : !claimOpen
-                ? '🔒 Send points to rating (Locked by Admin)'
-                : totalEarned <= 0
-                  ? 'Play a game first (0 PTS)'
-                  : `Send ${totalEarned} PTS to rating →`}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
+import { MAX_STOP_ATTEMPTS } from '../../firebase/erasmus.js';
 
 export default function JourneyMap({
   progress,
-  claimOpen,
   profile,
-  claimBusy,
-  onClaimToRating,
+  wallet2048 = 0,
   onSignIn,
   onOpenStop,
   onOpenEssentials,
@@ -113,7 +34,7 @@ export default function JourneyMap({
             />
             <div className="min-w-0">
               <div className="font-mono text-xs font-extrabold uppercase text-sun">
-                9 Stops · 8 Key Competences · 100 Points Total
+                9 Stops · Auto Hub Rating Points · Max {MAX_STOP_ATTEMPTS} Tries per Stop
               </div>
               <h2 className="text-xl sm:text-3xl font-extrabold uppercase leading-tight mt-0.5">
                 Pretty Patty’s Competence Trail
@@ -133,7 +54,7 @@ export default function JourneyMap({
             <img src={ERASMUS_PROPS.cheese} alt="Cheese meter" className="w-10 h-10 object-contain shrink-0" draggable={false} />
             <div className="flex-1 min-w-[200px]">
               <div className="flex items-center justify-between font-mono text-xs font-extrabold uppercase mb-1.5">
-                <span>Cheese Progress · {completedCount}/9 stops played</span>
+                <span>Cheese Progress · {completedCount}/9 stops started</span>
                 <span className="tabular-nums">{totalEarned} / 100 PTS</span>
               </div>
               <div className="h-4 w-full border-[3px] border-ink rounded-full bg-white overflow-hidden flex">
@@ -168,23 +89,46 @@ export default function JourneyMap({
         </div>
       </div>
 
-      {/* Single-use Admin-Gated Rating Claim Banner */}
-      <ErasmusClaimBanner
-        totalEarned={totalEarned}
-        progress={progress}
-        claimOpen={claimOpen}
-        profile={profile}
-        claimBusy={claimBusy}
-        onClaimToRating={onClaimToRating}
-        onSignIn={onSignIn}
-      />
+      {/* Live Automatic Rating & Outfit Coins Info Strip */}
+      <div className="border-[3px] border-ink rounded-2xl p-4 sm:p-5 shadow-b6 bg-neon/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
+          <img
+            src={ERASMUS_STICKERS.coin}
+            alt=""
+            draggable={false}
+            className="w-11 h-11 object-contain shrink-0"
+          />
+          <div className="min-w-0">
+            <div className="font-mono text-xs font-extrabold uppercase text-cobalt">
+              Live Hub Rating + Extra Questions &amp; Outfit Coins
+            </div>
+            <p className="font-bold text-xs sm:text-sm text-ink">
+              Block points add automatically to your Hub Rating &amp; Erasmus+ score (0–100, max {MAX_STOP_ATTEMPTS} tries/block). On Stop 5’s map, each right Question answer awards <b>+5 Extra Hub PTS</b> (main leaderboard only — not Erasmus+ Challenge score!) + <b>+500 Outfit Coins</b>, and Missions award <b>+500 Outfit Coins</b>!
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {profile ? (
+            <Link to="/mouse-avatar" className="btn bg-[#B89CFF] text-ink text-xs">
+              Wardrobe ({wallet2048.toLocaleString('en-US')} Coins) →
+            </Link>
+          ) : (
+            <button type="button" onClick={onSignIn} className="btn bg-ink text-sun text-xs">
+              Sign in to Save Score
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* 9-Stop Interactive Map Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {JOURNEY_STOPS.map((stop) => {
           const entry = games[stop.id];
           const best = Number(entry?.best) || 0;
-          const played = (Number(entry?.attempts) || 0) > 0;
+          const attempts = Number(entry?.attempts) || 0;
+          const exhausted = attempts >= MAX_STOP_ATTEMPTS;
+          const played = attempts > 0;
           const maxed = best >= stop.maxPoints;
           const bg = ERASMUS_BGS[stop.bgKey] || ERASMUS_BGS.mouseHole;
 
@@ -218,8 +162,11 @@ export default function JourneyMap({
                 </div>
 
                 <div className="p-4 flex flex-col gap-1.5">
-                  <div className="font-mono text-[11px] font-extrabold uppercase text-cobalt">
-                    {stop.competenceLabel}
+                  <div className="flex items-center justify-between gap-2 font-mono text-[11px] font-extrabold uppercase text-cobalt">
+                    <span>{stop.competenceLabel}</span>
+                    <span className={`tabular-nums ${exhausted ? 'text-hot' : 'text-ink/75'}`}>
+                      Tries {attempts}/{MAX_STOP_ATTEMPTS}
+                    </span>
                   </div>
                   <h3 className="text-xl font-extrabold uppercase leading-tight">{stop.title}</h3>
                   <p className="text-xs sm:text-sm font-medium text-ink/85 leading-snug">{stop.summary}</p>
@@ -228,14 +175,23 @@ export default function JourneyMap({
 
               <div className="px-4 pb-4 pt-1 flex items-center justify-between gap-2">
                 <span className="font-mono text-[11px] font-bold uppercase text-mute">
-                  {maxed ? 'Mastered ✓' : played ? 'Played · Replayable' : 'Ready to play'}
+                  {exhausted
+                    ? '3/3 tries completed'
+                    : maxed
+                      ? `Mastered ✓ (${MAX_STOP_ATTEMPTS - attempts} left)`
+                      : played
+                        ? `${MAX_STOP_ATTEMPTS - attempts} tries left`
+                        : `${MAX_STOP_ATTEMPTS} tries available`}
                 </span>
                 <button
                   type="button"
+                  disabled={exhausted}
                   onClick={() => onOpenStop(stop.id)}
-                  className={`btn text-xs ${played ? 'bg-paper text-ink' : 'bg-neon text-ink'}`}
+                  className={`btn text-xs disabled:opacity-50 disabled:cursor-not-allowed ${
+                    exhausted ? 'bg-paper text-mute' : played ? 'bg-paper text-ink' : 'bg-neon text-ink'
+                  }`}
                 >
-                  {played ? 'Replay' : 'Start →'}
+                  {exhausted ? 'Locked (3/3)' : played ? 'Replay' : 'Start →'}
                 </button>
               </div>
             </div>
