@@ -4,6 +4,7 @@ import ModalShell from '../modals/ModalShell.jsx';
 import MouseAvatar from '../ui/MouseAvatar.jsx';
 import { useApp } from '../../context/AppContext.jsx';
 import { formatScore } from '../../utils/format.js';
+import { ERASMUS_STICKERS } from '../../assets/erasmus/index.js';
 
 function normalizeExternalUrl(raw) {
   const s = String(raw || '').trim();
@@ -11,12 +12,8 @@ function normalizeExternalUrl(raw) {
   return /^https?:\/\//i.test(s) ? s : `https://${s}`;
 }
 
-const UploadArrow = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M12 16V4" />
-    <path d="m7 9 5-5 5 5" />
-    <path d="M4 20h16" />
-  </svg>
+const UploadCamera = () => (
+  <img src={ERASMUS_STICKERS.camera} alt="" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0" draggable={false} />
 );
 
 const MsgIcon = () => (
@@ -67,7 +64,7 @@ export default function Header({ back }) {
       title="Photo & Video"
       className={`${chipCls} bg-neon text-ink`}
     >
-      <UploadArrow />
+      <UploadCamera />
       <span className="hidden sm:inline">Photo &amp; Video</span>
     </a>
   ) : (
@@ -78,7 +75,7 @@ export default function Header({ back }) {
       title="Photo & Video"
       className={`${chipCls} bg-neon text-ink`}
     >
-      <UploadArrow />
+      <UploadCamera />
       <span className="hidden sm:inline">Photo &amp; Video</span>
     </button>
   );
@@ -169,8 +166,9 @@ export default function Header({ back }) {
         {/* Right side: Help, Photo & Video, Unread Messages, and Profile / Sign in */}
         <div className="flex flex-nowrap items-center justify-end gap-1.5 sm:gap-2 min-w-0">
           {showAsk && (
-            <Link to="/ask" className={`${chipCls} bg-hot text-white`}>
-              Help
+            <Link to="/ask" className={`${chipCls} bg-hot text-white flex items-center gap-1`}>
+              <img src={ERASMUS_STICKERS.lifebuoy} alt="" className="w-4 h-4 object-contain shrink-0" draggable={false} />
+              <span>Help</span>
             </Link>
           )}
           {mediaButton}
@@ -183,7 +181,7 @@ export default function Header({ back }) {
         <ModalShell title="Photo & Video Upload" maxW="max-w-md" onClose={() => setMediaNotice(false)}>
           <div className="flex flex-col gap-3 text-center items-center">
             <div className="w-12 h-12 rounded-xl border-[3px] border-ink bg-neon flex items-center justify-center shadow-b4">
-              <UploadArrow />
+              <UploadCamera />
             </div>
             <h3 className="text-xl font-extrabold uppercase">Shared folder coming soon!</h3>
             <p className="text-sm font-medium">

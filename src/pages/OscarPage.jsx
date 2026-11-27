@@ -8,6 +8,7 @@ import NominateModal from '../components/oscar/NominateModal.jsx';
 import { useApp } from '../context/AppContext.jsx';
 import { useOscar } from '../hooks/useOscar.js';
 import { OSCAR_STAGES, OSCAR_PRIZES } from '../config/settings.js';
+import { ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 
 export default function OscarPage() {
   const { profile, accountId, isAdmin, openAccount } = useApp();
@@ -79,7 +80,10 @@ export default function OscarPage() {
             {profile && !myTeam && (
               <div className="flex flex-col gap-3 items-start">
                 <p className="font-medium">You are not in a crew yet. Press the button, fill in the form and press “Register crew” — all selected people will see the crew in their profile.</p>
-                <button className="btn bg-sun" onClick={() => setModal({ type: 'team', team: null })}>🎬 Create film crew</button>
+                <button className="btn bg-sun flex items-center gap-2" onClick={() => setModal({ type: 'team', team: null })}>
+                  <img src={ERASMUS_STICKERS.clapper} alt="" className="w-5 h-5 object-contain shrink-0" draggable={false} />
+                  <span>Create film crew</span>
+                </button>
               </div>
             )}
             {profile && myTeam && (
@@ -105,8 +109,9 @@ export default function OscarPage() {
                   </p>
                   {!frozen && (
                     <div className="flex flex-wrap gap-3">
-                      <button className="btn bg-neon disabled:opacity-50" disabled={locked && !isAdmin} onClick={() => setModal({ type: 'nominate', team: myTeam })}>
-                        {myTeam.nominated ? 'Change nominations' : '🏆 Send to voting'}
+                      <button className="btn bg-neon disabled:opacity-50 flex items-center gap-2" disabled={locked && !isAdmin} onClick={() => setModal({ type: 'nominate', team: myTeam })}>
+                        <img src={ERASMUS_STICKERS.oscar} alt="" className="w-5 h-5 object-contain shrink-0" draggable={false} />
+                        <span>{myTeam.nominated ? 'Change nominations' : 'Send to voting'}</span>
                       </button>
                       {canManage && <button className="btn bg-white" onClick={() => setModal({ type: 'team', team: myTeam })}>Edit crew</button>}
                     </div>

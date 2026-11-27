@@ -3,6 +3,7 @@ import Header from '../components/layout/Header.jsx';
 import GamePanel from '../components/games/GamePanel.jsx';
 import KillerBoard from '../components/games/KillerBoard.jsx';
 import { Step, Card, List, Banner } from '../components/games/RulesBits.jsx';
+import { ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 
 export default function KillerGamePage() {
   return (
@@ -18,7 +19,10 @@ export default function KillerGamePage() {
         <KillerBoard />
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-2xl font-extrabold uppercase">How it works — 4 steps</h2>
+          <h2 className="text-2xl font-extrabold uppercase flex items-center gap-2.5">
+            <img src={ERASMUS_STICKERS.magnifier} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+            <span>How it works — 4 steps</span>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Step n="01" tag="Join" title="Sign in + object" cls="bg-sun">
               <p className="text-sm font-medium">Sign in to your account — your name is used automatically. The only thing you write is one safe everyday object (pen, fork, apple, badge). Then press “Join the Killer game”.</p>
@@ -54,10 +58,16 @@ export default function KillerGamePage() {
           </Card>
         </section>
 
-        <section className="box shadow-b8 p-6 bg-sun">
-          <h2 className="text-2xl font-extrabold uppercase">🏆 Grand prize</h2>
-          <p className="mt-2 font-bold">The last surviving agent becomes MASTER KILLER: the cup, an official merch box and +500 points on the leaderboard.</p>
-          <p className="mt-2 text-sm font-medium">Never show your victim and item to anyone. If you reveal your weapon, your victim will never touch it!</p>
+        <section className="box shadow-b8 p-6 bg-sun flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-extrabold uppercase flex items-center gap-2">
+              <img src={ERASMUS_STICKERS.oscar} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+              <span>Grand prize</span>
+            </h2>
+            <p className="mt-2 font-bold">The last surviving agent becomes MASTER KILLER: the cup, an official merch box and +500 points on the leaderboard.</p>
+            <p className="mt-2 text-sm font-medium">Never show your victim and item to anyone. If you reveal your weapon, your victim will never touch it!</p>
+          </div>
+          <img src={ERASMUS_STICKERS.folderLock} alt="" className="hidden sm:block w-16 h-16 object-contain shrink-0" draggable={false} />
         </section>
       </div>
       <Marquee className="bg-ink text-white" items={['TOP SECRET', 'CLASSIFIED SEC-OPS', 'FUNDED BY ERASMUS+']} />

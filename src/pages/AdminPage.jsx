@@ -14,6 +14,7 @@ import Game2048AdminPanel from '../components/admin/Game2048AdminPanel.jsx';
 import ReflectionAdminPanel from '../components/admin/ReflectionAdminPanel.jsx';
 import ActivityCenterPanel from '../components/admin/ActivityCenterPanel.jsx';
 import MediaLinkAdminPanel from '../components/admin/MediaLinkAdminPanel.jsx';
+import ErasmusAdminPanel from '../components/admin/ErasmusAdminPanel.jsx';
 import LeaderboardTable from '../components/leaderboard/LeaderboardTable.jsx';
 import { useApp } from '../context/AppContext.jsx';
 
@@ -92,6 +93,7 @@ export default function AdminPage() {
         { id: 'game2048', label: 'Rattie 2048', cls: 'bg-[#B89CFF] text-ink', node: <Game2048AdminPanel /> },
         { id: 'heists', label: 'Rattie Heists', badge: pendingSteals.length, cls: 'bg-[#FF4B72] text-white', node: <HeistAdminPanel /> },
         { id: 'reflection', label: 'Daily Reflection', badge: reflectionLogs.length, cls: 'bg-cobalt text-white', node: <ReflectionAdminPanel /> },
+        { id: 'erasmus', label: 'Erasmus+ Claims', cls: 'bg-[#FFE200] text-ink', node: <ErasmusAdminPanel /> },
         { id: 'gossips', label: 'Gossips & Board', cls: 'bg-[#FF6E2D] text-ink', node: <GossipsPanel /> },
       ],
     },

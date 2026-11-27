@@ -117,6 +117,7 @@ export const HOME_SECTIONS = [
   { id: 'ask', title: 'Ask the Team', kind: 'card' },
   { id: 'gossips', title: 'Gossip board', kind: 'card' },
   { id: 'reflection', title: 'Daily reflection', kind: 'card' },
+  { id: 'erasmus-plus', title: 'Erasmus+ (competence games)', kind: 'card' },
 ];
 
 /* ---------- Secret friend chat ---------- */

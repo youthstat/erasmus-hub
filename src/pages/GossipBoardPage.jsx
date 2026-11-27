@@ -5,6 +5,7 @@ import { MAX_GOSSIP_LENGTH, GOSSIP_POINTS, GOSSIP_MIN_WORDS } from '../config/se
 import { Banner } from '../components/games/RulesBits.jsx';
 import { useApp } from '../context/AppContext.jsx';
 import { subscribeGossipAccess, gossipPasswordOk, subscribeGossips } from '../firebase/services.js';
+import { ERASMUS_PROPS, ERASMUS_SPRITES } from '../assets/erasmus/index.js';
 
 const when = (g) => g.createdAt?.toDate?.().toLocaleDateString([], { day: '2-digit', month: 'short' }) || 'just now';
 
@@ -25,7 +26,7 @@ function WhisperForm() {
   };
   if (done) return (
     <div className="box shadow-b8 p-6 bg-[#FF6E2D] text-ink flex flex-col gap-3 items-start">
-      <div className="text-4xl">🐭</div>
+      <img src={ERASMUS_SPRITES.pattyHeart} alt="Rattie Patty" className="w-16 h-16 object-contain" draggable={false} />
       <h2 className="text-2xl font-extrabold uppercase">Thank you for the gossip!</h2>
       <p className="font-medium">+{GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'point' : 'points'} added to your rating. Rattie Patty keeps it safe — nobody will know it was you.</p>
       <button className="btn bg-white text-ink" onClick={() => setDone(false)}>Write another</button>
@@ -90,7 +91,13 @@ export default function GossipBoardPage() {
         {access === null && <div className="box p-6 font-mono">Loading…</div>}
 
         {access && !access.open && !isAdmin && (
-          <div className="box p-6"><p className="font-bold">🔒 The Gossip board is closed.</p><p className="mt-1 text-sm">The organizers open it later and give a password to those who may read it.</p></div>
+          <div className="box p-6 flex items-center gap-4">
+            <img src={ERASMUS_PROPS.lock} alt="" className="w-12 h-12 object-contain shrink-0" draggable={false} />
+            <div>
+              <p className="font-bold">The Gossip board is closed.</p>
+              <p className="mt-1 text-sm">The organizers open it later and give a password to those who may read it.</p>
+            </div>
+          </div>
         )}
 
         {access?.open && !canRead && (

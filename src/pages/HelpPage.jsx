@@ -5,6 +5,7 @@ import { Banner, Card, List } from '../components/games/RulesBits.jsx';
 import { useApp } from '../context/AppContext.jsx';
 import { createTicket } from '../firebase/help.js';
 import { CONTACTS, HELP_CATEGORIES, PRIORITIES, COMMON_RESOLUTIONS } from '../config/settings.js';
+import { ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 
 const L = ({ t, children }) => <label className="flex flex-col gap-1 font-mono text-xs font-bold uppercase">{t}{children}</label>;
 const EMPTY = () => ({ reason: '', comment: '', priority: 'normal', location: '', text: '', contact: '' });
@@ -113,6 +114,11 @@ export default function HelpPage() {
 
           <aside className="flex flex-col gap-4">
             <Card title="Emergency & on-duty contacts" cls="bg-white">
+              <div className="flex items-center gap-3 pb-1">
+                <img src={ERASMUS_STICKERS.firstaid} alt="" className="w-10 h-10 object-contain shrink-0" draggable={false} />
+                <img src={ERASMUS_STICKERS.lifebuoy} alt="" className="w-10 h-10 object-contain shrink-0" draggable={false} />
+                <span className="font-mono text-xs font-extrabold uppercase text-hot">On-call organizer support</span>
+              </div>
               <div>
                 <b>{contacts.dutyName || 'Duty coordinator (24/7)'}</b>
                 {contacts.dutyPhone && (

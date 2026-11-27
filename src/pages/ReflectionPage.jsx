@@ -4,6 +4,7 @@ import { Banner, Step } from '../components/games/RulesBits.jsx';
 import { useApp } from '../context/AppContext.jsx';
 import { todayKey } from '../firebase/punishment.js';
 import { PADLET_URL, REFLECTION_POINTS_PER_DAY, REFLECTION_PROMPTS } from '../config/settings.js';
+import { ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 
 export { PADLET_URL };
 
@@ -97,7 +98,10 @@ export default function ReflectionPage() {
       {/* Daily Prompts & Link */}
       <section className="box shadow-b8 overflow-hidden">
         <div className="bg-sun border-b-[3px] border-ink px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg sm:text-xl font-extrabold uppercase">📝 Tonight’s reflection questions</h2>
+          <h2 className="text-lg sm:text-xl font-extrabold uppercase flex items-center gap-2">
+            <img src={ERASMUS_STICKERS.campfire} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+            <span>Tonight’s reflection questions</span>
+          </h2>
           {padletUrl && (
             <a href={padletUrl} target="_blank" rel="noopener noreferrer" className="btn bg-ink text-sun text-xs">
               Open reflection board →

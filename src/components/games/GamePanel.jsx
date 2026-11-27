@@ -53,7 +53,8 @@ export default function GamePanel({ game }) {
   const [mood, setMood] = useState('');
 
   const me = profile ? byId.get(profile.id) : null;
-  const enrolled = !!profile && playing.some((u) => u.id === profile.id);
+  const isDemoAccount = !!(profile?.isDemo || me?.isDemo);
+  const enrolled = !!profile && (playing.some((u) => u.id === profile.id) || isDemoAccount);
   const joined = isJoined(me);
   const revealed = !!(me?.targetId && (game !== 'sf' || me.revealed !== false));
   const aliveCount = playing.filter((u) => !dead.has(u.id)).length;

@@ -2,6 +2,7 @@ import Marquee from '../components/layout/Marquee.jsx';
 import Header from '../components/layout/Header.jsx';
 import GamePanel from '../components/games/GamePanel.jsx';
 import { Step, Card, List, Banner } from '../components/games/RulesBits.jsx';
+import { ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 
 const IDEAS = [
   ['Stealth morning tea / coffee', 'Find out if your friend likes tea or coffee and quietly place a warm cup at their seat before the session.'],
@@ -43,7 +44,12 @@ export default function SecretFriendPage() {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-2xl font-extrabold uppercase">Care idea vault <span className="tag bg-sun align-middle">Budget 0–2 €</span></h2>
+          <h2 className="text-2xl font-extrabold uppercase flex items-center gap-2.5">
+            <img src={ERASMUS_STICKERS.gift} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+            <span>Care idea vault</span>
+            <span className="tag bg-sun align-middle">Budget 0–2 €</span>
+            <img src={ERASMUS_STICKERS.envelope} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {IDEAS.map(([t, d], i) => <Card key={t} title={`Idea ${String(i + 1).padStart(2, '0')}`}><b className="text-base uppercase">{t}</b><span>{d}</span></Card>)}
           </div>

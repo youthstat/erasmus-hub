@@ -100,14 +100,14 @@ export async function adjustPointsBatch(userIds, delta, reason = 'Manual') {
   return clean.length;
 }
 
-/* ---------- Demo showcase accounts: Rattie Patty (-1,000,000) & Admin (+1,000, pw: 1234), paired as mutual Secret Friends ---------- */
+/* ---------- Demo showcase accounts: Rattie Patty (-1,000,000) & Admin (+1,000, pw: 1234), mutual partners in Secret Friend & Killer Game ---------- */
 export const DEMO_IDS = { rattie: 'demo_rattie', admin: 'demo_admin' };
 
 export async function ensureDemoAccounts(force = false) {
   const seedRef = doc(db, 'settings', 'demoSeed');
   if (!force) {
     const seedSnap = await getDoc(seedRef);
-    if (seedSnap.exists() && seedSnap.data()?.v2) return;
+    if (seedSnap.exists() && seedSnap.data()?.v3) return;
   }
 
   const [rattieHash, adminHash] = await Promise.all([
@@ -192,6 +192,43 @@ export async function ensureDemoAccounts(force = false) {
     joinedAt: serverTimestamp(),
   }, { merge: true });
 
+  batch.set(doc(db, 'sfClaims', DEMO_IDS.admin), { byUserId: DEMO_IDS.rattie, isDemo: true }, { merge: true });
+  batch.set(doc(db, 'sfClaims', DEMO_IDS.rattie), { byUserId: DEMO_IDS.admin, isDemo: true }, { merge: true });
+
+  // Mutual Killer Game pairing between Rattie Patty and Admin for live demonstrations
+  batch.set(doc(db, 'kgPlayers', DEMO_IDS.rattie), {
+    userId: DEMO_IDS.rattie,
+    joined: true,
+    isDemo: true,
+    dead: false,
+    kills: 0,
+    item: 'Golden cheese wedge',
+    itemOwnerId: DEMO_IDS.admin,
+    itemText: 'Organizer whistle',
+    targetId: DEMO_IDS.admin,
+    targetName: 'Admin',
+    joinedAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'kgPlayers', DEMO_IDS.admin), {
+    userId: DEMO_IDS.admin,
+    joined: true,
+    isDemo: true,
+    dead: false,
+    kills: 0,
+    item: 'Organizer whistle',
+    itemOwnerId: DEMO_IDS.rattie,
+    itemText: 'Golden cheese wedge',
+    targetId: DEMO_IDS.rattie,
+    targetName: 'Rattie Patty',
+    joinedAt: serverTimestamp(),
+  }, { merge: true });
+
+  batch.set(doc(db, 'kgClaims', DEMO_IDS.admin), { byUserId: DEMO_IDS.rattie, isDemo: true }, { merge: true });
+  batch.set(doc(db, 'kgClaims', DEMO_IDS.rattie), { byUserId: DEMO_IDS.admin, isDemo: true }, { merge: true });
+  batch.set(doc(db, 'kgItemClaims', DEMO_IDS.admin), { byUserId: DEMO_IDS.rattie, isDemo: true }, { merge: true });
+  batch.set(doc(db, 'kgItemClaims', DEMO_IDS.rattie), { byUserId: DEMO_IDS.admin, isDemo: true }, { merge: true });
+
   // Sample Secret Friend messages between Rattie Patty & Admin for demo walkthroughs
   batch.set(doc(db, 'sfQuestions', 'demo_q_rattie_to_admin'), {
     giverId: DEMO_IDS.rattie,
@@ -211,7 +248,7 @@ export async function ensureDemoAccounts(force = false) {
     createdAt: serverTimestamp(),
   }, { merge: true });
 
-  batch.set(seedRef, { v1: true, v2: true, updatedAt: serverTimestamp() }, { merge: true });
+  batch.set(seedRef, { v1: true, v2: true, v3: true, updatedAt: serverTimestamp() }, { merge: true });
   await batch.commit();
 }
 

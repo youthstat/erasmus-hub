@@ -245,48 +245,64 @@ function KillerLinks() {
     } catch (e) { setError(e.message); }
   };
   const rows = players.filter((p) => !p.isDemo && (isJoined(p) || p.dead));
+  const demoPairs = players.filter((p) => p.isDemo);
   return (
-    <section className="box overflow-hidden">
-      <div className="bg-hot text-white border-b-[3px] border-ink px-4 py-3 font-mono font-bold uppercase flex flex-wrap justify-between gap-2">
-        <span>Killer game contracts · {rows.filter(isJoined).length} joined · {rows.filter((p) => p.targetId).length} received a name · {playing.filter((u) => !u.isDemo && !dead.has(u.id)).length} alive</span>
-        <button className="tag bg-white text-ink" onClick={reset}>RESET GAME</button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="bg-[#ebe7e7] border-b-[3px] border-ink font-mono text-xs uppercase">
-              <th className="p-3">Player</th>
-              <th className="p-3">→ Hunts</th>
-              <th className="p-3">Weapon</th>
-              <th className="p-3">Own item</th>
-              <th className="p-3">Status</th>
-              <th className="p-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y-2 divide-ink">
-            {rows.map((p) => (
-              <tr key={p.id} className={p.dead ? 'text-mute' : ''}>
-                <td className={`p-3 font-bold ${p.dead ? 'line-through' : ''}`}>{nameOf(p.id)}</td>
-                <td className="p-3">{p.targetId && !p.dead ? nameOf(p.targetId) : <span className="text-mute">—</span>}</td>
-                <td className="p-3">{p.itemText || <span className="text-mute">—</span>}</td>
-                <td className="p-3">{p.item}</td>
-                <td className="p-3">
-                  <span className={`tag ${p.dead ? 'bg-hot text-white' : 'bg-neon text-ink'}`}>{p.dead ? 'KILLED' : 'ALIVE'}</span>
-                  {p.dead && p.killStory && <div className="mt-1 text-xs text-ink max-w-xs whitespace-normal">{KILL_MOODS.find((m) => m.id === p.killStory.difficulty)?.label}{p.killStory.text ? ` “${p.killStory.text}”` : ''}</div>}
-                  {p.dead && p.killSecret && <div className="mt-1 text-xs text-mute">story kept secret</div>}
-                </td>
-                <td className="p-3">
-                  {p.dead
-                    ? <button className="tag bg-neon text-ink" onClick={() => revive(p.id)} title="Undo the kill">↩ REVIVE</button>
-                    : <button className="tag bg-white" onClick={() => kill(p.id)}>ELIMINATE</button>}
-                </td>
+    <div className="flex flex-col gap-4">
+      <section className="box overflow-hidden">
+        <div className="bg-hot text-white border-b-[3px] border-ink px-4 py-3 font-mono font-bold uppercase flex flex-wrap justify-between gap-2">
+          <span>Killer game contracts · {rows.filter(isJoined).length} joined · {rows.filter((p) => p.targetId).length} received a name · {playing.filter((u) => !u.isDemo && !dead.has(u.id)).length} alive</span>
+          <button className="tag bg-white text-ink" onClick={reset}>RESET GAME</button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="bg-[#ebe7e7] border-b-[3px] border-ink font-mono text-xs uppercase">
+                <th className="p-3">Player</th>
+                <th className="p-3">→ Hunts</th>
+                <th className="p-3">Weapon</th>
+                <th className="p-3">Own item</th>
+                <th className="p-3">Status</th>
+                <th className="p-3" />
               </tr>
+            </thead>
+            <tbody className="divide-y-2 divide-ink">
+              {rows.map((p) => (
+                <tr key={p.id} className={p.dead ? 'text-mute' : ''}>
+                  <td className={`p-3 font-bold ${p.dead ? 'line-through' : ''}`}>{nameOf(p.id)}</td>
+                  <td className="p-3">{p.targetId && !p.dead ? nameOf(p.targetId) : <span className="text-mute">—</span>}</td>
+                  <td className="p-3">{p.itemText || <span className="text-mute">—</span>}</td>
+                  <td className="p-3">{p.item}</td>
+                  <td className="p-3">
+                    <span className={`tag ${p.dead ? 'bg-hot text-white' : 'bg-neon text-ink'}`}>{p.dead ? 'KILLED' : 'ALIVE'}</span>
+                    {p.dead && p.killStory && <div className="mt-1 text-xs text-ink max-w-xs whitespace-normal">{KILL_MOODS.find((m) => m.id === p.killStory.difficulty)?.label}{p.killStory.text ? ` “${p.killStory.text}”` : ''}</div>}
+                    {p.dead && p.killSecret && <div className="mt-1 text-xs text-mute">story kept secret</div>}
+                  </td>
+                  <td className="p-3">
+                    {p.dead
+                      ? <button className="tag bg-neon text-ink" onClick={() => revive(p.id)} title="Undo the kill">↩ REVIVE</button>
+                      : <button className="tag bg-white" onClick={() => kill(p.id)}>ELIMINATE</button>}
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 && <tr><td colSpan="6" className="p-4 font-mono">Nobody joined yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {demoPairs.length > 0 && (
+        <div className="border-[3px] border-ink rounded-xl bg-[#B89CFF]/30 p-4 flex flex-col gap-2">
+          <div className="font-mono text-xs font-extrabold uppercase">🐭 Demo Killer Game pairing (isolated from participants)</div>
+          <div className="flex flex-wrap gap-2 text-xs font-mono">
+            {demoPairs.map((p) => (
+              <span key={p.id} className="tag bg-white text-ink">
+                <b>{nameOf(p.id)}</b> → hunts <b>{p.targetId ? nameOf(p.targetId) : '—'}</b> · item: <b>{p.itemText || '—'}</b>
+              </span>
             ))}
-            {rows.length === 0 && <tr><td colSpan="6" className="p-4 font-mono">Nobody joined yet.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

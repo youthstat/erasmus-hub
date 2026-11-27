@@ -11,35 +11,40 @@ import MouseAvatar from '../components/ui/MouseAvatar.jsx';
 import { SPRITES } from '../components/mascot/sprites.js';
 import { HOME_MARQUEE_TOP, HOME_MARQUEE_BOTTOM } from '../config/settings.js';
 import { formatScore } from '../utils/format.js';
+import { ERASMUS_PROPS, ERASMUS_SPRITES, ERASMUS_STICKERS } from '../assets/erasmus/index.js';
 
 const NAV = [
-  { id: 'schedule', frames: ['watch1', 'watch2', 'watch3', 'watch4'], anim: 'mascot-breathe', speed: 700, to: '/schedule', title: 'Schedule & timeline', text: 'Daily mission timeline, pop-up session alerts, and assigned checkpoints.', cta: 'View schedule', ctaDesktop: 'View full schedule', cls: 'bg-sun', btn: 'bg-ink text-sun' },
-  { id: 'secret-friend', frames: ['gift1', 'gift3', 'gift2', 'gift4'], anim: 'mascot-breathe', speed: 700, to: '/secret-friend', title: 'Secret friend', text: 'Receive your match, deliver gifts, and uncover who has your wishlist.', cta: 'Open game', ctaDesktop: 'Go to secret friend', cls: 'bg-neon', btn: 'bg-ink text-neon' },
-  { id: 'killer-game', frames: ['mafia1', 'mafia2', 'mafia3', 'mafia4'], anim: 'mascot-breathe', speed: 750, to: '/killer-game', title: 'Killer game', text: 'Your secret target is assigned. Tag rivals with verbal traps before you get tagged.', cta: 'Open game', ctaDesktop: 'Go to killer game', cls: 'bg-hot text-white', btn: 'bg-white text-hot' },
-  { id: 'oscar', frames: ['oscar1', 'oscar2', 'oscar3', 'oscar4'], anim: 'mascot-breathe', speed: 700, to: '/oscar', title: 'Oscar Night', text: 'Create your film crew, send your nominees to the voting and cast your Oscar ballot.', cta: 'Open Oscar', ctaDesktop: 'Go to Oscar Night', cls: 'bg-ink text-white', btn: 'bg-sun text-ink' },
-  { id: 'punishment', frames: ['guilty1', 'guilty2', 'guilty3'], anim: 'mascot-breathe', speed: 750, to: '/punishment', title: 'Punishment box', text: 'Write a punishment (+1 point) or dare to pull one out of the box (−3 points).', cta: 'Open box', ctaDesktop: 'Open the box', cls: 'bg-[#FF94B8]', btn: 'bg-ink text-white' },
-  { id: 'mouse-run', frames: ['play2048_1', 'play2048_2', 'play2048_3', 'play2048_4'], anim: 'mascot-breathe', speed: 700, to: '/mouse-run', title: 'Rattie 2048', text: 'Slide & merge tiles to reach 2048! Your best score is saved — Top 3 win +500, +200 & +100 PTS.', cta: 'Play 2048', ctaDesktop: 'Play 2048', cls: 'bg-[#B89CFF]', btn: 'bg-ink text-white' },
-  { id: 'gossips', frames: ['gossip1', 'gossip2', 'gossip3', 'gossip4'], anim: 'mascot-breathe', speed: 700, to: '/gossips', title: 'Gossip board', text: 'Write a gossip anonymously (+1 point each). Reading the board opens only with the password from the organizers.', cta: 'Open board', ctaDesktop: 'Open gossip board', cls: 'bg-[#FF6E2D] text-ink', btn: 'bg-ink text-[#FF6E2D]' },
-  { id: 'reflection', frames: ['reflect1', 'reflect2', 'reflect3', 'reflect4'], anim: 'mascot-breathe', speed: 800, to: '/reflection', title: 'Daily reflection', text: "Gather with your evening team, answer today's questions & earn +50 PTS together.", cta: 'Open reflection', ctaDesktop: 'Go to reflection', cls: 'bg-cobalt text-white', btn: 'bg-white text-cobalt' },
+  { id: 'schedule', sticker: ERASMUS_STICKERS.scrollDoc, frames: ['watch1', 'watch2', 'watch3', 'watch4'], anim: 'mascot-breathe', speed: 700, to: '/schedule', title: 'Schedule & timeline', text: 'Daily mission timeline, pop-up session alerts, and assigned checkpoints.', cta: 'View schedule', ctaDesktop: 'View full schedule', cls: 'bg-sun', btn: 'bg-ink text-sun' },
+  { id: 'secret-friend', sticker: ERASMUS_STICKERS.gift, frames: ['gift1', 'gift3', 'gift2', 'gift4'], anim: 'mascot-breathe', speed: 700, to: '/secret-friend', title: 'Secret friend', text: 'Receive your match, deliver gifts, and uncover who has your wishlist.', cta: 'Open game', ctaDesktop: 'Go to secret friend', cls: 'bg-neon', btn: 'bg-ink text-neon' },
+  { id: 'killer-game', sticker: ERASMUS_STICKERS.magnifier, frames: ['mafia1', 'mafia2', 'mafia3', 'mafia4'], anim: 'mascot-breathe', speed: 750, to: '/killer-game', title: 'Killer game', text: 'Your secret target is assigned. Tag rivals with verbal traps before you get tagged.', cta: 'Open game', ctaDesktop: 'Go to killer game', cls: 'bg-hot text-white', btn: 'bg-white text-hot' },
+  { id: 'oscar', sticker: ERASMUS_STICKERS.oscar, frames: ['oscar1', 'oscar2', 'oscar3', 'oscar4'], anim: 'mascot-breathe', speed: 700, to: '/oscar', title: 'Oscar Night', text: 'Create your film crew, send your nominees to the voting and cast your Oscar ballot.', cta: 'Open Oscar', ctaDesktop: 'Go to Oscar Night', cls: 'bg-ink text-white', btn: 'bg-sun text-ink' },
+  { id: 'punishment', sticker: ERASMUS_STICKERS.folderLock, frames: ['guilty1', 'guilty2', 'guilty3'], anim: 'mascot-breathe', speed: 750, to: '/punishment', title: 'Punishment box', text: 'Write a punishment (+1 point) or dare to pull one out of the box (−3 points).', cta: 'Open box', ctaDesktop: 'Open the box', cls: 'bg-[#FF94B8]', btn: 'bg-ink text-white' },
+  { id: 'mouse-run', sticker: ERASMUS_STICKERS.cheese, frames: ['play2048_1', 'play2048_2', 'play2048_3', 'play2048_4'], anim: 'mascot-breathe', speed: 700, to: '/mouse-run', title: 'Rattie 2048', text: 'Slide & merge tiles to reach 2048! Your best score is saved — Top 3 win +500, +200 & +100 PTS.', cta: 'Play 2048', ctaDesktop: 'Play 2048', cls: 'bg-[#B89CFF]', btn: 'bg-ink text-white' },
+  { id: 'gossips', sticker: ERASMUS_STICKERS.megaphone, frames: ['gossip1', 'gossip2', 'gossip3', 'gossip4'], anim: 'mascot-breathe', speed: 700, to: '/gossips', title: 'Gossip board', text: 'Write a gossip anonymously (+1 point each). Reading the board opens only with the password from the organizers.', cta: 'Open board', ctaDesktop: 'Open gossip board', cls: 'bg-[#FF6E2D] text-ink', btn: 'bg-ink text-[#FF6E2D]' },
+  { id: 'reflection', sticker: ERASMUS_STICKERS.campfire, frames: ['reflect1', 'reflect2', 'reflect3', 'reflect4'], anim: 'mascot-breathe', speed: 800, to: '/reflection', title: 'Daily reflection', text: "Gather with your evening team, answer today's questions & earn +50 PTS together.", cta: 'Open reflection', ctaDesktop: 'Go to reflection', cls: 'bg-cobalt text-white', btn: 'bg-white text-cobalt' },
+  { id: 'erasmus-plus', sticker: ERASMUS_STICKERS.mapPins, customFrames: [ERASMUS_SPRITES.trioWalk, ERASMUS_SPRITES.trioCurious, ERASMUS_SPRITES.trioCheer], anim: 'mascot-breathe', speed: 750, to: '/erasmus-plus', title: 'Erasmus+', text: 'Essentials, official links & 9 interactive Pretty Patty competence games (0–100 PTS).', cta: 'Open Erasmus+', ctaDesktop: 'Open Erasmus+', cls: 'bg-[#FFE200] text-ink', btn: 'bg-ink text-[#FFE200]' },
 ];
 
 // Static image by default; animates only when hovered
-function CardMouse({ frames, anim, speed = 700, hovered }) {
+function CardMouse({ frames, customFrames, anim, speed = 700, hovered }) {
+  const list = customFrames || frames || [];
   const [idx, setIdx] = useState(0);
   useEffect(() => {
-    if (!hovered || frames.length <= 1) {
+    if (!hovered || list.length <= 1) {
       setIdx(0);
       return undefined;
     }
-    const t = setInterval(() => setIdx((i) => (i + 1) % frames.length), speed);
+    const t = setInterval(() => setIdx((i) => (i + 1) % list.length), speed);
     return () => clearInterval(t);
-  }, [hovered, frames.length, speed]);
+  }, [hovered, list.length, speed]);
 
-  const sp = SPRITES[frames[idx % frames.length]] || SPRITES.idle;
+  const src = customFrames
+    ? customFrames[idx % customFrames.length]
+    : (SPRITES[frames[idx % frames.length]] || SPRITES.idle).src;
   return (
     <div className="w-12 h-12 sm:w-20 sm:h-20 shrink-0 flex items-end justify-center transition-transform duration-200 ease-out group-hover:scale-110 group-hover:-rotate-3">
       <img
-        src={sp.src}
+        src={src}
         alt=""
         draggable={false}
         decoding="async"
@@ -62,10 +67,15 @@ function NavCard({ n, hiddenTag, dim }) {
       <div className="flex items-start justify-between gap-1.5 sm:gap-3 min-w-0">
         <div className="min-w-0 flex-1">
           {hiddenTag(n.id)}
-          <h3 className="text-base sm:text-2xl font-extrabold uppercase leading-tight tracking-tight break-words">{n.title}</h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            {n.sticker && (
+              <img src={n.sticker} alt="" draggable={false} className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0 drop-shadow-[0_1px_0_rgba(17,17,17,0.2)]" />
+            )}
+            <h3 className="text-base sm:text-2xl font-extrabold uppercase leading-tight tracking-tight break-words">{n.title}</h3>
+          </div>
           <p className="hidden sm:block text-sm mt-2 font-medium leading-snug opacity-95">{n.text}</p>
         </div>
-        <CardMouse frames={n.frames} anim={n.anim} speed={n.speed} hovered={hovered} />
+        <CardMouse frames={n.frames} customFrames={n.customFrames} anim={n.anim} speed={n.speed} hovered={hovered} />
       </div>
       {n.href ? (
         <a href={n.href} target="_blank" rel="noopener noreferrer" className={`btn !px-3 !py-2 sm:!px-4 sm:!py-2 text-[11px] sm:text-xs font-extrabold leading-tight justify-between sm:justify-center w-full sm:w-auto sm:self-start ${n.btn}`}>
@@ -148,7 +158,10 @@ export default function HomePage() {
             <div className={`lg:col-span-5 lg:relative lg:min-h-[18rem] ${dim('ranking')}`}>
               <div className="box overflow-hidden flex flex-col lg:absolute lg:inset-0">
                 <div className="bg-sun border-b-[3px] border-ink px-4 py-2.5 font-mono font-extrabold uppercase flex items-center justify-between gap-2 shrink-0">
-                  <span className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 bg-ink" />Ranking</span>
+                  <span className="flex items-center gap-2">
+                    <img src={ERASMUS_PROPS.cheese} alt="" className="w-5 h-5 object-contain" draggable={false} />
+                    <span>Ranking</span>
+                  </span>
                   <span className="font-mono text-[11px] lg:hidden">Top 5</span>
                 </div>
                 <div className="divide-y-[3px] divide-ink flex-1 overflow-y-auto">

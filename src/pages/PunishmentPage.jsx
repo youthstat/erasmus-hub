@@ -6,6 +6,7 @@ import PunishmentBoxArt from '../components/punishment/PunishmentBoxArt.jsx';
 import { useApp } from '../context/AppContext.jsx';
 import { subscribePunishments, subscribeWrittenToday, writePunishment, drawPunishment } from '../firebase/punishment.js';
 import { PUNISHMENT_COST, PUNISHMENT_REWARD, PUNISHMENT_MAX_LENGTH, PUNISHMENT_MIN_LENGTH, PUNISHMENT_DAILY_LIMIT } from '../config/settings.js';
+import { ERASMUS_PROPS } from '../assets/erasmus/index.js';
 
 // The unfolded paper with the punishment (like the last frame of the storyboard)
 function Note({ text }) {
@@ -147,7 +148,8 @@ export default function PunishmentPage() {
             </div>
             <div className="text-center font-mono text-sm font-bold">{inBox} {inBox === 1 ? 'paper' : 'papers'} in the box</div>
             <button className="btn bg-hot text-white self-center disabled:opacity-50" disabled={busy || (!!profile && !inBox)} onClick={askDraw}>
-              🎲 Get a punishment (−{PUNISHMENT_COST} PTS)
+              <img src={ERASMUS_PROPS.dice} alt="" className="w-5 h-5 object-contain" draggable={false} />
+              <span>Get a punishment (−{PUNISHMENT_COST} PTS)</span>
             </button>
             <p className="text-center text-xs text-mute font-mono">You can also press the box itself.</p>
           </div>
