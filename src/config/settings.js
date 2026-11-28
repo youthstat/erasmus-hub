@@ -27,6 +27,8 @@ export const CONTACTS = {
   emergencyNumber: '112',                // єдиний номер екстрених служб
   infoDesk: 'Info desk in the central hall',
 };
+export const ADMIN_NOTIFY_EMAIL = 'demianets20@gmail.com'; // пошта для сповіщень про звернення "Ask the Team"
+export const HELP_NOTIFY_WEBHOOK_URL = '';                 // URL Google Apps Script (Email + Telegram), можна також вставити в адмінці
 
 /* ---------- Rattie Patty (мишка) ---------- */
 export const GOSSIP_POINTS = 2;          // балів за один госіп

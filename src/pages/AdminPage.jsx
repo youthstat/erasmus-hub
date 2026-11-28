@@ -29,6 +29,7 @@ export default function AdminPage() {
     submissions,
     stealRequests,
     reflectionLogs,
+    openHelpCount,
     syncDemoAccounts,
   } = useApp();
 
@@ -37,7 +38,7 @@ export default function AdminPage() {
 
   const pendingMissions = submissions.filter((s) => s.status === 'pending');
   const pendingSteals = stealRequests.filter((r) => r.status === 'pending');
-  const totalPending = pendingMissions.length + pendingSteals.length;
+  const totalPending = pendingMissions.length + pendingSteals.length + (openHelpCount || 0);
 
   const activeId = searchParams.get('w') || null;
   const openWindow = (id) => {
@@ -80,7 +81,7 @@ export default function AdminPage() {
         },
         { id: 'leaderboard', label: 'Participants & Leaderboard', badge: users.length, cls: 'bg-white text-ink', node: <LeaderboardTable /> },
         { id: 'media', label: 'Photo & Video Link', cls: 'bg-[#00E676] text-ink', node: <MediaLinkAdminPanel /> },
-        { id: 'help', label: 'Ask the Team & Contacts', cls: 'bg-hot text-white', node: <HelpAdminPanel /> },
+        { id: 'help', label: 'Ask the Team & Contacts', badge: openHelpCount, cls: 'bg-hot text-white', node: <HelpAdminPanel /> },
         { id: 'home', label: 'Home Screen', cls: 'bg-[#B89CFF] text-ink', node: <HomeControlPanel /> },
       ],
     },

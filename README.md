@@ -95,5 +95,71 @@ Killer game: кнопка «I killed my victim» вбиває жертву (ви
 - **+50 балів** (`SF_PROFILE_BONUS`) одноразово, коли всі 4 текстові поля заповнені (≥15 символів кожне, `SF_PROFILE_MIN`). Підказка «Fill in your profile — get +50 points» на головній, у профілі й у кнопках.
 - Дані: `sfPlayers/{id}.profile` (+ `profileBonus`). Старі «likes/dislikes» показуються як «Earlier wishes».
 
+## Безкоштовні сповіщення в Telegram для GitHub Pages
+Коли учасник надсилає звернення у розділі **Ask the Team** або відправляє виконання / повідомлення у **Missions**, адмін отримує:
+1. Живе сповіщення на сайті (червоний лічильник + банер і браузерні push-сповіщення).
+2. Миттєве повідомлення в Telegram-бот через безкоштовний приватний вебхук (**Cloudflare Worker** або **Google Apps Script без доступу до пошти** — жодні токени не зберігаються у вашому GitHub-репозиторії).
+
+### Варіант 1 (найкращий, без доступу до Google-пошти): Cloudflare Worker (безкоштовно)
+1. Зареєструйтесь на https://dash.cloudflare.com (безкоштовний план Workers: 100 000 запитів/день, картка не потрібна).
+2. **Workers & Pages → Create → Create Worker** → вставте цей код і натисніть **Deploy**:
+```javascript
+export default {
+  async fetch(request, env) {
+    if (request.method !== 'POST') return new Response('OK');
+    const data = JSON.parse(await request.text() || '{}');
+    const title = data.title || `🆘 Ask the Team · Case #${data.caseNo || '?'}`;
+    const body = [
+      data.category ? `Category: ${data.category}` : '',
+      data.priority ? `Type / Priority: ${String(data.priority).toUpperCase()}` : '',
+      `From: ${data.from || 'Anonymous'}`,
+      data.location ? `Location: ${data.location}` : '',
+      data.contact ? `Contact: ${data.contact}` : '',
+      '',
+      data.message || '',
+    ].filter(Boolean).join('\n');
+
+    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text: `${title}\n\n${body}` }),
+    });
+    return new Response('OK');
+  },
+};
+```
+3. У тому ж Worker відкрийте **Settings → Variables and Secrets → + Add**:
+   - `TELEGRAM_BOT_TOKEN` (тип **Secret**) = ваш новий токен від `@BotFather`
+   - `TELEGRAM_CHAT_ID` (тип **Secret**) = ваш числовий Chat ID
+4. Скопіюйте URL воркера (`https://...workers.dev`), відкрийте на сайті **Admin → Ask the Team & Contacts**, вставте URL у **Telegram Alert Webhook URL**, натисніть **Save Alert URL** і **Send Test Alert**.
+
+### Варіант 2: Google Apps Script лише для Telegram (без `MailApp`, без доступу до пошти)
+Прибрано `MailApp.sendEmail`, тож Google не просить доступ до листів Gmail:
+```javascript
+const TELEGRAM_BOT_TOKEN = 'ВАШ_НОВИЙ_ТОКЕН_ВІД_BOTFATHER';
+const TELEGRAM_CHAT_ID = 'ВАШ_ЧИСЛОВИЙ_CHAT_ID';
+
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents || '{}');
+  const title = data.title || `🆘 Ask the Team · Case #${data.caseNo || '?'}`;
+  const body = [
+    data.category ? `Category: ${data.category}` : '',
+    data.priority ? `Type / Priority: ${String(data.priority).toUpperCase()}` : '',
+    `From: ${data.from || 'Anonymous'}`,
+    data.location ? `Location: ${data.location}` : '',
+    data.contact ? `Contact: ${data.contact}` : '',
+    '',
+    data.message || '',
+  ].filter(Boolean).join('\n');
+
+  UrlFetchApp.fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: `${title}\n\n${body}` }),
+  });
+  return ContentService.createTextOutput('OK');
+}
+```
+
 ## Copyright
 Copyright © 2026 Diana Demianets. All rights reserved. See the `LICENSE` file. The notice is in the footer of every page, the full text is at `/copyright`, and it is also in `index.html` (meta author/copyright), in the built JS (`/*! … */` comment) and in `package.json` (`"license": "UNLICENSED"`). Contact: demianets20@gmail.com

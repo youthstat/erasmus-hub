@@ -39,7 +39,12 @@ export default function HelpPage() {
     };
     if (!anonymous) Object.assign(t, { userId: profile?.id || null, userName: who });
     setBusy(true); setMsg('');
-    try { setSent(await createTicket(t)); setF(EMPTY()); } catch (err) { setMsg(err.message); }
+    try {
+      setSent(await createTicket(t, { webhookUrl: hubSettings?.notifyWebhookUrl }));
+      setF(EMPTY());
+    } catch (err) {
+      setMsg(err.message);
+    }
     setBusy(false);
   };
 

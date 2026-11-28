@@ -1,4 +1,4 @@
-import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH, ADMIN_PASSWORD, CONTACTS, MEDIA_UPLOAD_URL } from '../config/settings.js';
+import { GOSSIP_POINTS, GOSSIP_MIN_WORDS, MAX_GOSSIP_LENGTH, ADMIN_PASSWORD, CONTACTS, MEDIA_UPLOAD_URL, ADMIN_NOTIFY_EMAIL, HELP_NOTIFY_WEBHOOK_URL } from '../config/settings.js';
 import {
   collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy,
   serverTimestamp, increment, writeBatch, limit, getDoc, getDocs, runTransaction, arrayUnion,
@@ -6,6 +6,7 @@ import {
 import { db } from './config.js';
 import { parseScoreValue } from '../utils/format.js';
 import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
+import { dispatchAdminAlert } from './notify.js';
 
 const list = (s) => s.docs.map((d) => ({ id: d.id, ...d.data() }));
 // onErr — показує помилку бази на екрані замість тихого "нічого не відбувається"
@@ -276,8 +277,33 @@ export const saveMission = (data, id) =>
 export const removeMission = (id) => deleteDoc(doc(db, 'missions', id));
 
 /* ---------- виконання місій ---------- */
-export const sendSubmission = (id, data) =>
-  setDoc(doc(db, 'submissions', id), { ...data, status: 'pending', createdAt: serverTimestamp() });
+export async function sendSubmission(id, data, notifyOptions = {}) {
+  await setDoc(doc(db, 'submissions', id), { ...data, status: 'pending', createdAt: serverTimestamp() });
+  const proofSummary =
+    data.proofType === 'link'
+      ? `🔗 Link: ${data.proofValue}`
+      : data.proofType === 'comment'
+        ? `💬 Message: ${data.proofValue}`
+        : '✔ Confirmed completion';
+  dispatchAdminAlert(
+    {
+      event: 'mission_submission',
+      title: `🎯 Mission Submission · +${data.points || 0} PTS`,
+      caseNo: `M-${data.points || 0}`,
+      missionTitle: data.missionTitle || 'Mission',
+      points: data.points || 0,
+      proofType: data.proofType || 'confirm',
+      proofValue: data.proofValue || '',
+      category: `Mission: ${data.missionTitle || 'Mission'} (+${data.points || 0} PTS)`,
+      priority: data.proofType === 'comment' ? 'message' : (data.proofType || 'confirm'),
+      from: data.userName || 'Participant',
+      message: proofSummary,
+      adminEmail: ADMIN_NOTIFY_EMAIL,
+      createdAt: new Date().toISOString(),
+    },
+    notifyOptions.webhookUrl,
+  );
+}
 
 export async function approveSubmission(s) {
   const subRef = doc(db, 'submissions', s.id);
@@ -389,10 +415,11 @@ export const subscribeHomeConfig = (cb, onErr = noop) =>
 export const setHomeHidden = (id, hidden) => setDoc(doc(db, 'settings', 'home'), { hidden: { [id]: !!hidden } }, { merge: true });
 export const setAllHomeHidden = (ids, hidden) => setDoc(doc(db, 'settings', 'home'), { hidden: Object.fromEntries(ids.map((id) => [id, !!hidden])) }, { merge: true });
 
-/* ---------- Hub public settings: Photo & Video link + Help contacts ----------
-   settings/hub  { mediaUploadUrl, contacts: { dutyName, dutyPhone, telegram, medicalRoom, infoDesk, emergencyNumber } } */
+/* ---------- Hub public settings: Photo & Video link + Help contacts + Alert webhook ----------
+   settings/hub  { mediaUploadUrl, notifyWebhookUrl, contacts: { dutyName, dutyPhone, telegram, medicalRoom, infoDesk, emergencyNumber } } */
 export const DEFAULT_HUB_SETTINGS = {
   mediaUploadUrl: MEDIA_UPLOAD_URL,
+  notifyWebhookUrl: HELP_NOTIFY_WEBHOOK_URL || '',
   contacts: {
     dutyName: CONTACTS.dutyName || 'Duty coordinator (24/7)',
     dutyPhone: CONTACTS.dutyPhone || '',
@@ -414,6 +441,7 @@ export const subscribeHubSettings = (cb, onErr = noop) =>
       if (String(mergedContacts.dutyPhone || '').trim().startsWith('+380')) mergedContacts.dutyPhone = '';
       cb({
         mediaUploadUrl: typeof d.mediaUploadUrl === 'string' ? d.mediaUploadUrl : MEDIA_UPLOAD_URL,
+        notifyWebhookUrl: typeof d.notifyWebhookUrl === 'string' ? d.notifyWebhookUrl : (HELP_NOTIFY_WEBHOOK_URL || ''),
         contacts: mergedContacts,
       });
     },

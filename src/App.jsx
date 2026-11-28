@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import HomePage from './pages/HomePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
@@ -27,7 +27,7 @@ import { useApp } from './context/AppContext.jsx';
 import { SPRITES } from './components/mascot/sprites.js';
 
 export default function App() {
-  const { firebaseConfigured, uid, error, setError } = useApp();
+  const { firebaseConfigured, uid, error, setError, isAdmin, helpTicketAlert, dismissHelpAlert, missionAlert, dismissMissionAlert } = useApp();
 
   if (!firebaseConfigured) {
     return (
@@ -63,6 +63,71 @@ export default function App() {
       {error && (
         <div className="bg-hot text-white font-mono text-sm p-3 flex justify-between gap-4">
           <span>Database error: {error}</span><button onClick={() => setError('')}>✕</button>
+        </div>
+      )}
+      {isAdmin && (helpTicketAlert || missionAlert) && (
+        <div className="fixed top-3 right-3 left-3 sm:left-auto sm:w-96 z-50 flex flex-col gap-2">
+          {helpTicketAlert && (
+            <div className="border-[3px] border-ink rounded-2xl bg-[#FFE600] shadow-b8 p-3.5 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-mono text-[11px] font-extrabold uppercase text-hot">
+                  🆘 New Ask the Team · Case #{helpTicketAlert.caseNo}
+                </div>
+                <div className="font-extrabold text-sm uppercase leading-tight mt-0.5 truncate">
+                  {helpTicketAlert.categoryTitle || 'Help Request'}
+                </div>
+                <p className="font-mono text-xs text-ink/85 mt-0.5 truncate">
+                  From: {helpTicketAlert.anonymous ? 'Anonymous 🔒' : (helpTicketAlert.userName || 'Participant')}
+                </p>
+                <Link
+                  to="/admin?w=help"
+                  onClick={dismissHelpAlert}
+                  className="btn bg-ink text-[#FFE600] !px-2.5 !py-1 text-[11px] mt-2 inline-flex"
+                >
+                  Open Ask the Team →
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={dismissHelpAlert}
+                aria-label="Dismiss alert"
+                className="w-7 h-7 border-2 border-ink rounded-lg bg-white text-ink font-black flex items-center justify-center shrink-0 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {missionAlert && (
+            <div className="border-[3px] border-ink rounded-2xl bg-neon shadow-b8 p-3.5 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-mono text-[11px] font-extrabold uppercase text-ink">
+                  🎯 New Mission Submission · +{missionAlert.points} PTS
+                </div>
+                <div className="font-extrabold text-sm uppercase leading-tight mt-0.5 truncate">
+                  {missionAlert.missionTitle}
+                </div>
+                <p className="font-mono text-xs text-ink/85 mt-0.5 truncate">
+                  From: {missionAlert.userName || 'Participant'}
+                  {missionAlert.proofType === 'comment' && missionAlert.proofValue ? ` · "${missionAlert.proofValue}"` : ''}
+                </p>
+                <Link
+                  to="/admin?w=activity"
+                  onClick={dismissMissionAlert}
+                  className="btn bg-ink text-neon !px-2.5 !py-1 text-[11px] mt-2 inline-flex"
+                >
+                  Review Mission →
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={dismissMissionAlert}
+                aria-label="Dismiss alert"
+                className="w-7 h-7 border-2 border-ink rounded-lg bg-white text-ink font-black flex items-center justify-center shrink-0 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
       )}
       <main className="flex-1">

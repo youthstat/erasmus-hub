@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, firebaseConfigured } from '../firebase/config.js';
@@ -9,6 +9,7 @@ import * as rattie from '../firebase/rattie.js';
 import * as reflection from '../firebase/reflection.js';
 import * as punishment from '../firebase/punishment.js';
 import * as mouseAvatar from '../firebase/mouseAvatar.js';
+import { subscribeTickets } from '../firebase/help.js';
 import { SEED_MISSIONS } from '../data/missions.js';
 import { ADMIN_PASSWORD, PADLET_URL, REFLECTION_POINTS_PER_DAY } from '../config/settings.js';
 
@@ -39,6 +40,11 @@ export function AppProvider({ children }) {
   const [reflectionConfig, setReflectionConfig] = useState({ padletUrl: PADLET_URL, pointsPerDay: REFLECTION_POINTS_PER_DAY, teams: [] });
   const [reflectionLogs, setReflectionLogs] = useState([]);
   const [punishments, setPunishments] = useState([]);
+  const [helpTickets, setHelpTickets] = useState([]);
+  const [helpTicketAlert, setHelpTicketAlert] = useState(null);
+  const seenHelpIdsRef = useRef(null);
+  const [missionAlert, setMissionAlert] = useState(null);
+  const seenSubIdsRef = useRef(null);
   const [my2048Best, setMy2048Best] = useState(0);
   const [homeHidden, setHomeHiddenState] = useState({});   // sections the admin switched off for participants
   const [homeReady, setHomeReady] = useState(false);
@@ -69,10 +75,54 @@ export function AppProvider({ children }) {
       reflection.subscribeReflectionLogs(setReflectionLogs, onErr),
     ];
     if (isAdmin) {
-      offs.push(api.subscribeAllSubmissions(setSubmissions, onErr));
+      offs.push(
+        api.subscribeAllSubmissions((rows) => {
+          setSubmissions(rows);
+          const prevSeen = seenSubIdsRef.current;
+          if (!prevSeen) {
+            seenSubIdsRef.current = new Set(rows.map((r) => r.id));
+            return;
+          }
+          const newest = rows.find((r) => !prevSeen.has(r.id) && r.status === 'pending');
+          rows.forEach((r) => prevSeen.add(r.id));
+          if (newest) {
+            setMissionAlert(newest);
+            if (typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') {
+              try {
+                new window.Notification(`🎯 Mission · ${newest.missionTitle}`, {
+                  body: `From ${newest.userName || 'Participant'}${newest.proofType === 'comment' ? `: ${newest.proofValue}` : ''}`,
+                });
+              } catch { /* ignore notification errors in restricted contexts */ }
+            }
+          }
+        }, onErr),
+      );
       offs.push(api.subscribeGossips(setGossips, onErr));
       offs.push(rattie.subscribeStealRequests(setStealRequests, onErr));
       offs.push(punishment.subscribePunishments(setPunishments, onErr));
+      offs.push(
+        subscribeTickets((rows) => {
+          setHelpTickets(rows);
+          const prevSeen = seenHelpIdsRef.current;
+          if (!prevSeen) {
+            seenHelpIdsRef.current = new Set(rows.map((r) => r.id));
+            return;
+          }
+          const newest = rows.find((r) => !prevSeen.has(r.id) && r.status !== 'done');
+          rows.forEach((r) => prevSeen.add(r.id));
+          if (newest) {
+            setHelpTicketAlert(newest);
+            if (typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') {
+              try {
+                const who = newest.anonymous ? 'Anonymous' : (newest.userName || 'Participant');
+                new window.Notification(`Ask the Team · Case #${newest.caseNo}`, {
+                  body: `${newest.categoryTitle || 'Help'} from ${who}`,
+                });
+              } catch { /* ignore notification errors in restricted contexts */ }
+            }
+          }
+        }, onErr),
+      );
     } else if (accountId) {
       offs.push(api.subscribeMySubmissions(accountId, setSubmissions, onErr));
     } else {
@@ -95,7 +145,16 @@ export function AppProvider({ children }) {
       setSfReceived([]);
       setMy2048Best(0);
     }
-    if (!isAdmin) { setGossips([]); setStealRequests([]); setPunishments([]); }
+    if (!isAdmin) {
+      setGossips([]);
+      setStealRequests([]);
+      setPunishments([]);
+      setHelpTickets([]);
+      setHelpTicketAlert(null);
+      seenHelpIdsRef.current = null;
+      setMissionAlert(null);
+      seenSubIdsRef.current = null;
+    }
     return () => offs.forEach((o) => o());
   }, [uid, isAdmin, accountId]);
 
@@ -114,7 +173,8 @@ export function AppProvider({ children }) {
   const wallet2048 = profile && typeof profile.game2048Points === 'number' ? profile.game2048Points : my2048Best;
   const visibleMissions = useMemo(() => (isAdmin ? missions : missions.filter((m) => m.active !== false)), [missions, isAdmin]);
   const activeHeistTasks = useMemo(() => heistTasks.filter((t) => t.active !== false), [heistTasks]);
-  const pendingCount = submissions.filter((s) => s.status === 'pending').length + stealRequests.filter((r) => r.status === 'pending').length;
+  const openHelpCount = useMemo(() => helpTickets.filter((t) => t.status !== 'done').length, [helpTickets]);
+  const pendingCount = submissions.filter((s) => s.status === 'pending').length + stealRequests.filter((r) => r.status === 'pending').length + openHelpCount;
 
   // last point change of every participant (shown next to the score) + own history
   const lastChange = useMemo(() => {
@@ -192,9 +252,19 @@ export function AppProvider({ children }) {
     deleteHeistTask: (id) => run(() => rattie.removeHeistTask(id)),
     seedHeistTasks: () => run(() => rattie.seedHeistTasks()),
     dismissNotice: (id) => run(() => rattie.dismissNotice(id)),
-    submitMission: (m, proof) => run(() => api.sendSubmission(submissionIdFor(m), {
-      missionId: m.id, missionTitle: m.title, points: Number(m.points), userId: accountId, userName: profile.name,
-      proofType: proof.type, proofValue: proof.value })),
+    submitMission: (m, proof) => run(() => api.sendSubmission(
+      submissionIdFor(m),
+      {
+        missionId: m.id,
+        missionTitle: m.title,
+        points: Number(m.points),
+        userId: accountId,
+        userName: profile.name,
+        proofType: proof.type,
+        proofValue: proof.value,
+      },
+      { webhookUrl: hubSettings?.notifyWebhookUrl },
+    )),
     clearGossips: () => run(() => api.clearGossips()),
     deleteGossip: (id) => run(() => api.deleteGossip(id)),
     clearSubmissions: (missionId) => run(() => api.clearSubmissions(missionId)),
@@ -229,7 +299,8 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       uid, accountId, gossips, isAdmin, homeHidden, homeReady, hubSettings, modal, users, profile, rank, wallet2048, lastChange, myHistory, pointsLog, submissions, pendingCount,
-      mySfPlayer, unreadSfMessages, punishments,
+      mySfPlayer, unreadSfMessages, punishments, helpTickets, openHelpCount, helpTicketAlert, dismissHelpAlert: () => setHelpTicketAlert(null),
+      missionAlert, dismissMissionAlert: () => setMissionAlert(null),
       reflectionConfig, reflectionLogs,
       missions: visibleMissions, allMissions: missions,
       heistTasks: activeHeistTasks, allHeistTasks: heistTasks, stealRequests, myNotices,
