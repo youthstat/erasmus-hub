@@ -12,17 +12,20 @@ import { SPRITES } from '../components/mascot/sprites.js';
 import { HOME_MARQUEE_TOP, HOME_MARQUEE_BOTTOM } from '../config/settings.js';
 import { formatScore } from '../utils/format.js';
 import { ERASMUS_PROPS, ERASMUS_SPRITES, ERASMUS_STICKERS } from '../assets/erasmus/index.js';
+import { HUB_STICKERS } from '../assets/stickers/index.js';
+import kawaiiDragon from '../assets/costumes/kawaii_dragon.png';
 
 const NAV = [
   { id: 'schedule', sticker: ERASMUS_STICKERS.scrollDoc, frames: ['watch1', 'watch2', 'watch3', 'watch4'], anim: 'mascot-breathe', speed: 700, to: '/schedule', title: 'Schedule & timeline', text: 'Daily mission timeline, pop-up session alerts, and assigned checkpoints.', cta: 'View schedule', ctaDesktop: 'View full schedule', cls: 'bg-sun', btn: 'bg-ink text-sun' },
   { id: 'secret-friend', sticker: ERASMUS_STICKERS.gift, frames: ['gift1', 'gift3', 'gift2', 'gift4'], anim: 'mascot-breathe', speed: 700, to: '/secret-friend', title: 'Secret friend', text: 'Receive your match, deliver gifts, and uncover who has your wishlist.', cta: 'Open game', ctaDesktop: 'Go to secret friend', cls: 'bg-neon', btn: 'bg-ink text-neon' },
   { id: 'killer-game', sticker: ERASMUS_STICKERS.magnifier, frames: ['mafia1', 'mafia2', 'mafia3', 'mafia4'], anim: 'mascot-breathe', speed: 750, to: '/killer-game', title: 'Killer game', text: 'Your secret target is assigned. Tag rivals with verbal traps before you get tagged.', cta: 'Open game', ctaDesktop: 'Go to killer game', cls: 'bg-hot text-white', btn: 'bg-white text-hot' },
   { id: 'oscar', sticker: ERASMUS_STICKERS.oscar, frames: ['oscar1', 'oscar2', 'oscar3', 'oscar4'], anim: 'mascot-breathe', speed: 700, to: '/oscar', title: 'Oscar Night', text: 'Create your film crew, send your nominees to the voting and cast your Oscar ballot.', cta: 'Open Oscar', ctaDesktop: 'Go to Oscar Night', cls: 'bg-ink text-white', btn: 'bg-sun text-ink' },
-  { id: 'punishment', sticker: ERASMUS_STICKERS.folderLock, frames: ['guilty1', 'guilty2', 'guilty3'], anim: 'mascot-breathe', speed: 750, to: '/punishment', title: 'Punishment box', text: 'Write a punishment (+1 point) or dare to pull one out of the box (−3 points).', cta: 'Open box', ctaDesktop: 'Open the box', cls: 'bg-[#FF94B8]', btn: 'bg-ink text-white' },
+  { id: 'punishment', sticker: ERASMUS_STICKERS.folderLock, frames: ['guilty1', 'guilty2', 'guilty3'], anim: 'mascot-breathe', speed: 750, to: '/punishment', title: 'Punishment box', text: 'Write a punishment (+2 points) or dare to pull one out of the box (−4 points).', cta: 'Open box', ctaDesktop: 'Open the box', cls: 'bg-[#FF94B8]', btn: 'bg-ink text-white' },
   { id: 'mouse-run', sticker: ERASMUS_STICKERS.cheese, frames: ['play2048_1', 'play2048_2', 'play2048_3', 'play2048_4'], anim: 'mascot-breathe', speed: 700, to: '/mouse-run', title: 'Rattie 2048', text: 'Slide & merge tiles to reach 2048! Your best score is saved — Top 3 win +500, +200 & +100 PTS.', cta: 'Play 2048', ctaDesktop: 'Play 2048', cls: 'bg-[#B89CFF]', btn: 'bg-ink text-white' },
-  { id: 'gossips', sticker: ERASMUS_STICKERS.megaphone, frames: ['gossip1', 'gossip2', 'gossip3', 'gossip4'], anim: 'mascot-breathe', speed: 700, to: '/gossips', title: 'Gossip board', text: 'Write a gossip anonymously (+1 point each). Reading the board opens only with the password from the organizers.', cta: 'Open board', ctaDesktop: 'Open gossip board', cls: 'bg-[#FF6E2D] text-ink', btn: 'bg-ink text-[#FF6E2D]' },
+  { id: 'gossips', sticker: ERASMUS_STICKERS.megaphone, frames: ['gossip1', 'gossip2', 'gossip3', 'gossip4'], anim: 'mascot-breathe', speed: 700, to: '/gossips', title: 'Gossip board', text: 'Write a gossip anonymously (+2 points each). Reading the board opens only with the password from the organizers.', cta: 'Open board', ctaDesktop: 'Open gossip board', cls: 'bg-[#FF6E2D] text-ink', btn: 'bg-ink text-[#FF6E2D]' },
   { id: 'reflection', sticker: ERASMUS_STICKERS.campfire, frames: ['reflect1', 'reflect2', 'reflect3', 'reflect4'], anim: 'mascot-breathe', speed: 800, to: '/reflection', title: 'Daily reflection', text: "Gather with your evening team, answer today's questions & earn +50 PTS together.", cta: 'Open reflection', ctaDesktop: 'Go to reflection', cls: 'bg-cobalt text-white', btn: 'bg-white text-cobalt' },
-  { id: 'erasmus-plus', sticker: ERASMUS_STICKERS.mapPins, customFrames: [ERASMUS_SPRITES.trioWalk, ERASMUS_SPRITES.trioCurious, ERASMUS_SPRITES.trioCheer], anim: 'mascot-breathe', speed: 750, to: '/erasmus-plus', title: 'Erasmus+', text: 'Essentials, official links & 9 interactive Pretty Patty competence games (0–100 PTS).', cta: 'Open Erasmus+', ctaDesktop: 'Open Erasmus+', cls: 'bg-[#FFE200] text-ink', btn: 'bg-ink text-[#FFE200]' },
+  { id: 'crocodile', sticker: HUB_STICKERS.crocodileBanner, customFrames: [kawaiiDragon, HUB_STICKERS.crocodileMascot], anim: 'mascot-breathe', speed: 750, to: '/crocodile', title: 'Crocodile', text: 'Team charades across 5 categories! One-time +8 PTS & +800 Coins per participant; turn passes when guessed.', cta: 'Play game', ctaDesktop: 'Play Crocodile', cls: 'bg-[#00E676] text-ink', btn: 'bg-ink text-[#00E676]' },
+  { id: 'erasmus-plus', sticker: HUB_STICKERS.erasmusBadge, customFrames: [ERASMUS_SPRITES.trioWalk, ERASMUS_SPRITES.trioCurious, ERASMUS_SPRITES.trioCheer], anim: 'mascot-breathe', speed: 750, to: '/erasmus-plus', title: 'Erasmus+', text: 'Essentials, official links & 9 interactive Pretty Patty competence games (0–100 PTS).', cta: 'Open Erasmus+', ctaDesktop: 'Open Erasmus+', cls: 'bg-[#FFE200] text-ink', btn: 'bg-ink text-[#FFE200]' },
 ];
 
 // Static image by default; animates only when hovered
@@ -75,9 +78,7 @@ function NavCard({ n, hiddenTag, dim }) {
           </div>
           <p className="hidden sm:block text-sm mt-2 font-medium leading-snug opacity-95">{n.text}</p>
         </div>
-        <div className="hidden sm:block">
-          <CardMouse frames={n.frames} customFrames={n.customFrames} anim={n.anim} speed={n.speed} hovered={hovered} />
-        </div>
+        <CardMouse frames={n.frames} customFrames={n.customFrames} anim={n.anim} speed={n.speed} hovered={hovered} />
       </div>
       {n.href ? (
         <a href={n.href} target="_blank" rel="noopener noreferrer" className={`btn !px-3 !py-2 sm:!px-4 sm:!py-2 text-[11px] sm:text-xs font-extrabold leading-tight justify-between sm:justify-center w-full sm:w-auto sm:self-start ${n.btn}`}>

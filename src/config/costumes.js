@@ -1,4 +1,5 @@
 import { SPRITES } from '../components/mascot/sprites.js';
+import { HUB_STICKERS } from '../assets/stickers/index.js';
 
 import witch from '../assets/costumes/witch.png';
 import vampire from '../assets/costumes/vampire.png';
@@ -204,25 +205,27 @@ export const COSTUMES = [...FREE_CLASSIC_ITEMS, ...NEW_PAID_ITEMS];
 export const COSTUME_BY_ID = new Map(COSTUMES.map((c) => [c.id, c]));
 
 export const COSTUME_CATEGORIES = [
-  { id: 'all', label: `All (${COSTUMES.length})` },
-  { id: 'classic', label: `Free Classics (${FREE_CLASSIC_ITEMS.length})` },
-  { id: 'owned', label: 'My wardrobe' },
-  { id: 'spooky', label: 'Spooky & Magic' },
-  { id: 'pop', label: 'Heroes & Pop' },
-  { id: 'culture', label: 'World & Style' },
-  { id: 'animals', label: 'Animals' },
-  { id: 'adventure', label: 'Adventure' },
+  { id: 'all', label: `All (${COSTUMES.length})`, sticker: HUB_STICKERS.badgeStar },
+  { id: 'classic', label: `Free Classics (${FREE_CLASSIC_ITEMS.length})`, sticker: HUB_STICKERS.wardrobeClassic },
+  { id: 'owned', label: 'My wardrobe', sticker: HUB_STICKERS.wardrobeBanner },
+  { id: 'spooky', label: 'Spooky & Magic', sticker: HUB_STICKERS.wardrobeSpooky },
+  { id: 'pop', label: 'Heroes & Pop', sticker: HUB_STICKERS.wardrobeHeroes },
+  { id: 'culture', label: 'World & Style', sticker: HUB_STICKERS.wardrobeWorld },
+  { id: 'animals', label: 'Animals', sticker: HUB_STICKERS.wardrobeAnimals },
+  { id: 'adventure', label: 'Adventure', sticker: HUB_STICKERS.wardrobeAdventure },
 ];
 
 /**
  * Escalating outfit unlock pricing:
- * 1st purchase (boughtCount = 0): 20 PTS  or  2,000 2048 PTS
- * 2nd purchase (boughtCount = 1): 40 PTS  or  4,000 2048 PTS
- * Subsequent purchases: increases by +40 PTS each time (80, 120, 160...) and x100 for 2048 pts (8,000, 12,000, 16,000...).
+ * Increases linearly by +20 PTS (+2,000 Outfit Coins) each purchase:
+ * 1st purchase (boughtCount = 0): 20 PTS  or  2,000 Outfit Coins
+ * 2nd purchase (boughtCount = 1): 40 PTS  or  4,000 Outfit Coins
+ * 3rd purchase (boughtCount = 2): 60 PTS  or  6,000 Outfit Coins
+ * 4th purchase (boughtCount = 3): 80 PTS  or  8,000 Outfit Coins...
  */
 export function nextCostumePrice(boughtCount = 0) {
   const n = Math.max(0, Math.floor(Number(boughtCount) || 0));
-  const pts = n === 0 ? 20 : n * 40;
+  const pts = (n + 1) * 20;
   return {
     pts,
     game2048: pts * 100,

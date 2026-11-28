@@ -5,6 +5,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './config.js';
 import { parseScoreValue } from '../utils/format.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 const list = (s) => s.docs.map((d) => ({ id: d.id, ...d.data() }));
 // onErr — показує помилку бази на екрані замість тихого "нічого не відбувається"
@@ -79,20 +80,34 @@ export async function removeUser(uid) {
 
 /* ---------- бали: нарахування / віднімання адміном ---------- */
 export async function adjustPoints(userId, delta, reason = 'Manual') {
-  const batch = writeBatch(db);
-  batch.update(doc(db, 'users', userId), { score: increment(delta) });
-  batch.set(doc(collection(db, 'pointsLog')), { userId, delta, reason, createdAt: serverTimestamp() });
-  await batch.commit();
+  const amt = Number(delta) || 0;
+  const uRef = doc(db, 'users', userId);
+  const sRef = s2048DocRef(userId);
+  await runTransaction(db, async (tx) => {
+    const [uSnap, sSnap] = await Promise.all([tx.get(uRef), amt > 0 ? tx.get(sRef) : null]);
+    if (!uSnap.exists()) throw new Error('Account not found.');
+    const patch = buildUserRewardPatch(uSnap.data(), sSnap, amt);
+    tx.update(uRef, patch);
+    tx.set(doc(collection(db, 'pointsLog')), { userId, delta: amt, reason, createdAt: serverTimestamp() });
+  });
 }
 
 export async function adjustPointsBatch(userIds, delta, reason = 'Manual') {
   const clean = [...new Set((userIds || []).filter(Boolean))];
   const amt = Number(delta);
   if (!clean.length || !amt) return 0;
-  for (let i = 0; i < clean.length; i += 200) {
+  for (let i = 0; i < clean.length; i += 100) {
+    const chunk = clean.slice(i, i + 100);
+    const [uSnaps, sSnaps] = await Promise.all([
+      Promise.all(chunk.map((id) => getDoc(doc(db, 'users', id)))),
+      amt > 0 ? Promise.all(chunk.map((id) => getDoc(s2048DocRef(id)))) : Promise.resolve([]),
+    ]);
     const batch = writeBatch(db);
-    clean.slice(i, i + 200).forEach((userId) => {
-      batch.update(doc(db, 'users', userId), { score: increment(amt) });
+    chunk.forEach((userId, idx) => {
+      const uSnap = uSnaps[idx];
+      if (!uSnap?.exists()) return;
+      const patch = buildUserRewardPatch(uSnap.data(), sSnaps[idx], amt);
+      batch.update(doc(db, 'users', userId), patch);
       batch.set(doc(collection(db, 'pointsLog')), { userId, delta: amt, reason, createdAt: serverTimestamp() });
     });
     await batch.commit();
@@ -265,13 +280,21 @@ export const sendSubmission = (id, data) =>
   setDoc(doc(db, 'submissions', id), { ...data, status: 'pending', createdAt: serverTimestamp() });
 
 export async function approveSubmission(s) {
-  const batch = writeBatch(db);
-  batch.update(doc(db, 'submissions', s.id), { status: 'approved' });
-  batch.update(doc(db, 'users', s.userId), { score: increment(s.points) });
-  batch.set(doc(collection(db, 'pointsLog')), {
-    userId: s.userId, delta: s.points, reason: `Mission: ${s.missionTitle}`, createdAt: serverTimestamp(),
+  const subRef = doc(db, 'submissions', s.id);
+  const uRef = doc(db, 'users', s.userId);
+  const sRef = s2048DocRef(s.userId);
+  await runTransaction(db, async (tx) => {
+    const [subSnap, uSnap, s2048Snap] = await Promise.all([tx.get(subRef), tx.get(uRef), tx.get(sRef)]);
+    if (subSnap.exists() && subSnap.data()?.status === 'approved') return;
+    tx.update(subRef, { status: 'approved' });
+    if (uSnap.exists()) {
+      const patch = buildUserRewardPatch(uSnap.data(), s2048Snap, s.points);
+      tx.update(uRef, patch);
+    }
+    tx.set(doc(collection(db, 'pointsLog')), {
+      userId: s.userId, delta: s.points, reason: `Mission: ${s.missionTitle}`, createdAt: serverTimestamp(),
+    });
   });
-  await batch.commit();
 }
 
 export const rejectSubmission = (id) => updateDoc(doc(db, 'submissions', id), { status: 'rejected' });
@@ -346,12 +369,13 @@ export async function sendGossip(user, rawText, _showName = false, via = null) {
   const gRef = doc(db, 'gossips', await gossipId(user.id, text));
   await runTransaction(db, async (tx) => {
     const uRef = doc(db, 'users', user.id);
-    const [g, u] = await Promise.all([tx.get(gRef), tx.get(uRef)]);
+    const sRef = s2048DocRef(user.id);
+    const [g, u, s2048Snap] = await Promise.all([tx.get(gRef), tx.get(uRef), tx.get(sRef)]);
     if (!u.exists()) throw fail('nouser', 'Account not found.');
     if (g.exists()) throw fail('duplicate', 'Already told.');
     // all gossips are strictly anonymous: no author identity is stored
     tx.set(gRef, { anonymous: true, text, words, points: GOSSIP_POINTS, ...(via ? { via } : {}), createdAt: serverTimestamp() });
-    tx.update(uRef, { score: increment(GOSSIP_POINTS) });
+    tx.update(uRef, buildUserRewardPatch(u.data(), s2048Snap, GOSSIP_POINTS));
     // generic reason on purpose: the points log is visible to everybody, the gossip itself is not
     tx.set(doc(collection(db, 'pointsLog')), { userId: user.id, delta: GOSSIP_POINTS, reason: 'Gift from Rattie Patty', createdAt: serverTimestamp() });
   });
@@ -384,12 +408,13 @@ export const subscribeHubSettings = (cb, onErr = noop) =>
     doc(db, 'settings', 'hub'),
     (s) => {
       const d = s.exists() ? s.data() : {};
+      const rawContacts = d.contacts && typeof d.contacts === 'object' ? d.contacts : {};
+      const mergedContacts = { ...DEFAULT_HUB_SETTINGS.contacts, ...rawContacts };
+      if (mergedContacts.telegram === '@erasmus_duty') mergedContacts.telegram = '';
+      if (String(mergedContacts.dutyPhone || '').trim().startsWith('+380')) mergedContacts.dutyPhone = '';
       cb({
         mediaUploadUrl: typeof d.mediaUploadUrl === 'string' ? d.mediaUploadUrl : MEDIA_UPLOAD_URL,
-        contacts: {
-          ...DEFAULT_HUB_SETTINGS.contacts,
-          ...(d.contacts && typeof d.contacts === 'object' ? d.contacts : {}),
-        },
+        contacts: mergedContacts,
       });
     },
     onErr,

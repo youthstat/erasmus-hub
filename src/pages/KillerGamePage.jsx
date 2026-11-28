@@ -4,6 +4,7 @@ import GamePanel from '../components/games/GamePanel.jsx';
 import KillerBoard from '../components/games/KillerBoard.jsx';
 import { Step, Card, List, Banner } from '../components/games/RulesBits.jsx';
 import { ERASMUS_STICKERS } from '../assets/erasmus/index.js';
+import { CROCODILE_STICKERS } from '../assets/crocodile/index.js';
 
 export default function KillerGamePage() {
   return (
@@ -61,7 +62,7 @@ export default function KillerGamePage() {
         <section className="box shadow-b8 p-6 bg-sun flex items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-extrabold uppercase flex items-center gap-2">
-              <img src={ERASMUS_STICKERS.oscar} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+              <img src={CROCODILE_STICKERS.trophy} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
               <span>Grand prize</span>
             </h2>
             <p className="mt-2 font-bold">The last surviving agent becomes MASTER KILLER: the cup, an official merch box and +500 points on the leaderboard.</p>

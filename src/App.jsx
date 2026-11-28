@@ -16,6 +16,7 @@ import MouseAvatarPage from './pages/MouseAvatarPage.jsx';
 import SfBuddyPage from './pages/SfBuddyPage.jsx';
 import SfProfilePage from './pages/SfProfilePage.jsx';
 import ErasmusPlusPage from './pages/ErasmusPlusPage.jsx';
+import CrocodilePage from './pages/CrocodilePage.jsx';
 import Footer from './components/layout/Footer.jsx';
 import CopyrightPage from './pages/CopyrightPage.jsx';
 import Gate from './components/layout/Gate.jsx';
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/mouse-run" element={<Gate id="mouse-run"><MouseRunPage /></Gate>} />
           <Route path="/mouse-avatar" element={<MouseAvatarPage />} />
           <Route path="/gossips" element={<Gate id="gossips"><GossipBoardPage /></Gate>} />
+          <Route path="/crocodile" element={<Gate id="crocodile"><CrocodilePage /></Gate>} />
           <Route path="/erasmus-plus" element={<Gate id="erasmus-plus"><ErasmusPlusPage /></Gate>} />
         </Routes>
       </main>

@@ -5,6 +5,7 @@ import {
 import { db } from './config.js';
 import { PADLET_URL, REFLECTION_POINTS_PER_DAY } from '../config/settings.js';
 import { todayKey } from './punishment.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 const list = (s) => s.docs.map((d) => ({ id: d.id, ...d.data() }));
 const noop = () => {};
@@ -65,8 +66,11 @@ export async function confirmReflectionDone({ teamId, userId, userName, isAdmin 
     }
 
     const pts = Math.max(1, Number(cfg.pointsPerDay) || REFLECTION_POINTS_PER_DAY);
-    const userSnaps = await Promise.all(members.map((id) => tx.get(doc(db, 'users', id))));
-    const dayLocks = await Promise.all(members.map((id) => tx.get(doc(db, 'reflectionUserDays', `${id}_${day}`))));
+    const [userSnaps, s2048Snaps, dayLocks] = await Promise.all([
+      Promise.all(members.map((id) => tx.get(doc(db, 'users', id)))),
+      Promise.all(members.map((id) => tx.get(s2048DocRef(id)))),
+      Promise.all(members.map((id) => tx.get(doc(db, 'reflectionUserDays', `${id}_${day}`)))),
+    ]);
 
     const credited = [];
     members.forEach((id, i) => {
@@ -74,7 +78,7 @@ export async function confirmReflectionDone({ teamId, userId, userName, isAdmin 
       const lockSnap = dayLocks[i];
       if (!uSnap.exists() || uSnap.data()?.isDemo || lockSnap.exists()) return;
       const uRef = doc(db, 'users', id);
-      tx.update(uRef, { score: increment(pts) });
+      tx.update(uRef, buildUserRewardPatch(uSnap.data(), s2048Snaps[i], pts));
       tx.set(doc(db, 'reflectionUserDays', `${id}_${day}`), {
         userId: id,
         teamId: team.id,

@@ -2,6 +2,7 @@ import {
   collection, doc, onSnapshot, runTransaction, serverTimestamp, increment,
 } from 'firebase/firestore';
 import { db } from './config.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 const noop = () => {};
 
@@ -77,7 +78,8 @@ export async function recordErasmusGameScore({
   await runTransaction(db, async (tx) => {
     const pRef = doc(db, 'erasmusProgress', userId);
     const uRef = doc(db, 'users', userId);
-    const [pSnap, uSnap] = await Promise.all([tx.get(pRef), tx.get(uRef)]);
+    const sRef = s2048DocRef(userId);
+    const [pSnap, uSnap, s2048Snap] = await Promise.all([tx.get(pRef), tx.get(uRef), tx.get(sRef)]);
 
     const data = pSnap.exists() ? (pSnap.data() || {}) : {};
     const prevGames = data.games && typeof data.games === 'object' ? { ...data.games } : {};
@@ -129,7 +131,7 @@ export async function recordErasmusGameScore({
     );
 
     if (improved > 0 && uSnap.exists()) {
-      tx.update(uRef, { score: increment(improved) });
+      tx.update(uRef, buildUserRewardPatch(uSnap.data(), s2048Snap, improved));
       tx.set(doc(collection(db, 'pointsLog')), {
         userId,
         delta: improved,
@@ -276,7 +278,8 @@ export async function completeStop5Challenge({
   await runTransaction(db, async (tx) => {
     const pRef = doc(db, 'erasmusProgress', userId);
     const uRef = doc(db, 'users', userId);
-    const [pSnap, uSnap] = await Promise.all([tx.get(pRef), tx.get(uRef)]);
+    const sRef = s2048DocRef(userId);
+    const [pSnap, uSnap, s2048Snap] = await Promise.all([tx.get(pRef), tx.get(uRef), tx.get(sRef)]);
 
     const data = pSnap.exists() ? (pSnap.data() || {}) : {};
     const prevGames = data.games && typeof data.games === 'object' ? { ...data.games } : {};
@@ -315,7 +318,7 @@ export async function completeStop5Challenge({
     );
 
     if (improved > 0 && uSnap.exists()) {
-      tx.update(uRef, { score: increment(improved) });
+      tx.update(uRef, buildUserRewardPatch(uSnap.data(), s2048Snap, improved));
       tx.set(doc(collection(db, 'pointsLog')), {
         userId,
         delta: improved,

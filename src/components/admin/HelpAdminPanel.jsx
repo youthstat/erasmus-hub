@@ -78,7 +78,7 @@ export default function HelpAdminPanel() {
             <span>Phone number *</span>
             <input
               className="input !shadow-none !py-2"
-              placeholder="e.g. +380 99 123 45 67"
+              placeholder="e.g. +34 600 123 456"
               maxLength={40}
               value={contacts.dutyPhone || ''}
               onChange={setField('dutyPhone')}
@@ -88,7 +88,7 @@ export default function HelpAdminPanel() {
             <span>Telegram / WhatsApp</span>
             <input
               className="input !shadow-none !py-2"
-              placeholder="e.g. @erasmus_duty"
+              placeholder="e.g. @hub_support"
               maxLength={60}
               value={contacts.telegram || ''}
               onChange={setField('telegram')}

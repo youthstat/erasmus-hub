@@ -2,6 +2,7 @@
    ЄДИНИЙ ФАЙЛ НАЛАШТУВАНЬ — усе, що може змінюватися, змінюйте тільки тут.
    (паролі, контакти, посилання, розклад сесій, правила, тексти, бали). Після змін: збережіть і задеплойте.
    ===================================================================================================== */
+import { HUB_STICKERS } from '../assets/stickers/index.js';
 
 /* ---------- Паролі та посилання ---------- */
 export const ADMIN_PASSWORD = '1234';                           // пароль адміністратора
@@ -20,28 +21,28 @@ export const REFLECTION_PROMPTS = [
 /* ---------- Контакти організаторів (сторінка "Ask the Team") ---------- */
 export const CONTACTS = {
   dutyName: 'Duty coordinator (24/7)',   // хто відповідає / черговий координатор
-  dutyPhone: '+380 XX XXX XX XX',        // номер телефону чергового
-  telegram: '@erasmus_duty',             // Telegram чергового
+  dutyPhone: '',                         // номер телефону чергового
+  telegram: '',                          // Telegram / WhatsApp чергового
   medicalRoom: 'Room 101 (1st floor)',   // медпункт / аптечка
   emergencyNumber: '112',                // єдиний номер екстрених служб
   infoDesk: 'Info desk in the central hall',
 };
 
 /* ---------- Rattie Patty (мишка) ---------- */
-export const GOSSIP_POINTS = 1;          // балів за один госіп
+export const GOSSIP_POINTS = 2;          // балів за один госіп
 export const GOSSIP_MIN_WORDS = 4;       // мінімум слів (більше трьох = 4+)
 export const MAX_GOSSIP_LENGTH = 500;    // максимум символів
 
 /* Категорії звернень. kind: 'absence' = окрема форма "запізнитись / відсутній на сесії"; решта мають однакові поля */
 export const HELP_CATEGORIES = [
-  { id: 'absence',  icon: '🏃', title: 'Late / absent notice', kind: 'absence', hint: 'Tell the organizers that you will be late or absent and why. Write in the comment anything they should know.' },
-  { id: 'medical',  icon: '🏥', title: 'Medical & wellbeing', hint: 'Symptoms, medication, first aid. In an emergency call the number on the right first.' },
-  { id: 'room',     icon: '🏠', title: 'Accommodation & room', hint: 'Lost key, heating, noise, linen, Wi-Fi in the room.' },
-  { id: 'conflict', icon: '🛡️', title: 'Conflict & safeguarding', hint: 'Any uncomfortable or unsafe situation. You can stay anonymous.' },
-  { id: 'mental',   icon: '🧠', title: 'Mental & emotional support', hint: 'Stress, homesickness, burnout. A facilitator will talk to you privately.' },
-  { id: 'food',     icon: '🍽️', title: 'Food & allergies', hint: 'Dietary restrictions, allergies, meal problems.' },
-  { id: 'logistics', icon: '📄', title: 'Logistics, passport & travel', hint: 'Tickets, transfers, documents, schedule changes.' },
-  { id: 'other',    icon: '💬', title: 'Other question', hint: 'Anything else for the organizers and facilitators.' },
+  { id: 'absence',  icon: '🏃', sticker: HUB_STICKERS.helpAbsence, glyph: HUB_STICKERS.iconAlarm, title: 'Late / absent notice', kind: 'absence', hint: 'Tell the organizers that you will be late or absent and why. Write in the comment anything they should know.' },
+  { id: 'medical',  icon: '🏥', sticker: HUB_STICKERS.helpMedical, glyph: HUB_STICKERS.iconHeart, title: 'Medical & wellbeing', hint: 'Symptoms, medication, first aid. In an emergency call the number on the right first.' },
+  { id: 'room',     icon: '🏠', sticker: HUB_STICKERS.helpRoom, glyph: HUB_STICKERS.iconBed, title: 'Accommodation & room', hint: 'Lost key, heating, noise, linen, Wi-Fi in the room.' },
+  { id: 'conflict', icon: '🛡️', sticker: HUB_STICKERS.helpConflict, glyph: HUB_STICKERS.iconShield, title: 'Conflict & safeguarding', hint: 'Any uncomfortable or unsafe situation. You can stay anonymous.' },
+  { id: 'mental',   icon: '🧠', sticker: HUB_STICKERS.helpMental, glyph: HUB_STICKERS.iconHeart, title: 'Mental & emotional support', hint: 'Stress, homesickness, burnout. A facilitator will talk to you privately.' },
+  { id: 'food',     icon: '🍽️', sticker: HUB_STICKERS.helpFood, glyph: HUB_STICKERS.iconFood, title: 'Food & allergies', hint: 'Dietary restrictions, allergies, meal problems.' },
+  { id: 'logistics', icon: '📄', sticker: HUB_STICKERS.helpLogistics, glyph: HUB_STICKERS.iconPassport, title: 'Logistics, passport & travel', hint: 'Tickets, transfers, documents, schedule changes.' },
+  { id: 'other',    icon: '💬', sticker: HUB_STICKERS.helpOther, glyph: HUB_STICKERS.iconChat, title: 'Other question', hint: 'Anything else for the organizers and facilitators.' },
 ];
 export const PRIORITIES = [
   { id: 'normal', label: 'Normal' },
@@ -93,8 +94,8 @@ export const HOME_MARQUEE_TOP = ['PROTOCOL V2.4 ONLINE', 'ALL-HANDS LIVE TRANSMI
 export const HOME_MARQUEE_BOTTOM = ['TERMINAL ACTIVE', 'NEXT SECRET GATHERING: ANNOUNCED SOON', 'BRING PHYSICAL BADGES'];
 
 /* ---------- Punishment box ---------- */
-export const PUNISHMENT_COST = 3;          // скільки балів віднімається за кожен витягнутий панішмент
-export const PUNISHMENT_REWARD = 1;        // скільки балів додається за кожен написаний панішмент
+export const PUNISHMENT_COST = 4;          // скільки балів віднімається за кожен витягнутий панішмент
+export const PUNISHMENT_REWARD = 2;        // скільки балів додається за кожен написаний панішмент
 export const PUNISHMENT_DAILY_LIMIT = 5;   // скільки панішментів одна людина може написати за день
 export const PUNISHMENT_MIN_LENGTH = 5;    // мінімум символів
 export const PUNISHMENT_MAX_LENGTH = 200;  // максимум символів
@@ -117,6 +118,7 @@ export const HOME_SECTIONS = [
   { id: 'ask', title: 'Ask the Team', kind: 'card' },
   { id: 'gossips', title: 'Gossip board', kind: 'card' },
   { id: 'reflection', title: 'Daily reflection', kind: 'card' },
+  { id: 'crocodile', title: 'Crocodile (charades game)', kind: 'card' },
   { id: 'erasmus-plus', title: 'Erasmus+ (competence games)', kind: 'card' },
 ];
 

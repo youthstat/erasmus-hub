@@ -64,16 +64,37 @@ export default function HelpPage() {
               </div>
             ) : (
               <form onSubmit={submit} className="p-4 sm:p-6 bg-paper flex flex-col gap-5">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <span className="font-mono text-xs font-bold uppercase">Category *</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {HELP_CATEGORIES.map((c) => (
-                      <button type="button" key={c.id} onClick={() => { setCatId(c.id); setMsg(''); }}
-                        className={`text-left border-[3px] border-ink rounded-xl px-3 py-2 font-mono text-sm font-bold ${catId === c.id ? 'bg-sun shadow-b4' : 'bg-white'}`}>{c.icon} {c.title}</button>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {HELP_CATEGORIES.map((c) => {
+                      const active = catId === c.id;
+                      return (
+                        <button
+                          type="button"
+                          key={c.id}
+                          onClick={() => { setCatId(c.id); setMsg(''); }}
+                          className={`text-left border-[3px] border-ink rounded-xl px-3 py-2 font-mono text-sm font-bold flex items-center gap-3 transition-all cursor-pointer ${
+                            active ? 'bg-sun shadow-b4 -translate-y-0.5' : 'bg-white hover:bg-paper'
+                          }`}
+                        >
+                          {c.sticker ? (
+                            <img src={c.sticker} alt="" className="w-11 h-11 object-contain shrink-0" draggable={false} />
+                          ) : (
+                            <span className="text-lg shrink-0">{c.icon}</span>
+                          )}
+                          <span className="leading-snug">{c.title}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <p className="text-sm font-medium border-l-4 border-ink pl-3">{cat.hint}</p>
+                <div className="flex items-center gap-2.5 border-l-4 border-ink pl-3 py-0.5">
+                  {cat.glyph && (
+                    <img src={cat.glyph} alt="" className="w-7 h-7 object-contain shrink-0" draggable={false} />
+                  )}
+                  <p className="text-sm font-medium">{cat.hint}</p>
+                </div>
 
                 {/* name / anonymous */}
                 <div className="border-[3px] border-ink rounded-xl bg-white p-3 flex flex-col gap-2">

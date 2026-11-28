@@ -1,12 +1,13 @@
 import { collection, doc, getDocs, onSnapshot, query, runTransaction, where, increment, serverTimestamp, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './config.js';
 import { PUNISHMENT_COST, PUNISHMENT_REWARD, PUNISHMENT_MIN_LENGTH, PUNISHMENT_MAX_LENGTH, PUNISHMENT_DAILY_LIMIT } from '../config/settings.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 /*
   Punishment box — Firestore
   punishments/{id}  { text, userId, userName, drawn, drawnBy, drawnByName, drawnAt, createdAt }
     id = hash(author + text): the same person cannot put the same paper in twice.
-  Writing a paper: +PUNISHMENT_REWARD point to the author (same transaction), at most PUNISHMENT_DAILY_LIMIT per person per day.
+  Writing a paper: +PUNISHMENT_REWARD points to the author (same transaction), at most PUNISHMENT_DAILY_LIMIT per person per day.
   Drawing a paper: -PUNISHMENT_COST points to the person who draws; one random paper that is still in the box
   (papers of other people first); a paper is taken only once (transaction).
   Participants never see who wrote what; only the admin panel shows authors.
@@ -33,15 +34,16 @@ export async function writePunishment(user, rawText) {
   const pRef = doc(db, 'punishments', await paperId(user.id, text));
   await runTransaction(db, async (tx) => {
     const uRef = doc(db, 'users', user.id);
+    const sRef = s2048DocRef(user.id);
     const dRef = doc(db, 'punishmentDaily', `${user.id}_${todayKey()}`);
-    const [p, u, d] = await Promise.all([tx.get(pRef), tx.get(uRef), tx.get(dRef)]);
+    const [p, u, d, s2048Snap] = await Promise.all([tx.get(pRef), tx.get(uRef), tx.get(dRef), tx.get(sRef)]);
     if (!u.exists()) throw fail('nouser', 'Account not found.');
     const count = d.exists() ? d.data().count || 0 : 0;
     if (count >= PUNISHMENT_DAILY_LIMIT) throw fail('limit', `You can write only ${PUNISHMENT_DAILY_LIMIT} punishments a day. Come back tomorrow!`);
     if (p.exists()) throw fail('duplicate', 'You have already put this punishment into the box. Think of a new one!');
     tx.set(pRef, { text, userId: user.id, userName: user.name, drawn: false, createdAt: serverTimestamp() });
     tx.set(dRef, { userId: user.id, day: todayKey(), count: count + 1 });
-    tx.update(uRef, { score: increment(PUNISHMENT_REWARD) });
+    tx.update(uRef, buildUserRewardPatch(u.data(), s2048Snap, PUNISHMENT_REWARD));
     tx.set(doc(collection(db, 'pointsLog')), { userId: user.id, delta: PUNISHMENT_REWARD, reason: 'Punishment box: wrote a punishment', createdAt: serverTimestamp() });
   });
   return PUNISHMENT_REWARD;

@@ -65,7 +65,7 @@ export async function buyMouseCostume({ userId, costumeId, currency, bgColor = '
             ? Number(s2048Snap.data().bestScore) || 0
             : 0;
       if (currentWallet < price.game2048) {
-        throw fail('funds', `You need ${price.game2048.toLocaleString('en-US')} 2048 points (you have ${currentWallet.toLocaleString('en-US')}).`);
+        throw fail('funds', `You need ${price.game2048.toLocaleString('en-US')} Outfit Coins (you have ${currentWallet.toLocaleString('en-US')}).`);
       }
       tx.update(uRef, {
         game2048Points: currentWallet - price.game2048,

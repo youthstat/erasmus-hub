@@ -1,0 +1,233 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"primary-fixed-dim":"#dec800","on-primary":"#ffffff","surface":"#fbf9f1","secondary-fixed":"#7df4ff","surface-container-lowest":"#ffffff","tertiary-container":"#ffdcdf","on-tertiary-fixed-variant":"#910031","on-secondary":"#ffffff","on-secondary-fixed-variant":"#004f54","on-secondary-fixed":"#002022","outline":"#7c775f","on-error-container":"#93000a","primary":"#6a5f00","surface-container-low":"#f5f4ec","inverse-on-surface":"#f3f1e9","on-primary-fixed":"#201c00","on-surface-variant":"#4b4731","on-tertiary-fixed":"#400011","background":"#fbf9f1","surface-variant":"#e4e3db","surface-tint":"#6a5f00","error":"#ba1a1a","secondary":"#006970","surface-container-highest":"#e4e3db","tertiary-fixed":"#ffd9dc","on-tertiary":"#ffffff","secondary-fixed-dim":"#00dbe9","surface-bright":"#fbf9f1","on-primary-fixed-variant":"#504700","surface-container":"#f0eee6","surface-container-high":"#eae8e0","on-surface":"#1b1c17","surface-dim":"#dcdad2","primary-fixed":"#fde400","tertiary-fixed-dim":"#ffb2ba","inverse-primary":"#dec800","error-container":"#ffdad6","on-error":"#ffffff","on-secondary-container":"#00686f","inverse-surface":"#30312c","secondary-container":"#00eefc","on-tertiary-container":"#c2234c","outline-variant":"#cdc7aa","on-primary-container":"#726600","on-background":"#1b1c17","primary-container":"#ffe600","tertiary":"#b71945"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-sm":"0.5rem","gutter-board":"0.5rem","margin":"1rem","space-xl":"1.5rem","space-lg":"1rem","space-md":"0.75rem","space-xs":"0.25rem","gutter":"0.75rem","margin-mobile":"0.75rem"},"fontFamily":{"headline-sm":["Space Grotesk"],"headline-lg":["Space Grotesk"],"headline-lg-mobile":["Space Grotesk"],"display-hero":["Space Grotesk"],"body-lg":["Space Grotesk"],"display-hero-mobile":["Space Grotesk"],"label-numeric-lg":["JetBrains Mono"],"label-numeric-sm":["JetBrains Mono"],"headline-md":["Space Grotesk"],"label-ui":["Space Grotesk"],"label-numeric-md":["JetBrains Mono"],"body-md":["Space Grotesk"]},"fontSize":{"headline-sm":["18px",{"lineHeight":"22px","fontWeight":"700"}],"headline-lg":["32px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-lg-mobile":["26px",{"lineHeight":"30px","letterSpacing":"-0.02em","fontWeight":"700"}],"display-hero":["56px",{"lineHeight":"56px","letterSpacing":"-0.04em","fontWeight":"800"}],"body-lg":["16px",{"lineHeight":"22px","fontWeight":"600"}],"display-hero-mobile":["40px",{"lineHeight":"42px","letterSpacing":"-0.04em","fontWeight":"800"}],"label-numeric-lg":["28px",{"lineHeight":"32px","letterSpacing":"-0.03em","fontWeight":"800"}],"label-numeric-sm":["12px",{"lineHeight":"14px","letterSpacing":"0.05em","fontWeight":"700"}],"headline-md":["22px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-ui":["12px",{"lineHeight":"14px","letterSpacing":"0.06em","fontWeight":"700"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"500"}]}}}};</script><style type="text/css">#jpenglishdictionary * :not(svg,path){all:revert}#jpenglishdictionary svg{width:auto!important}#jpenglishdictionary{font-size:18px!important;font-family:Segoe UI,Arial,sans-serif!important;color:#1f2328!important;line-height:1.5!important;text-align:left!important}#jpenglishdictionary .o-result-item{line-height:1.5;display:block;margin-right:0;cursor:pointer}#jpenglishdictionary .o-result-item:hover{border-color:#c6d6ef!important}#jpenglishdictionary .o-selected-result{max-height:300px;overflow-y:scroll}#jpenglishdictionary .o-selected-result::-webkit-scrollbar{width:13px}#jpenglishdictionary .o-selected-result::-webkit-scrollbar-thumb{border-radius:10px;-webkit-box-shadow:inset 3px 0 0 3px #fff;background:rgba(0,0,0,.2)}#jpenglishdictionary .o-pop-nav div{font-size:14px;padding:3.2px 8px}#jpenglishdictionary .o-pop-speak{margin-top:5px;margin-right:8px;font-size:16px;cursor:pointer}#jpenglishdictionary .o-search-mobile{z-index:2147483647;position:absolute;cursor:pointer;display:none}#jpenglishdictionary .o-popup-tag{z-index:99999;position:absolute;display:none;padding:10px 5px 10px 10px}#jpenglishdictionary .o-bg-white{background-color:#fff!important}#jpenglishdictionary .o-border{border:1px solid #dee2e6!important}#jpenglishdictionary .o-rounded{border-radius:4px!important}#jpenglishdictionary .o-shadow{box-shadow:0 8px 16px rgba(0,0,0,.15)!important}#jpenglishdictionary .o-btn-close{box-sizing:content-box;width:16px;height:16px;padding:4px 4px;color:#000;background:transparent url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3E%3C/svg%3E") 50%/16px auto no-repeat;border:0;border-radius:4px;opacity:.5;cursor:pointer}#jpenglishdictionary .o-btn-close:hover{opacity:.75}#jpenglishdictionary .o-me-1{margin-right:4px!important}#jpenglishdictionary .o-end-0{right:0!important}#jpenglishdictionary .o-top-0{top:0!important}#jpenglishdictionary .o-position-absolute{position:absolute!important}#jpenglishdictionary ul{padding-left:32px;display:block;list-style-type:disc;-webkit-margin-before:16px;margin-block-start:16px;-webkit-margin-after:16px;margin-block-end:16px;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0;-webkit-padding-start:40px;padding-inline-start:40px}#jpenglishdictionary .o-pt-1{padding-top:4px!important}#jpenglishdictionary .mark,#jpenglishdictionary mark{padding:0!important;background-color:#ffffe0!important}#jpenglishdictionary .o-mt-1{margin-top:4px!important}#jpenglishdictionary .o-p-2{padding:8px!important}#jpenglishdictionary .o-mb-1{margin-bottom:4px!important}#jpenglishdictionary .o-border-3{border-width:3px!important}#jpenglishdictionary .o-text-secondary{color:#6c757d}#jpenglishdictionary .o-speaking{color:#0d6efd!important}#jpenglishdictionary .o-text-primary{color:#0d6efd}#jpenglishdictionary .o-w-100{width:100%!important}#jpenglishdictionary .o-link-danger{color:#dc3545}#jpenglishdictionary .o-link-danger:hover{color:#0d6efd}#jpenglishdictionary .o-link-ah:hover{color:#dc3545}#jpenglishdictionary .o-text-decoration-none{text-decoration:none!important}#jpenglishdictionary .o-fs-6,#jpenglishdictionary .o-small{font-size:16px!important}#jpenglishdictionary .o-ms-1{margin-left:4px!important}#jpenglishdictionary .o-mt-2{margin-top:8px!important}#jpenglishdictionary .o-float-start{float:left!important}#jpenglishdictionary label{display:inline-block}#jpenglishdictionary .o-float-end{float:right!important}#jpenglishdictionary .o-float-end a:hover{filter:brightness(95%)}#jpenglishdictionary .o-link-secondary{color:#6c757d!important}#jpenglishdictionary .o-result-item .o-inflect{font-size:14px;color:#666;overflow:hidden;text-overflow:ellipsis}#jpenglishdictionary .o-nav-tabs{border-bottom:1px solid #dee2e6}#jpenglishdictionary .o-nav{display:flex;flex-wrap:wrap;padding-left:0;margin-bottom:0;list-style:none}#jpenglishdictionary ul{margin-top:0;margin-bottom:16px}#jpenglishdictionary li{display:list-item;text-align:-webkit-match-parent}#jpenglishdictionary .o-nav-tabs .o-nav-item.show .o-nav-link,#jpenglishdictionary .o-nav-tabs .o-nav-link.o-active{color:#495057;background-color:#fff;border-color:#dee2e6 #dee2e6 #fff}#jpenglishdictionary .o-nav-link{display:block;padding:8px 16px;color:#0d6efd;text-decoration:none;transition:color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out;cursor:pointer}#jpenglishdictionary .o-nav-tabs .o-nav-link{margin-bottom:-1px;background:0 0;border:1px solid transparent;border-top-left-radius:4px;border-top-right-radius:4px;line-height:1.5}#jpenglishdictionary svg:not(:host).o-svg-inline--fa,#jpenglishdictionary svg:not(:root).o-svg-inline--fa{overflow:visible;box-sizing:content-box}#jpenglishdictionary .o-svg-inline--fa{display:inline-block;height:16px;overflow:visible;vertical-align:-2px}#jpenglishdictionary .o-form-check{font-size:16px;font-weight:400;line-height:1.5;color:#212529;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;box-sizing:border-box;display:block;min-height:1.5rem;padding-left:1.5em;margin-bottom:0}#jpenglishdictionary .o-form-check-input{box-sizing:border-box;margin:0;font-family:inherit;font-size:inherit;line-height:inherit;width:1em;height:1em;margin-top:.25em;vertical-align:top;background-color:#fff;background-repeat:no-repeat;background-position:50%;background-size:contain;border:1px solid rgba(0,0,0,.25);-webkit-appearance:none;-moz-appearance:none;appearance:none;-webkit-print-color-adjust:exact;float:left;margin-left:-1.5em;border-radius:.25em}#jpenglishdictionary .o-form-check-input:before{content:""}#jpenglishdictionary .o-form-check-input:checked[type=checkbox]{background-color:#0d6efd;border-color:#0d6efd;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3E%3C/svg%3E")}#jpenglishdictionary del{color:#6c757d!important}#jpenglishdictionary .o-link-primary{color:#0d6efd!important}#jpenglishdictionary .o-link-primary:focus,#jpenglishdictionary .o-link-primary:hover{color:#0a58ca!important;text-decoration:underline!important}#jpenglishdictionary .o-cpt{cursor:pointer!important}#jpenglishdictionary .o-fs-3{font-size:calc(1.3rem + .6vw)!important}#jpenglishdictionary .o-fw-bold{font-weight:700!important}#jpenglishdictionary .o-fs-5{font-size:1.25rem!important}#jpenglishdictionary .o-ms-2{margin-left:.5rem!important}#jpenglishdictionary .o-border-start{border-left:1px solid #dee2e6!important}#jpenglishdictionary .o-border-warning{border-color:#ffc107!important}#jpenglishdictionary .o-border-5{border-width:5px!important}#jpenglishdictionary .o-ps-2{padding-left:.5rem!important}#jpenglishdictionary .o-mt-3{margin-top:1rem!important}#jpenglishdictionary .o-text-success{color:#198754!important}#jpenglishdictionary .o-mb-2{margin-bottom:.5rem!important}#jpenglishdictionary a{color:#0d6efd!important;text-decoration:underline!important}#jpenglishdictionary mark{padding:0!important;background:linear-gradient(transparent 70%,#ff6 0)!important}#jpenglishdictionary .o-analysis span{cursor:pointer}#jpenglishdictionary .o-analysis span:hover{color:#0d6efd;text-decoration:underline}#jpenglishdictionary .o-def{font-weight:700;background-color:#f4f5f6;padding:1px 5px;margin-right:5px;border-radius:4px}@media (min-width:1200px){#jpenglishdictionary .o-fs-3{font-size:1.75rem!important}}#gtx-trans{z-index:2147483637!important}</style></head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"></header><main class="flex flex-col relative w-full px-margin pt-16 bg-surface flex-1"><div class="flex flex-col w-full pb-safe">
+<div class="w-full max-w-[440px] mx-auto flex flex-col gap-space-lg py-space-md">
+<!-- Top Mode Indicator Banner -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary-container text-on-secondary-fixed font-label-ui text-label-ui uppercase tracking-wider rounded-DEFAULT shadow-[2px_2px_0px_#000000] border-[2px] border-black">
+<span class="material-symbols-outlined text-[14px]">celebration</span>
+<span>Casual Party // Free Play</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-container-high text-on-surface-variant font-label-numeric-sm text-label-numeric-sm rounded-DEFAULT border-[2px] border-black">
+<span class="material-symbols-outlined text-[13px] text-tertiary">block</span>
+<span>No Teams • No Pressure</span>
+</div>
+</div>
+<div class="mt-1">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile uppercase text-on-surface tracking-tight">
+          Select Difficulty
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+          Pick word complexity tailored to your group. Zero scorecards, strictly unfiltered fun.
+        </p>
+</div>
+</div>
+<!-- Difficulty Cards Selection Grid -->
+<div aria-label="Game Difficulty" class="flex flex-col gap-space-md" id="difficulty-group" role="radiogroup">
+<!-- Option 1: EASY -->
+<div aria-checked="false" class="difficulty-card group cursor-pointer transition-all duration-150 relative bg-surface-container-lowest border-[3px] border-black p-space-md shadow-[4px_4px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#000000]" id="card-easy" onclick="selectDifficulty('easy')" role="radio" tabindex="0">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 bg-[#10b981] text-surface-container-lowest font-label-ui text-label-ui uppercase border-[2px] border-black shadow-[2px_2px_0px_#000000]">
+                Easy // Casual
+              </span>
+<span class="inline-flex items-center gap-1 font-label-numeric-sm text-label-numeric-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-[#10b981]">bolt</span>
+                Beginner Friendly
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight mt-1">
+              Simple Words
+            </h3>
+</div>
+<div class="radio-indicator w-6 h-6 rounded-DEFAULT border-[2px] border-black bg-surface-container-low flex items-center justify-center shrink-0">
+<span class="radio-check material-symbols-outlined text-[18px] text-on-surface hidden font-bold">check</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+          Everyday items, simple actions, and iconic animals. Perfect for quick warm-ups and effortless laughs.
+        </p>
+<!-- Preview Chips -->
+<div class="mt-space-sm pt-space-xs border-t-[2px] border-black/10 flex flex-wrap gap-1.5 items-center">
+<span class="font-label-ui text-[10px] uppercase text-on-surface-variant tracking-wider mr-1">Samples:</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Apple</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Guitar</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Cat</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Dancing</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Pizza</span>
+</div>
+</div>
+<!-- Option 2: MEDIUM (Selected by Default) -->
+<div aria-checked="true" class="difficulty-card group cursor-pointer transition-all duration-150 relative bg-surface-container-lowest border-[4px] border-black p-space-md shadow-[6px_6px_0px_#000000] ring-4 ring-primary-container" id="card-medium" onclick="selectDifficulty('medium')" role="radio" tabindex="0">
+<!-- Floating highlight badge -->
+<div class="absolute -top-3 right-4 px-2 py-0.5 bg-primary-container text-on-primary-container font-label-ui text-[11px] uppercase border-[2px] border-black shadow-[2px_2px_0px_#000000] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span>Party Sweet Spot</span>
+</div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 bg-primary-container text-on-primary-container font-label-ui text-label-ui uppercase border-[2px] border-black shadow-[2px_2px_0px_#000000]">
+                Medium // Balanced
+              </span>
+<span class="inline-flex items-center gap-1 font-label-numeric-sm text-label-numeric-sm text-on-surface-variant font-bold">
+<span class="material-symbols-outlined text-[15px] text-tertiary">local_fire_department</span>
+                Most Popular
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight mt-1">
+              Words &amp; Phrases
+            </h3>
+</div>
+<div class="radio-indicator w-6 h-6 rounded-DEFAULT border-[2px] border-black bg-primary-container flex items-center justify-center shrink-0">
+<span class="radio-check material-symbols-outlined text-[18px] text-black font-bold block">check</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+          Dynamic mashup of famous movies, snappy two-word combos, and animated actions everyone recognizes.
+        </p>
+<!-- Preview Chips -->
+<div class="mt-space-sm pt-space-xs border-t-[2px] border-black/10 flex flex-wrap gap-1.5 items-center">
+<span class="font-label-ui text-[10px] uppercase text-on-surface-variant tracking-wider mr-1">Samples:</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Moonwalk</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Pirates of Caribbean</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Sleepwalking</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Rock Star</span>
+</div>
+</div>
+<!-- Option 3: HARD -->
+<div aria-checked="false" class="difficulty-card group cursor-pointer transition-all duration-150 relative bg-surface-container-lowest border-[3px] border-black p-space-md shadow-[4px_4px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#000000]" id="card-hard" onclick="selectDifficulty('hard')" role="radio" tabindex="0">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-2 py-0.5 bg-tertiary text-on-tertiary font-label-ui text-label-ui uppercase border-[2px] border-black shadow-[2px_2px_0px_#000000]">
+                Hard // Challenge
+              </span>
+<span class="inline-flex items-center gap-1 font-label-numeric-sm text-label-numeric-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-tertiary">psychology</span>
+                Pro Mimes Only
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight mt-1">
+              Complex Phrases
+            </h3>
+</div>
+<div class="radio-indicator w-6 h-6 rounded-DEFAULT border-[2px] border-black bg-surface-container-low flex items-center justify-center shrink-0">
+<span class="radio-check material-symbols-outlined text-[18px] text-on-surface hidden font-bold">check</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+          Idioms, iconic quotes, abstract situations, and tricky descriptions. Guaranteed chaotic charade performances.
+        </p>
+<!-- Preview Chips -->
+<div class="mt-space-sm pt-space-xs border-t-[2px] border-black/10 flex flex-wrap gap-1.5 items-center">
+<span class="font-label-ui text-[10px] uppercase text-on-surface-variant tracking-wider mr-1">Samples:</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Astronaut on Mars</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Lost in Translation</span>
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black shadow-[1.5px_1.5px_0px_#000000]">Bohemian Rhapsody</span>
+</div>
+</div>
+</div>
+<!-- Quick Settings / Deck Context Bar -->
+<div class="w-full bg-surface-container p-space-md border-[3px] border-black shadow-[3px_3px_0px_#000000] flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface">style</span>
+<span class="font-label-ui text-label-ui uppercase tracking-wide text-on-surface">Card Pack Active</span>
+</div>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-fixed font-label-numeric-sm text-label-numeric-sm border-[1.5px] border-black uppercase font-bold">
+          All Categories
+        </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-numeric-sm text-label-numeric-sm pt-1 border-t-[1.5px] border-black/15">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">all_inclusive</span>
+          Unlimited Words
+        </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">timer_off</span>
+          Pass Anytime / No Limit
+        </span>
+</div>
+</div>
+<!-- Bottom Action Area -->
+<div class="flex flex-col gap-space-sm pt-space-xs">
+<button class="w-full relative group py-3.5 px-space-lg bg-primary-container text-on-primary-container border-[3px] border-black rounded-lg shadow-[4px_4px_0px_#000000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-[0px_0px_0px_#000000] transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer" id="btn-start" onclick="triggerStart()">
+<div class="flex items-center gap-2 font-headline-md text-headline-md uppercase tracking-tight font-extrabold">
+<span>Start Game</span>
+<span class="material-symbols-outlined text-[24px] font-bold group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<span class="font-label-ui text-[11px] tracking-wider uppercase opacity-85">
+          Pass device to first player
+        </span>
+</button>
+<div class="grid grid-cols-2 gap-space-sm mt-1">
+<button class="w-full py-2 px-2 bg-surface-container-lowest text-on-surface border-[2px] border-black rounded-DEFAULT shadow-[2px_2px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[0px_0px_0px_#000000] font-label-ui text-label-ui uppercase tracking-wider flex items-center justify-center gap-1 transition-all" onclick="toggleCategoryModal()">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Filter Packs</span>
+</button>
+<button class="w-full py-2 px-2 bg-surface-container-lowest text-on-surface border-[2px] border-black rounded-DEFAULT shadow-[2px_2px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[0px_0px_0px_#000000] font-label-ui text-label-ui uppercase tracking-wider flex items-center justify-center gap-1 transition-all" onclick="toggleRulesModal()">
+<span class="material-symbols-outlined text-[16px]">help</span>
+<span>House Rules</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Interactive Local JS for Mode Selection & Haptics -->
+<script>
+    let currentDifficulty = 'medium';
+
+    function selectDifficulty(level) {
+      currentDifficulty = level;
+      const cards = ['easy', 'medium', 'hard'];
+
+      cards.forEach(key => {
+        const el = document.getElementById('card-' + key);
+        const radio = el.querySelector('.radio-indicator');
+        const check = el.querySelector('.radio-check');
+
+        if (key === level) {
+          el.setAttribute('aria-checked', 'true');
+          el.classList.remove('border-[3px]', 'shadow-[4px_4px_0px_#000000]', 'ring-0');
+          el.classList.add('border-[4px]', 'shadow-[6px_6px_0px_#000000]', 'ring-4', 'ring-primary-container');
+          
+          radio.classList.remove('bg-surface-container-low');
+          radio.classList.add('bg-primary-container');
+          check.classList.remove('hidden');
+          check.classList.add('block');
+        } else {
+          el.setAttribute('aria-checked', 'false');
+          el.classList.remove('border-[4px]', 'shadow-[6px_6px_0px_#000000]', 'ring-4', 'ring-primary-container');
+          el.classList.add('border-[3px]', 'shadow-[4px_4px_0px_#000000]');
+
+          radio.classList.remove('bg-primary-container');
+          radio.classList.add('bg-surface-container-low');
+          check.classList.remove('block');
+          check.classList.add('hidden');
+        }
+      });
+    }
+
+    function triggerStart() {
+      const btn = document.getElementById('btn-start');
+      btn.style.transform = 'translate(4px, 4px)';
+      btn.style.boxShadow = '0px 0px 0px #000000';
+      
+      setTimeout(() => {
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
+      }, 150);
+    }
+
+    function toggleCategoryModal() {
+      // Visual feedback tap helper
+    }
+
+    function toggleRulesModal() {
+      // Visual feedback tap helper
+    }
+  </script>
+</div></main>
+
+<div id="jpenglishdictionaryLang" value="uk" default="true"></div><div id="jpenglishdictionary"><div class="o-search-mobile" style="top: 0px; left: 0px; display: none;"><img alt="JP English Dictionary" width="27" height="27" src="data:image/png;base64,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" style="width: 27px; height: 27px;"></div><div class="o-popup-tag o-bg-white o-border o-rounded o-shadow" style="width: 400px; top: 0px; left: 0px; display: none;"><div><button type="button" aria-label="Close" class="o-btn-close o-position-absolute o-top-0 o-end-0 o-mt-1 o-me-1"></button><ul role="tablist" class="o-nav o-nav-tabs o-pop-nav"><span><svg aria-hidden="true" focusable="false" data-icon="volume-high" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="o-pop-speak o-link-secondary o-svg-inline--fa"><path fill="currentColor" d="M533.6 32.5C598.5 85.3 640 165.8 640 256s-41.5 170.8-106.4 223.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C557.5 398.2 592 331.2 592 256s-34.5-142.2-88.7-186.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM473.1 107c43.2 35.2 70.9 88.9 70.9 149s-27.7 113.8-70.9 149c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C475.3 341.3 496 301.1 496 256s-20.7-85.3-53.2-111.8c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zm-60.5 74.5C434.1 199.1 448 225.9 448 256s-13.9 56.9-35.4 74.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C393.1 284.4 400 271 400 256s-6.9-28.4-17.7-37.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM301.1 34.8C312.6 40 320 51.4 320 64V448c0 12.6-7.4 24-18.9 29.2s-25 3.1-34.4-5.3L131.8 352H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h67.8L266.7 40.1c9.4-8.4 22.9-10.4 34.4-5.3z"></path></svg></span><li role="presentation" class="o-nav-item"><div data-bs-toggle="tab" aria-selected="true" class="o-nav-link o-active">Look up</div></li><li role="presentation" class="o-nav-item"><div data-bs-toggle="tab" aria-selected="false" class="o-nav-link">Translate</div></li><li role="presentation" class="o-nav-item"><div data-bs-toggle="tab" aria-selected="false" class="o-nav-link">Setting</div></li></ul><div class="o-selected-result o-pt-1"><div> Searching for ... </div></div></div></div></div><div id="englishjpSetting" url="https://english.jpdictionary.com/uk/setting/"></div><div id="jpenglishdictionaryOff" class="jpenglishdictionary-off"></div></body></html>

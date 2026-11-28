@@ -3,6 +3,7 @@ import {
   runTransaction, serverTimestamp, writeBatch, increment, setDoc,
 } from 'firebase/firestore';
 import { db } from './config.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 const list = (s) => s.docs.map((d) => ({ id: d.id, ...d.data() }));
 const noop = () => {};
@@ -60,14 +61,17 @@ export async function awardTop3Prizes() {
     if (cfgSnap.exists() && cfgSnap.data().awarded) {
       throw new Error('Top 3 prizes have already been awarded.');
     }
-    const userSnaps = await Promise.all(top3.map((s) => tx.get(doc(db, 'users', s.userId))));
+    const [userSnaps, s2048Snaps] = await Promise.all([
+      Promise.all(top3.map((s) => tx.get(doc(db, 'users', s.userId)))),
+      Promise.all(top3.map((s) => tx.get(s2048DocRef(s.userId)))),
+    ]);
     const winners = [];
     top3.forEach((entry, idx) => {
       const prize = PRIZES_2048[idx];
       const uSnap = userSnaps[idx];
       if (!uSnap.exists()) return;
       const uRef = doc(db, 'users', entry.userId);
-      tx.update(uRef, { score: increment(prize) });
+      tx.update(uRef, buildUserRewardPatch(uSnap.data(), s2048Snaps[idx], prize));
       tx.set(doc(collection(db, 'pointsLog')), {
         userId: entry.userId,
         delta: prize,

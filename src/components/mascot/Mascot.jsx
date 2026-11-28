@@ -18,7 +18,7 @@ import { formatScore } from '../../utils/format.js';
   - /secret-friend*  -> gift box
   - /killer-game     -> mafia suit & fedora
   - /oscar*          -> golden Oscar statuette
-  And inside her talk panel she offers 3 deals: Gossip (+1 pt), Gift points (to someone from your own stash),
+  And inside her talk panel she offers 3 deals: Gossip (+2 pts), Gift points (to someone from your own stash),
   or Steal points (complete an admin heist task + attach photo proof -> sent for admin approval).
 */
 const S = 0.38;                                  // sprite scale (small mouse)
@@ -63,6 +63,10 @@ const JOKES_PAGE = {
   reflect: [
     'Taking a quiet moment to reflect on today’s memories… 🌱🪞',
     'Mirror, mirror on the wall, who had the best Erasmus+ day of all? ✨',
+  ],
+  crocodile: [
+    'Zero talking, maximum dramatic waving! Even a dragon mouse can mime a pizza! 🐉🍕',
+    'Gestures only! Don’t worry, my tail won’t give away the secret word! 🤫🐊',
   ],
 };
 
@@ -163,6 +167,15 @@ function themeForPath(pathname) {
       peek: ['reflect1', 'reflect2'],
       edge: 'reflect2',
       hello: 'reflect4',
+    };
+  }
+  if (pathname.startsWith('/crocodile')) {
+    return {
+      key: 'crocodile',
+      sit: ['play2048_1', 'play2048_2', 'play2048_3', 'play2048_4'],
+      peek: ['play2048_1', 'play2048_3'],
+      edge: 'play2048_2',
+      hello: 'hello',
     };
   }
   return {
@@ -640,7 +653,7 @@ export default function Mascot() {
               />
               <div className="flex items-center justify-between gap-2">
                 <span className={`font-mono text-[11px] font-bold ${words >= GOSSIP_MIN_WORDS ? 'text-[#15803D]' : 'text-mute'}`}>
-                  {words} {words === 1 ? 'word' : 'words'} · {GOSSIP_MIN_WORDS}+ = {GOSSIP_POINTS} pt
+                  {words} {words === 1 ? 'word' : 'words'} · {GOSSIP_MIN_WORDS}+ = {GOSSIP_POINTS} {GOSSIP_POINTS === 1 ? 'pt' : 'pts'}
                 </span>
                 <button className="btn bg-neon text-ink text-xs py-1.5" disabled={busy} onClick={submitGossip}>
                   {busy ? '…' : 'Send anonymously'}

@@ -67,8 +67,8 @@ export default function MouseRunPage() {
 
         {profile && (
           <div className="box px-4 py-2 max-w-md w-full mx-auto flex items-center justify-between gap-2 bg-white">
-            <span className="font-mono text-xs text-mute uppercase font-bold">Spendable 2048 balance</span>
-            <b className="font-mono text-sm font-extrabold tabular-nums">{wallet2048.toLocaleString('en-US')} 2048 PTS</b>
+            <span className="font-mono text-xs text-mute uppercase font-bold">Spendable Outfit Coins</span>
+            <b className="font-mono text-sm font-extrabold tabular-nums">{wallet2048.toLocaleString('en-US')} Coins</b>
           </div>
         )}
 

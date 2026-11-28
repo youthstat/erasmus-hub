@@ -14,6 +14,7 @@ import {
 } from '../config/costumes.js';
 import { isCostumeUnlocked } from '../firebase/mouseAvatar.js';
 import { formatScore } from '../utils/format.js';
+import { HUB_STICKERS } from '../assets/stickers/index.js';
 
 export default function MouseAvatarPage() {
   const { profile, wallet2048, openAccount, saveMouseLook, buyMouseCostume } = useApp();
@@ -92,13 +93,15 @@ export default function MouseAvatarPage() {
         currency,
         bgColor,
       });
-      const spent =
-        res.price === 0
-          ? ''
-          : res.currency === 'game2048'
-            ? ` (${res.price.toLocaleString('en-US')} 2048 PTS)`
+      if (res.price === 0) {
+        setOk(`Unlocked "${res.costume.name}"!`);
+      } else {
+        const spent =
+          res.currency === 'game2048'
+            ? ` (${res.price.toLocaleString('en-US')} Outfit Coins)`
             : ` (${res.price} PTS)`;
-      setOk(`Unlocked "${res.costume.name}"${spent}!`);
+        setOk(`Unlocked "${res.costume.name}"${spent}!`);
+      }
     } catch (err) {
       setMsg(err.message || 'Could not unlock outfit.');
     }
@@ -109,18 +112,26 @@ export default function MouseAvatarPage() {
     <>
       <Marquee
         className="bg-[#FF94B8] text-ink"
-        items={['CUSTOMIZE YOUR MOUSE', 'PICK OUTFIT & BACKGROUND', 'BUY WITH HUB PTS OR 2048 POINTS']}
+        items={['CUSTOMIZE YOUR MOUSE', 'PICK OUTFIT & BACKGROUND', 'BUY WITH HUB PTS OR OUTFIT COINS']}
       />
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-5">
         <Header back />
 
         {/* Compact header + balances */}
         <section className="box p-3 sm:p-4 bg-[#FF94B8] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-3xl font-extrabold uppercase leading-none tracking-tight">Customize my mouse</h1>
-            <p className="font-mono text-[11px] sm:text-xs font-bold mt-1">
-              {FREE_COSTUME_COUNT} classic looks free · {COSTUMES.length - FREE_COSTUME_COUNT} outfits to unlock · earn Outfit Coins in Erasmus+ Stop 5 &amp; 2048!
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src={HUB_STICKERS.wardrobeBanner}
+              alt="Wardrobe"
+              draggable={false}
+              className="h-12 sm:h-14 w-auto object-contain shrink-0 drop-shadow-[0_2px_0_rgba(17,17,17,0.2)]"
+            />
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-3xl font-extrabold uppercase leading-none tracking-tight">Customize my mouse</h1>
+              <p className="font-mono text-[11px] sm:text-xs font-bold mt-1">
+                {FREE_COSTUME_COUNT} classic looks free · {COSTUMES.length - FREE_COSTUME_COUNT} outfits to unlock · earn 100 Outfit Coins for every +1 Hub PT!
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-2 sm:gap-3 shrink-0">
@@ -184,7 +195,7 @@ export default function MouseAvatarPage() {
                 <p className="font-mono text-[10px] sm:text-xs font-bold text-mute mt-0.5 leading-snug">
                   {unlocked
                     ? 'Ready as your avatar'
-                    : `${nextPrice.pts} PTS or ${nextPrice.game2048.toLocaleString('en-US')} 2048`}
+                    : `${nextPrice.pts} PTS or ${nextPrice.game2048.toLocaleString('en-US')} Coins`}
                 </p>
               </div>
 
@@ -305,11 +316,14 @@ export default function MouseAvatarPage() {
                     key={c.id}
                     type="button"
                     onClick={() => setCat(c.id)}
-                    className={`border-2 border-ink rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 font-mono text-[10px] sm:text-xs font-extrabold uppercase transition ${
+                    className={`border-2 border-ink rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 font-mono text-[10px] sm:text-xs font-extrabold uppercase transition flex items-center gap-1.5 cursor-pointer ${
                       active ? 'bg-ink text-white shadow-b2' : 'bg-paper text-ink hover:bg-sun/40'
                     }`}
                   >
-                    {c.label}
+                    {c.sticker && (
+                      <img src={c.sticker} alt="" className="h-5 sm:h-6 w-auto object-contain shrink-0" draggable={false} />
+                    )}
+                    <span>{c.label}</span>
                   </button>
                 );
               })}

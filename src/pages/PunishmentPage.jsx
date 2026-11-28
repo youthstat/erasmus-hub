@@ -74,7 +74,7 @@ export default function PunishmentPage() {
     later(t, () => { setFlight('in'); setFlightKey((k) => k + 1); });
     later(t + 950, () => setFlight(null));
     const end = closeLid(t + 950);
-    later(end + 150, () => { setBusy(false); setOkMsg(`Thrown into the box! +${PUNISHMENT_REWARD} point added to your rating.`); });
+    later(end + 150, () => { setBusy(false); setOkMsg(`Thrown into the box! +${PUNISHMENT_REWARD} ${PUNISHMENT_REWARD === 1 ? 'point' : 'points'} (+${PUNISHMENT_REWARD * 100} Outfit Coins) added!`); });
   };
 
   /* ---- draw: warning first, then the lid opens and one paper comes out and unfolds ---- */
@@ -109,7 +109,7 @@ export default function PunishmentPage() {
         </Banner>
 
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-neon p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Write one</div><div className="text-2xl sm:text-3xl font-extrabold">+{PUNISHMENT_REWARD} PT</div><div className="font-mono text-[11px] sm:text-xs">for every punishment you throw in · max {PUNISHMENT_DAILY_LIMIT} a day</div></div>
+          <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-neon p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Write one</div><div className="text-2xl sm:text-3xl font-extrabold">+{PUNISHMENT_REWARD} {PUNISHMENT_REWARD === 1 ? 'PT' : 'PTS'}</div><div className="font-mono text-[11px] sm:text-xs">for every punishment you throw in · max {PUNISHMENT_DAILY_LIMIT} a day</div></div>
           <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-hot text-white p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Draw one</div><div className="text-2xl sm:text-3xl font-extrabold">−{PUNISHMENT_COST} PTS</div><div className="font-mono text-[11px] sm:text-xs">for every paper you take out</div></div>
           <div className="border-[3px] border-ink rounded-xl shadow-b4 bg-white p-4"><div className="font-mono text-[11px] sm:text-xs font-bold uppercase">Anonymous</div><div className="text-2xl sm:text-3xl font-extrabold">Nobody knows</div><div className="font-mono text-[11px] sm:text-xs">who wrote which paper</div></div>
         </section>

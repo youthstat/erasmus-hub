@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, runTransaction, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from './config.js';
 import { KILL_STORY_MAX, SF_PROFILE_BONUS, SF_PROFILE_MIN, SF_PROFILE_MAX, SF_PROFILE_FIELDS } from '../config/settings.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 /*
   Firestore collections
@@ -66,15 +67,16 @@ export async function saveSfProfile(userId, input) {
   if (!hasContent) throw fail('empty', 'Fill in at least one section of your profile before saving.');
   const pRef = doc(db, GAMES.sf.players, userId);
   const uRef = doc(db, 'users', userId);
+  const sRef = s2048DocRef(userId);
   return runTransaction(db, async (tx) => {
-    const [p, u] = await Promise.all([tx.get(pRef), tx.get(uRef)]);
+    const [p, u, s2048Snap] = await Promise.all([tx.get(pRef), tx.get(uRef), tx.get(sRef)]);
     if (!p.exists() || !isJoined(p.data())) throw fail('missing', 'Join the Secret friend game first.');
     const patch = { profile: clean, profileUpdatedAt: serverTimestamp() };
     let bonus = false;
     if (!p.data().profileBonus && u.exists()) {
       bonus = true;
       patch.profileBonus = true;
-      tx.update(uRef, { score: increment(SF_PROFILE_BONUS) });
+      tx.update(uRef, buildUserRewardPatch(u.data(), s2048Snap, SF_PROFILE_BONUS));
       tx.set(doc(collection(db, 'pointsLog')), { userId, delta: SF_PROFILE_BONUS, reason: 'Secret friend: filled in the profile', createdAt: serverTimestamp() });
     }
     tx.update(pRef, patch);

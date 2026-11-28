@@ -1,6 +1,7 @@
-import { collection, doc, increment, onSnapshot, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, onSnapshot, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db } from './config.js';
 import { MOUSERUN_DAILY_CAP, MOUSERUN_POINTS_PER_STAR } from '../config/settings.js';
+import { buildUserRewardPatch, s2048DocRef } from './wallet.js';
 
 /*
   Rattie Run — Firestore
@@ -18,14 +19,15 @@ export async function exchangeStars(user, stars, points) {
   if (!safe) throw fail('empty', 'No stars to exchange.');
   return runTransaction(db, async (tx) => {
     const uRef = doc(db, 'users', user.id);
+    const sRef = s2048DocRef(user.id);
     const dRef = doc(db, 'mouseRunDaily', `${user.id}_${dayKey()}`);
-    const [u, d] = await Promise.all([tx.get(uRef), tx.get(dRef)]);
+    const [u, d, s2048Snap] = await Promise.all([tx.get(uRef), tx.get(dRef), tx.get(sRef)]);
     if (!u.exists()) throw fail('nouser', 'Account not found.');
     const used = d.exists() ? d.data().points || 0 : 0;
     const granted = Math.min(safe, MOUSERUN_DAILY_CAP - used);
     if (granted <= 0) throw fail('limit', `Daily limit reached (${MOUSERUN_DAILY_CAP} points). Come back tomorrow!`);
     tx.set(dRef, { userId: user.id, day: dayKey(), points: used + granted });
-    tx.update(uRef, { score: increment(granted) });
+    tx.update(uRef, buildUserRewardPatch(u.data(), s2048Snap, granted));
     tx.set(doc(collection(db, 'pointsLog')), { userId: user.id, delta: granted, reason: 'Rattie Run: stars exchanged', createdAt: serverTimestamp() });
     return granted;
   });
